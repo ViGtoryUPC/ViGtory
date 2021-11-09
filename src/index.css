@@ -1,0 +1,118 @@
+/*Fons amb gradient*/
+html{
+	/*background-image: linear-gradient(rgba(255,255,255,1), rgba(0,127,191,1));*/
+	background-image: linear-gradient(rgba(255,255,255,1), rgba(127,191,223,1));
+	background-size: cover;
+	min-height: 100%;
+}
+
+body {
+	font: 14px "Century Gothic", Futura, sans-serif;
+	margin: 20px;
+	overflow-y: scroll;
+	background-color: rgba(0, 0, 0, 0.0) !important;
+}
+
+_title_image{
+	display: block;
+	margin: auto;
+}
+
+p{
+	text-align: center;
+}
+
+.content{
+
+	margin: auto;
+	margin-top: 20vh; /*AJUSTAR ESTO CUANDO AÑADA LA IMAGEN DEL LOGO Y DEMÁS*/
+	overflow: visible;
+	--b_width: min(0.5vh, 1vw);
+	--b_color: rgba(0,127,191,1);
+	/*--b_img: linear-gradient(to right, red, green);*/
+}
+.content_wrapper{
+	position: relative;
+
+	padding: 10px 20px 10px 20px;
+
+	text-align: left;
+	font-size: 15px;
+	/*font-family: monospace;*/
+	color: black;
+
+	border-width: var(--b_width);
+	border-color: var(--b_color);
+	/*border-image: var(--b_img);*/
+	background-color: #f1f1f1;
+
+	border-radius: 15px 15px 15px 15px;
+	border-style: solid solid solid solid;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+.interactiveToggleLoginRegister{
+	text-decoration: underline;
+}
+.interactiveToggleLoginRegister:hover{
+	cursor: pointer;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* PANTALLA MÉS ALTA QUE BAIXA */
+@media screen and (orientation:portrait) {
+
+	#app_title_image{
+		width: 90vw;
+	}
+
+	.content{
+		width: 80vw;
+	}
+	.content_wrapper{
+		font-size: max(calc(6px + 2vw), 15px);
+	}
+
+
+}
+
+
+/* PANTALLA MÉS BAIXA QUE ALTA */
+@media screen and (orientation:landscape) {
+
+	#app_title_image{
+		width: max(70vh, 400px);
+	}
+
+	.content{
+		width: max(60vh, 300px);
+	}
+	.content_wrapper{
+		font-size: max(calc(4px + 1.5vh), 15px);
+	}
+
+
+}
