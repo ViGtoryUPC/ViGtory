@@ -2,8 +2,8 @@ import React from 'react';
 import { Accordion, Button, Card, InputGroup, Form, FormControl } from 'react-bootstrap';
 import { useAccordionButton } from 'react-bootstrap/AccordionButton';
 import ReactDOM from 'react-dom';
-import './index.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './index.css';
 
 
 function Square(props) {
