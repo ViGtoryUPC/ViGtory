@@ -232,9 +232,9 @@ function calculateWinner(squares) {
 
 
 
-function validate_content_regex(event, validations){
+function validate_content_regex(content, validations){
 	//Comprobamos errores de formato con Regex
-	let content = event.currentTarget.value;
+	//let content = event.currentTarget.value;
 	//console.log(content);
 
 	for (let i = 0; i < validations.length; i++) {
@@ -273,17 +273,23 @@ class UsernameInput extends React.Component {
 
 	validate_content_clientside(event){
 
-		//Comprobamos errores de formato con Regex
-		let regex_val_err_msg = validate_content_regex(event, this.props.validation_rgx_msg);
-		if (regex_val_err_msg !== false){
-			//console.log("err_msg: " + regex_val_err_msg);
-			this.setState({
-				valid: false,
-				//err_msg: validations[i][regex]
-				err_msg: regex_val_err_msg
-			});
-			//console.log("err_msg: " + this.state.err_msg);
-			return;
+		let content = event.currentTarget.value;
+
+		if (content.length > 0){
+
+			//Comprobamos errores de formato con Regex
+			let regex_val_err_msg = validate_content_regex(content, this.props.validation_rgx_msg);
+			if (regex_val_err_msg !== false){
+				//console.log("err_msg: " + regex_val_err_msg);
+				this.setState({
+					valid: false,
+					//err_msg: validations[i][regex]
+					err_msg: regex_val_err_msg
+				});
+				//console.log("err_msg: " + this.state.err_msg);
+				return;
+			}
+			
 		}
 
 		//Si todo es correcto
@@ -335,48 +341,51 @@ class PasswordInput extends React.Component {
 			pwTconfF: (props.form_field_name.split("_").length < 3),
 			logTregF: (props.form_field_name.split("_")[0] === "login")
 		};
+		this.pwd_txt = "";
 	}
 
 	getPasswordText(){
 		return this.state.password_txt;
 	}
 
-	validate_content_clientside(event){
+	validate_content_clientside(){
 
-		let password_txt = event.currentTarget.value;
+
+		let password_txt = this.pwd_txt; //event.currentTarget.value;
+		//console.log(this.props.form_field_name + ":   " + password_txt);
 
 		let valid = true;
 		let err_msg = "";
 		let pwTconfF = this.state.pwTconfF;
 		let logTregF = this.state.logTregF;
 
+		if (password_txt.length > 0){
+			//Si es un campo de contraseña original
+			if (pwTconfF){
 
-		//Si es un campo de contraseña original
-		if (pwTconfF){
-
-			if (!logTregF){
-				//Si estamos en el formulario de registro, actualizamos la contraseña común para la confirmación
-				this.props.main_password_action(password_txt);
-			}
-			
-			//Comprobamos errores de formato con Regex
-			let regex_val_err_msg = validate_content_regex(event, this.props.validation_rgx_msg);
-			if (regex_val_err_msg !== false){
+				if (!logTregF){
+					//Si estamos en el formulario de registro, actualizamos la contraseña común para la confirmación
+					this.props.main_password_action(password_txt);
+				}
 				
-				valid = false;
-				err_msg = regex_val_err_msg;
+				//Comprobamos errores de formato con Regex
+				let regex_val_err_msg = validate_content_regex(password_txt, this.props.validation_rgx_msg);
+				if (regex_val_err_msg !== false){
+					
+					valid = false;
+					err_msg = regex_val_err_msg;
 
+				}
+			}
+			//Si es un campo de confirmar contraseña
+			else{
+				//Comprobamos que las contraseñas coincidan
+				if ((this.props.main_password_action() !== password_txt)){
+					valid = false;
+					err_msg = "Les contrasenyes han de coincidir.";
+				}
 			}
 		}
-		//Si es un campo de confirmar contraseña
-		else{
-			//Comprobamos que las contraseñas coincidan
-			if (this.props.main_password_action() !== password_txt){
-				valid = false;
-				err_msg = "Les contrasenyes han de coincidir.";
-			}
-		}
-
 
 		//Actualizamos el estado
 		this.setState({
@@ -408,7 +417,7 @@ class PasswordInput extends React.Component {
 					name={(pwTconfF ? "p" : "confirmP")+"assword"} 
 					placeholder="contrasenya" 
 					defaultValue=""
-					onChange={this.validate_content_clientside.bind(this)}
+					onChange={(e) => {this.pwd_txt=e.currentTarget.value; this.validate_content_clientside();}}
 					required 
 					isInvalid={!this.state.valid}
 				/>
@@ -434,14 +443,20 @@ class MailInput extends React.Component {
 
 	validate_content_clientside(event){
 
-		//Comprobamos errores de formato con Regex
-		let regex_val_err_msg = validate_content_regex(event, this.props.validation_rgx_msg);
-		if (regex_val_err_msg !== false){
-			this.setState({
-				valid: false,
-				err_msg: regex_val_err_msg
-			});
-			return;
+		let content = event.currentTarget.value;
+
+		if (content.length > 0){
+
+			//Comprobamos errores de formato con Regex
+			let regex_val_err_msg = validate_content_regex(content, this.props.validation_rgx_msg);
+			if (regex_val_err_msg !== false){
+				this.setState({
+					valid: false,
+					err_msg: regex_val_err_msg
+				});
+				return;
+			}
+
 		}
 
 		//Si todo es correcto
@@ -535,20 +550,21 @@ class RegisterForm extends React.Component {
 
 	constructor(props) {
 		super(props);
-		this.state = {
-			main_pwd_txt: ""
-		};
+		this.main_pwd_txt = "";
+		this.password = <PasswordInput form_field_name="register_password"  validation_rgx_msg={this.props.validation_rgx_msg.password} main_password_action={(pwd) => this.updateMainPassword(pwd)} />;
+
+		this.childRef = React.createRef();
+		this.confirmPassword = <PasswordInput form_field_name="register_password_confirm" ref={this.childRef} main_password_action={() => this.getMainPassword()} />
 	}
 
 	updateMainPassword(pwd){
 		//console.log("UPDATE: "+pwd);
-		this.setState({
-			main_pwd_txt: pwd
-		});
+		this.main_pwd_txt =  pwd;
+		this.childRef.current.validate_content_clientside();
 	}
 	getMainPassword(){
 		//console.log("GET: "+this.state.main_pwd_txt);
-		return this.state.main_pwd_txt;
+		return this.main_pwd_txt;
 	}
 
 
@@ -557,9 +573,7 @@ class RegisterForm extends React.Component {
 		let user = <UsernameInput form_field_name="register_username" validation_rgx_msg={this.props.validation_rgx_msg.username} />;
 		//console.log(user.props.form_field_name);
 
-		let password = <PasswordInput form_field_name="register_password"  validation_rgx_msg={this.props.validation_rgx_msg.password} main_password_action={(pwd) => this.updateMainPassword(pwd)} />;
-
-		let confirmPassword = <PasswordInput form_field_name="register_password_confirm" main_password_action={() => this.getMainPassword()} />
+		
 
 		let mail = <MailInput form_field_name="register_mail" validation_rgx_msg={this.props.validation_rgx_msg.mail} />;
 
@@ -569,8 +583,8 @@ class RegisterForm extends React.Component {
 			<Form noValidate method="post" action="http://httpbin.org/post">
 				<h1>Crea un nou compte:</h1>
 				{user}
-				{password}
-				{confirmPassword}
+				{this.password}
+				{this.confirmPassword}
 				{mail}
 				{degree}
 				<p><Button type="submit" className="mt-3 mb-2">Crea compte</Button></p>
