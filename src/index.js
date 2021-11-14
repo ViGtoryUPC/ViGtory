@@ -893,6 +893,16 @@ class InitialScreen extends React.Component {
 
 			<Accordion defaultActiveKey="accord_login" className="content">
 
+
+				<Accordion.Collapse eventKey="accord_register" >
+					<div>
+					<div className="content_wrapper">
+					<RegisterForm validation_rgx_msg={validation_rgx_msg} degreeList={degreeList} />
+					</div>
+					<br/><br/><br/><br/><br/><br/><br/><br/><br/>
+					</div>
+				</Accordion.Collapse>
+
 				<Accordion.Collapse eventKey="accord_login" >
 					<div>
 					<div className="content_wrapper">
@@ -902,15 +912,7 @@ class InitialScreen extends React.Component {
 					</div>
 				</Accordion.Collapse>
 
-				<Accordion.Collapse eventKey="accord_register">
-					<div>
-					<div className="content_wrapper">
-					<RegisterForm validation_rgx_msg={validation_rgx_msg} degreeList={degreeList} />
-					</div>
-					<br/><br/><br/><br/><br/><br/><br/><br/><br/>
-					</div>
-				</Accordion.Collapse>
-
+				
 			</Accordion>
 
 			</>
