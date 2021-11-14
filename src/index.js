@@ -1,11 +1,13 @@
 import React from 'react';
-import { Accordion, Button, Card, InputGroup, Form, FormControl } from 'react-bootstrap';
+import { Accordion, Button, Form, FloatingLabel } from 'react-bootstrap';
 import { useAccordionButton } from 'react-bootstrap/AccordionButton';
 import ReactDOM from 'react-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './index.css';
+import './libraries/cookie'
+import logo_ViGtory from './assets/images/ViGtory_logo_alt.png';
 
-
+/*
 function Square(props) {
 	return (
 		<button className="square" onClick={props.onClick}>
@@ -167,7 +169,7 @@ function calculateWinner(squares) {
 	}
 	return null;
 }
-
+*/
 
 
 
@@ -268,12 +270,15 @@ class UsernameInput extends React.Component {
 			valid: true,
 			err_msg: ""
 		};
+		this.content_txt = "";
+		this.valid = true;
 	}
 
 
 	validate_content_clientside(event){
 
 		let content = event.currentTarget.value;
+		//console.log(content);
 
 		if (content.length > 0){
 
@@ -286,10 +291,11 @@ class UsernameInput extends React.Component {
 					//err_msg: validations[i][regex]
 					err_msg: regex_val_err_msg
 				});
+				this.valid = false;
 				//console.log("err_msg: " + this.state.err_msg);
 				return;
 			}
-			
+
 		}
 
 		//Si todo es correcto
@@ -297,6 +303,7 @@ class UsernameInput extends React.Component {
 			valid: true,
 			err_msg: ""
 		});
+		this.valid = true;
 	}
 
 
@@ -307,12 +314,13 @@ class UsernameInput extends React.Component {
 		return(
 
 			<Form.Floating className="mt-3">
+					{/*onChange={this.validate_content_clientside.bind(this)}*/}
 				<Form.Control
 					type="text" 
 					name={"username"} 
 					placeholder="usuari" 
 					defaultValue=""
-					onChange={this.validate_content_clientside.bind(this)}
+					onChange={(e) => {this.content_txt=e.currentTarget.value; this.validate_content_clientside(e); this.props.global_validity_action();}}
 					required 
 					isInvalid={!this.state.valid}
 				/>
@@ -331,6 +339,11 @@ class UsernameInput extends React.Component {
 
 
 
+
+
+
+
+
 class PasswordInput extends React.Component {
 
 	constructor(props) {
@@ -341,17 +354,15 @@ class PasswordInput extends React.Component {
 			pwTconfF: (props.form_field_name.split("_").length < 3),
 			logTregF: (props.form_field_name.split("_")[0] === "login")
 		};
-		this.pwd_txt = "";
+		this.content_txt = "";
+		this.valid = true;
 	}
 
-	getPasswordText(){
-		return this.state.password_txt;
-	}
 
 	validate_content_clientside(){
 
 
-		let password_txt = this.pwd_txt; //event.currentTarget.value;
+		let password_txt = this.content_txt; //event.currentTarget.value;
 		//console.log(this.props.form_field_name + ":   " + password_txt);
 
 		let valid = true;
@@ -394,6 +405,7 @@ class PasswordInput extends React.Component {
 			pwTconfF: pwTconfF,
 			logTregF: logTregF
 		});
+		this.valid = valid;
 	}
 
 
@@ -417,7 +429,7 @@ class PasswordInput extends React.Component {
 					name={(pwTconfF ? "p" : "confirmP")+"assword"} 
 					placeholder="contrasenya" 
 					defaultValue=""
-					onChange={(e) => {this.pwd_txt=e.currentTarget.value; this.validate_content_clientside();}}
+					onChange={(e) => {this.content_txt=e.currentTarget.value; this.validate_content_clientside(); this.props.global_validity_action();}}
 					required 
 					isInvalid={!this.state.valid}
 				/>
@@ -431,6 +443,11 @@ class PasswordInput extends React.Component {
 	};
 }
 
+
+
+
+
+
 class MailInput extends React.Component {
 	constructor(props) {
 		super(props);
@@ -438,6 +455,8 @@ class MailInput extends React.Component {
 			valid: true,
 			err_msg: ""
 		};
+		this.content_txt = "";
+		this.valid = true;
 	}
 
 
@@ -454,6 +473,7 @@ class MailInput extends React.Component {
 					valid: false,
 					err_msg: regex_val_err_msg
 				});
+				this.valid = false;
 				return;
 			}
 
@@ -464,6 +484,7 @@ class MailInput extends React.Component {
 			valid: true,
 			err_msg: ""
 		});
+		this.valid = true;
 	}
 
 
@@ -477,7 +498,7 @@ class MailInput extends React.Component {
 					name={"email"} 
 					placeholder="usuari@domini.xyz" 
 					defaultValue=""
-					onChange={this.validate_content_clientside.bind(this)}
+					onChange={(e) => {this.content_txt=e.currentTarget.value; this.validate_content_clientside(e); this.props.global_validity_action();}}
 					required 
 					isInvalid={!this.state.valid}
 				/>
@@ -492,11 +513,41 @@ class MailInput extends React.Component {
 	};
 }
 
+
+
+
+
+
 class DegreeInput extends React.Component {
 	render(){
-		return(<Form.Select field_name="Grau d'estudis" form_field_name="degree"/>);
+		//return(<Form.Select field_name="Grau d'estudis" form_field_name="degree"/>);
+		
+		return(
+
+			<FloatingLabel className="mt-3 mb-2" label="Grau d'estudis d'interès">
+				<Form.Select name={"degree"} aria-label="Floating label select example">
+
+					{this.props.degreeList.map((deg_name, i) => { return (
+						<option value={i} key={i}>{deg_name}</option>
+					)})}
+
+				</Form.Select>
+			</FloatingLabel>
+
+		);
 	};
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -515,24 +566,148 @@ function ScreenToggleLoginRegister({ children, eventKey }){
 }
 
 
+
+
+
+
+
+
+
+async function fetchWithTimeout(resource, options = {}) {
+	const { timeout = 8000 } = options;
+	
+	const controller = new AbortController();
+	const id = setTimeout(() => controller.abort(), timeout);
+	const response = await fetch(resource, {
+	  ...options,
+	  signal: controller.signal  
+	});
+	clearTimeout(id);
+	return response;
+  }
+
+
+
+
+
+async function submitDataToAPI(event, route){
+	//console.log(event.currentTarget.action);
+	//event.currentTarget.submit();
+		//event.currentTarget.action = "http://vigtory.ddnsfree.com:27017/user/" + route;
+	//console.log(event.currentTarget.action);
+	//event.currentTarget.submit();
+
+	const data = new URLSearchParams();
+	for (const pair of new FormData(event.currentTarget)) {
+		data.append(pair[0], pair[1]);
+	}
+	console.log("DATA===============\n\n"+data+"\n\n==================");
+
+
+	
+
+	//https://developer.mozilla.org/es/docs/Web/API/Fetch_API/Using_Fetch
+	//https://dmitripavlutin.com/javascript-fetch-async-await/
+	//https://dmitripavlutin.com/timeout-fetch-request/
+	
+
+	let response = "";
+	try {
+		response /*const promise*/ = await fetchWithTimeout(
+			event.currentTarget.action, 
+			{
+				method: "GET",
+				body: data,
+				timeout: 5000
+			}
+		);
+		//response = await promise.json();
+	} catch (error) {
+		if (error.name === 'AbortError'){
+			alert("En aquests moments sembla que no podem contactar els nostres servidors.\nTorna a intentar-ho més endevant.");
+		}
+		else {console.log(response.statusText);}
+		//return;
+	}
+
+	//Si todo es correcto (200-299) logeamos al user y le llevamos a Home
+	if (response.ok){
+		console.log(response.status+" OK")
+
+
+		return;
+	}
+	//Si ha habido algún otro error.....
+	alert(response.statusText);
+
+
+	//HACE FALTA ACABAR DE ARREGLAR LOS STATUS TEXT!!!!!!!!
+	console.log("HACE FALTA ACABAR DE ARREGLAR LOS STATUS TEXT Y DEMÁS!!!!!!!!");
+	console.log("https://stackoverflow.com/questions/41956465/how-to-create-multiple-page-app-using-react ???????????? https://stackoverflow.com/questions/37295377/how-to-navigate-from-one-page-to-another-in-react-js  ????????????????????????????? React Router vs el clásico window.open ???????")
+
+
+
+}
+
+
+
+
+
+
+
 class LoginForm extends React.Component {
 	
+	constructor(props) {
+		super(props);
+
+		this.state = {allValid: false};
+
+		this.user_ref = React.createRef();
+		this.user = <UsernameInput form_field_name="login_username" ref={this.user_ref} validation_rgx_msg={this.props.validation_rgx_msg.username} global_validity_action={() => this.checkLocalValidity()} />;
+
+		this.password_ref = React.createRef();
+		this.password = <PasswordInput form_field_name="login_password" ref={this.password_ref} validation_rgx_msg={this.props.validation_rgx_msg.password} main_password_action={(pwd) => this.updateMainPassword(pwd)} global_validity_action={() => this.checkLocalValidity()} />;
+
+
+		this.ref_list = [this.user_ref, this.password_ref];
+	}
+
+
+
+	checkLocalValidity(){
+		let valid = true;
+		for (let i=0; i<this.ref_list.length && valid; i++){
+			valid = this.ref_list[i].current.valid && (this.ref_list[i].current.content_txt !== "");
+		}
+		this.setState({allValid: valid});
+		return valid;
+	}
+
+	submitButtonAction(event){
+		event.preventDefault();
+		if (!this.checkLocalValidity()){
+			alert("Tots els camps han de ser omplerts correctament.");
+		}
+		//console.log("TOT CORRECTE!");
+
+		submitDataToAPI(event, "signIn");
+	}
+
+
+
+
 	render(){
 		/*let User = new UsernameInput();
 		User.props.form_field_name="login_username";
 		User.props.validation_rgx_msg=this.props.validation_rgx_msg.username;*/
 
-		let user = <UsernameInput form_field_name="login_username" validation_rgx_msg={this.props.validation_rgx_msg.username} />;
-		//console.log(user.props.form_field_name);
-
-		let password = <PasswordInput form_field_name="login_password" validation_rgx_msg={this.props.validation_rgx_msg.password} />;
 
 		return(
-			<Form noValidate method="post" action="http://httpbin.org/post">
+			<Form noValidate method="post" action="http://httpbin.org/post" onSubmit={(e) => this.submitButtonAction(e)} >
 				<h1>Inicia sessió:</h1>
-				{user}
-				{password}
-				<p><Button type="submit" className="mt-3 mb-2">Accedeix</Button></p>
+				{this.user}
+				{this.password}
+				<p><Button type="submit" className="mt-3 mb-2" disabled={!this.state.allValid}>Accedeix</Button></p>
 				{/*<p className="mt-3 mb-4">
 					Has oblidat la teva contrasenya?&nbsp;
 					<ScreenToggleLoginRegister eventKey="accord_register">Clica aquí!</ScreenToggleLoginRegister>
@@ -550,17 +725,31 @@ class RegisterForm extends React.Component {
 
 	constructor(props) {
 		super(props);
-		this.main_pwd_txt = "";
-		this.password = <PasswordInput form_field_name="register_password"  validation_rgx_msg={this.props.validation_rgx_msg.password} main_password_action={(pwd) => this.updateMainPassword(pwd)} />;
 
-		this.childRef = React.createRef();
-		this.confirmPassword = <PasswordInput form_field_name="register_password_confirm" ref={this.childRef} main_password_action={() => this.getMainPassword()} />
+		this.state = {allValid: false};
+
+		this.main_pwd_txt = "";
+
+		this.user_ref = React.createRef();
+		this.user = <UsernameInput form_field_name="register_username" ref={this.user_ref} validation_rgx_msg={this.props.validation_rgx_msg.username} global_validity_action={() => this.checkLocalValidity()} />;
+
+		this.password_ref = React.createRef();
+		this.password = <PasswordInput form_field_name="register_password" ref={this.password_ref} validation_rgx_msg={this.props.validation_rgx_msg.password} main_password_action={(pwd) => this.updateMainPassword(pwd)} global_validity_action={() => this.checkLocalValidity()} />;
+
+		this.password_confirm_ref = React.createRef();
+		this.confirmPassword = <PasswordInput form_field_name="register_password_confirm" ref={this.password_confirm_ref} main_password_action={() => this.getMainPassword()} global_validity_action={() => this.checkLocalValidity()} />;
+
+		this.mail_ref = React.createRef();
+		this.mail = <MailInput form_field_name="register_mail" ref={this.mail_ref} validation_rgx_msg={this.props.validation_rgx_msg.mail} global_validity_action={() => this.checkLocalValidity()} />;
+
+		this.ref_list = [this.user_ref, this.password_ref, this.password_confirm_ref, this.mail_ref];
 	}
 
 	updateMainPassword(pwd){
 		//console.log("UPDATE: "+pwd);
 		this.main_pwd_txt =  pwd;
-		this.childRef.current.validate_content_clientside();
+		this.password_confirm_ref.current.validate_content_clientside();
+
 	}
 	getMainPassword(){
 		//console.log("GET: "+this.state.main_pwd_txt);
@@ -568,26 +757,48 @@ class RegisterForm extends React.Component {
 	}
 
 
+
+
+	checkLocalValidity(){
+		let valid = true;
+		for (let i=0; i<this.ref_list.length && valid; i++){
+			//valid = this.ref_list[i].current.state.valid && (this.ref_list[i].current.content_txt !== "");
+			valid = this.ref_list[i].current.valid && (this.ref_list[i].current.content_txt !== "");
+			//console.log(this.ref_list[i].current.content_txt);
+		}
+		//console.log(this.password_ref.current.pwd_txt);
+		this.setState({allValid: valid});
+		return valid;
+	}
+
+	submitButtonAction(event){
+		event.preventDefault();
+		if (!this.checkLocalValidity()){
+			alert("Tots els camps han de ser omplerts correctament.");
+		}
+		//console.log("TOT CORRECTE!");
+
+		submitDataToAPI(event, "signUp");
+
+	}
+
+
+
 	render(){
 
-		let user = <UsernameInput form_field_name="register_username" validation_rgx_msg={this.props.validation_rgx_msg.username} />;
-		//console.log(user.props.form_field_name);
-
-		
-
-		let mail = <MailInput form_field_name="register_mail" validation_rgx_msg={this.props.validation_rgx_msg.mail} />;
 
 		let degree = <DegreeInput form_field_name="register_degree" degreeList={this.props.degreeList} />;
 
 		return(
-			<Form noValidate method="post" action="http://httpbin.org/post">
+			<Form noValidate method="post" action="http://httpbin.org/post" onSubmit={(e) => this.submitButtonAction(e)} >
 				<h1>Crea un nou compte:</h1>
-				{user}
+				{this.user}
 				{this.password}
 				{this.confirmPassword}
-				{mail}
+				{this.mail}
 				{degree}
-				<p><Button type="submit" className="mt-3 mb-2">Crea compte</Button></p>
+				{/*<p><Button type="submit" className="mt-3 mb-2">Crea compte</Button></p>*/}
+				<p><Button type="submit" className="mt-3 mb-2" disabled={!this.state.allValid}>Crea compte</Button></p>
 				<p>
 					Ja tens un compte?&nbsp;
 					<ScreenToggleLoginRegister eventKey="accord_login">Accedeix-hi aquí!</ScreenToggleLoginRegister>
@@ -674,23 +885,35 @@ class InitialScreen extends React.Component {
 		let degreeList = this.getDegreeList();
 
 		return(
-			<div>
+			<>
+
+			<a href={window.location.href}>
+				<img id="app_title_image" src={logo_ViGtory} className="mx-auto d-block mb-3" alt="ViGtory: Our history, your victory!" />
+			</a>
+
 			<Accordion defaultActiveKey="accord_login" className="content">
 
 				<Accordion.Collapse eventKey="accord_login" >
+					<div>
 					<div className="content_wrapper">
 					<LoginForm validation_rgx_msg={validation_rgx_msg} />
+					</div>
+					<br/><br/><br/><br/><br/><br/>
 					</div>
 				</Accordion.Collapse>
 
 				<Accordion.Collapse eventKey="accord_register">
+					<div>
 					<div className="content_wrapper">
 					<RegisterForm validation_rgx_msg={validation_rgx_msg} degreeList={degreeList} />
+					</div>
+					<br/><br/><br/><br/><br/><br/><br/><br/><br/>
 					</div>
 				</Accordion.Collapse>
 
 			</Accordion>
-			</div>
+
+			</>
 		);
 
 	};
