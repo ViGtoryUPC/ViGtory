@@ -1,25 +1,6 @@
-/*Fons amb gradient*/
-html{
-	/*background-image: linear-gradient(rgba(255,255,255,1), rgba(0,127,191,1));*/
-	background-image: linear-gradient(rgba(255,255,255,1), rgba(127,191,223,1));
-	background-size: cover;
-	min-height: 100%;
-}
-
-body {
-	font: 14px "Century Gothic", Futura, sans-serif !important;
-	margin: 20px;
-	overflow-y: scroll;
-	background-color: rgba(0, 0, 0, 0.0) !important;
-}
-
-/*app_title_image{
-	display: block;
-	margin: auto;
-}*/
-
-p{
-	text-align: center;
+:root {
+	--portrait-width: 80vw;
+	--landscape-width: max(60vh, 300px);
 }
 
 
@@ -55,26 +36,14 @@ p{
 
 
 
-
-
-
-
-
-
-
-.interactiveToggleLoginRegister{
+/*
+.interactiveToggle{
 	text-decoration: underline;
 }
-.interactiveToggleLoginRegister:hover{
+.interactiveToggle:hover{
 	cursor: pointer;
 }
-
-
-
-
-
-
-
+*/
 
 
 
@@ -84,12 +53,11 @@ p{
 /* PANTALLA MÉS ALTA QUE BAIXA */
 @media screen and (orientation:portrait) {
 
-	#app_title_image{
-		width: 90vw;
+	.settings_navbar{
+		width: var(--portrait-width);
 	}
-
 	.content{
-		width: 80vw;
+		width: var(--portrait-width);
 	}
 	.content_wrapper{
 		font-size: max(calc(6px + 2vw), 15px);
@@ -102,12 +70,11 @@ p{
 /* PANTALLA MÉS BAIXA QUE ALTA */
 @media screen and (orientation:landscape) {
 
-	#app_title_image{
-		width: max(70vh, 400px);
+	.settings_navbar{
+		width: var(--landscape-width);
 	}
-
 	.content{
-		width: max(60vh, 300px);
+		width: var(--landscape-width);
 	}
 	.content_wrapper{
 		font-size: max(calc(4px + 1.5vh), 15px);
