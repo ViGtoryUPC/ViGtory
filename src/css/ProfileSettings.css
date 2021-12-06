@@ -50,6 +50,55 @@
 
 
 
+
+
+
+
+.settings_navbar.navbar-light .navbar-nav .nav-link {
+    /*color: rgba(0,255,0,.9);*/
+	font-weight: bold;
+
+	background-color: rgba(127,191,223,1);
+	background-size: cover;
+	text-align: center;
+	margin-left: 0.15vw;
+	margin-right: 0.15vw;
+	
+	padding-left: 2vw;
+	padding-right: 2vw;
+}
+
+
+.settings_navbar.navbar-light .navbar-nav .nav-link.active, .settings_navbar.navbar-light .navbar-nav .show>.nav-link{
+	/*color: rgba(255, 255, 255, 0.9);*/
+	font-size: 15px;
+	font-weight: bolder;
+	background-color: rgba(0,127,191,1);
+}
+
+
+.settings_navbar.nav-pills .nav-link.active, .nav-pills .show>.nav-link {
+
+	background-image: linear-gradient(rgba(0,127,191,1), rgba(255,255,255,1));
+	background-size: cover;
+
+    /*background-color: rgba(0,127,191,1);*/
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* PANTALLA MÉS ALTA QUE BAIXA */
 @media screen and (orientation:portrait) {
 

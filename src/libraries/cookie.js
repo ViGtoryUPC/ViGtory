@@ -1,6 +1,6 @@
 /*jshint esversion: 6 */
 
-var Cookie = {   
+export const Cookie = {   
 
 	set: function (name, value, days) {
 	  let expires = "";
@@ -25,4 +25,6 @@ var Cookie = {
 	  Cookie.set(name, "", -1);
 	}
   
-  };
+};
+
+export default { Cookie: Cookie }

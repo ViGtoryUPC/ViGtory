@@ -1,7 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import {API_address} from '../libraries/API_address';
 //import ReactDOM from 'react-dom';
-//import { Routes, Route, Link, useHistory } from "react-router-dom";
+import { Routes, Route, Link, useHistory, useNavigate } from "react-router-dom";
 
 import { Accordion, Button, Form, FloatingLabel } from 'react-bootstrap';
 import { useAccordionButton } from 'react-bootstrap/AccordionButton';
@@ -10,7 +11,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '../css/main.css';
 import '../css/SignInUp.css';
 
-import '../libraries/cookie';
+import { Cookie } from '../libraries/cookie';
 
 import logo_ViGtory from '../assets/images/ViGtory_logo_alt.png';
 
@@ -612,27 +613,13 @@ function changeURLandTitle(loginTregisterF){
 
 
 
-async function fetchWithTimeout(resource, options = {}) {
-	const { timeout = 8000 } = options;
-	
-	const controller = new AbortController();
-	const id = setTimeout(() => controller.abort(), timeout);
-	const response = await fetch(resource, {
-	  ...options,
-	  signal: controller.signal  
-	});
-	clearTimeout(id);
-	return response;
-}
 
 
-
-
-
-async function submitDataToAPI(event, route){
+async function submitDataToAPI(event, route, navigate){
 	//console.log(event.currentTarget.action);
 	//event.currentTarget.submit();
-		event.currentTarget.action = "http://ViGtory.ddnsfree.com:27018/user/" + route;
+	event.currentTarget.action = API_address + "/user/" + route;
+	//event.currentTarget.action = "http://nekoworld.dynu.net" + "/user/" + route;
 	//console.log(event.currentTarget.action);
 	//event.currentTarget.submit();
 
@@ -644,93 +631,87 @@ async function submitDataToAPI(event, route){
 
 
 	
+	if (route === "signUp"){
+		if (! window.confirm("Podràs modificar aquestes dades més endavant des de la configuració del teu perfil.\n\nTingues en compte, però, que NO hi podràs accedir al teu perfil fins que no hagis verificat la teva adreça de correu electrònic.\n\nEls usuaris amb una adreça ******@estudiantat.upc.edu tindran accés a funcionalitats que els usuaris amb un correu ordinari no, però tindràs la possibilitat d'afegir qualsevol dels dos tipus d'adreces a la configuració del teu perfil.\n\nEstàs d'acord?")){
+			return;
+		}
+	}
+
+
+
+
+
 
 	//https://developer.mozilla.org/es/docs/Web/API/Fetch_API/Using_Fetch
 	//https://dmitripavlutin.com/javascript-fetch-async-await/
 	//https://dmitripavlutin.com/timeout-fetch-request/
 	
+	let err_mssg = "En aquests moments sembla que no podem contactar els nostres servidors.\nTorna a intentar-ho més endevant.";
+
 
 	let response = {};
 	let promise = new Promise(()=>{}, ()=>{}, ()=>{});
-	try {
-		let headers = new Headers();
-		//headers.append("Content-Type", "text/plain");
-		//headers.append("Content-Type", "application/json");
-		headers.append("Content-Type", "application/x-www-form-urlencoded");
-		//headers.append("Access-Control-Allow-Origin", "*");
-		
+	
+	let headers = new Headers();
+	//headers.append("Content-Type", "text/plain");
+	//headers.append("Content-Type", "application/json");
+	headers.append("Content-Type", "application/x-www-form-urlencoded");
+	//headers.append("Access-Control-Allow-Origin", "*");
+	
 
-		promise = await fetchWithTimeout(
-			event.currentTarget.action, {
-				method: "POST",
-				mode: 'cors',
-				body: data,
-				headers: headers,
-				timeout: 5000
-		})
-		.then(
-			resp => { //Éxito
-				console.log("ÉXITO")
+	promise = await fetch(
+		event.currentTarget.action, {
+			method: "POST",
+			mode: 'cors',
+			body: data,
+			headers: headers,
+			timeout: 5000
+	})
+	.then(
+		resp => { //SÍ ha sido posible conectar con la API
+
+			//Si todo es correcto (status 200-299)
+			if (resp.ok){
 				response = resp.json();
-				console.log(response);
-				console.log(resp.status + " " + resp.statusText);
-				//return resp.json();
-				//return response;
-			}, 
-			resp => { //Rechazo
-				console.log("RECHAZO")
-				response = resp.json();
-				console.log(response);
-				console.log(resp.status + " " + resp.statusText);//undefined???
-				response = "cacotas";
-				//return "cacotas";
-			})
-		//.then(json => {console.log(json);})
-		//.then(data => {console.log(data.json())})
-		;
-		//response = await promise.json();
-	} catch (error) {
-		if (error.name === 'AbortError'){
-			alert("En aquests moments sembla que no podem contactar els nostres servidors.\nTorna a intentar-ho més endevant.");
+				if (route === "signUp"){
+					//Mostramos un alert al user y le llevamos a Login
+					window.alert("S'ha enviat un missatge amb un enllaç de verificació a l'adreça de correu electrònic que has introduït.\n\nRecorda que no podràs iniciar sessió fins a haver verificat el teu compte.\n\nComprova la carpeta d'spam del teu gestor de correus en cas que sigui necessari.");
+					navigate("/signin");
+				}
+			}
+			else{
+				window.alert(resp.statusText);
+				return;
+			}
+			
+			return response;
+		}, 
+		resp => { //NO sido posible conectar con la API
+			window.alert(err_mssg);
+			return;
 		}
-		else {console.log(promise.statusText);}//undefined?????
-		//return;
-	}
+	)
+	.then(
+		data => {
+			if (data === undefined) return;
 
-
-
-
-
-/*
-
-	//Si todo es correcto (200-299) logeamos al user y le llevamos a Home
-	if (response.ok){
-		console.log(response.status+" OK");
-		//console.log(response.json());
-		//console.log(JSON.parse(response.json()));
-		//console.log(response.json());
-		//console.log(response);
-
-		return;
-	}
-	//Si ha habido algún otro error.....
-	alert(response.statusText);
-
-	//cookie.set(name, value, days); //o session???
-
-	//SI ES REGISTER, MOSTRAR ALERT DE QUE SE HA ENVIADO UN MAIL Y ADVERTIR DE QUE NO SE PODRÁ ENTRAR HASTA HABERSE VERIFICADO
-	//AL CERRAR EL ALERT, LA PÁGINA VOLVERÁ A CARGARSE, DE FORMA QUE EL USUARIO VUELVA A TENER DELANTE LA PANTALLA DE LOGIN
-
-
-	console.log("HACE FALTA ACABAR DE ARREGLAR LOS STATUS TEXT Y DEMÁS!!!!!!!!");
-	console.log("https://stackoverflow.com/questions/41956465/how-to-create-multiple-page-app-using-react ???????????? https://stackoverflow.com/questions/37295377/how-to-navigate-from-one-page-to-another-in-react-js  ????????????????????????????? React Router vs el clásico window.open ???????")
-
-*/
-
+			if (route === "signIn"){
+				//Logeamos al user y le llevamos a Home
+				Cookie.set("jwt", data.jwt, 30);
+				console.log(Cookie.get("jwt"));
+				//navigate("/", { replace: true }) //Para evitar que un usuario que se acaba de loguear vuelva a la pantalla de Login //POR ALGÚN MOTIVO NO FUNCIONA
+				
+				window.history.replaceState(
+					"", //object or string representing the state of the page
+					"", //new title //aunque parece que no funciona bien xd
+					"/" //new URL
+				);
+				navigate("/");
+			}
+		}
+	);
+	
 }
-
-
-
 
 
 
@@ -784,11 +765,11 @@ class LoginForm extends React.Component {
 	submitButtonAction(event){
 		event.preventDefault();
 		if (!this.checkLocalValidity()){
-			alert("Tots els camps han de ser omplerts correctament.");
+			window.alert("Tots els camps han de ser omplerts correctament.");
 		}
 		//console.log("TOT CORRECTE!");
 
-		submitDataToAPI(event, "signIn");
+		submitDataToAPI(event, "signIn", this.props.navigate);
 	}
 
 
@@ -872,11 +853,11 @@ class RegisterForm extends React.Component {
 	submitButtonAction(event){
 		event.preventDefault();
 		if (!this.checkLocalValidity()){
-			alert("Tots els camps han de ser omplerts correctament.");
+			window.alert("Tots els camps han de ser omplerts correctament.");
 		}
 		//console.log("TOT CORRECTE!");
 
-		submitDataToAPI(event, "signUp");
+		submitDataToAPI(event, "signUp", this.props.navigate);
 
 	}
 
@@ -1001,7 +982,7 @@ class InitialScreen extends React.Component {
 				<Accordion.Collapse eventKey="accord_register" >
 					<div>
 					<div className="content_wrapper">
-					<RegisterForm validation_rgx_msg={validation_rgx_msg} degreeList={degreeList} />
+					<RegisterForm validation_rgx_msg={validation_rgx_msg} degreeList={degreeList} navigate={this.props.navigate} />
 					</div>
 					<br/><br/><br/><br/><br/><br/><br/><br/><br/>
 					</div>
@@ -1010,7 +991,7 @@ class InitialScreen extends React.Component {
 				<Accordion.Collapse eventKey="accord_login" >
 					<div>
 					<div className="content_wrapper">
-					<LoginForm validation_rgx_msg={validation_rgx_msg} />
+					<LoginForm validation_rgx_msg={validation_rgx_msg} navigate={this.props.navigate} />
 					</div>
 					<br/><br/><br/><br/><br/><br/>
 					</div>
@@ -1030,8 +1011,14 @@ InitialScreen.propTypes ={
 
 
 function SignInUP(loginTregisterF){
+
+	let navigate = useNavigate();
+	function navigateTo(page) {
+		navigate(page);
+	}
+
 	return(
-		<InitialScreen loginTregisterF={loginTregisterF.loginTregisterF} />
+		<InitialScreen loginTregisterF={loginTregisterF.loginTregisterF} navigate={navigateTo}/>
 	)
 }
 export default SignInUP;

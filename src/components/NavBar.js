@@ -12,7 +12,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '../css/main.css';
 import '../css/nav_bar.css';
 
-import '../libraries/cookie';
+import { Cookie } from '../libraries/cookie';
 
 import logo_ViGtory from '../assets/images/ViGtory_logo.png';
 import profile_img from '../assets/images/Profile.png';
@@ -29,8 +29,6 @@ function InitialScreen(props) {
 		let navigate = useNavigate();
 
 		function redirectToPage(page) {
-
-
 			navigate(page);
 		}
 
@@ -39,7 +37,8 @@ function InitialScreen(props) {
 			//alert(`selected ${eventKey}`);
 			console.log(`selected ${eventKey}`);
 			if (eventKey === "logout"){
-				//Borrar cookies de sesión
+				//Borramos las cookies de sesión
+				Cookie.delete("jwt");
 				navigate("/signin");
 			}
 		}
@@ -50,7 +49,7 @@ function InitialScreen(props) {
 		//variant="tabs" 
 		return(
 
-		<Navbar bg="light" expand="md" fixed="top">
+		<Navbar className="global_navbar" bg="light" expand="md" fixed="top">
 			<Container fluid>
 				<Navbar.Brand href="/">
 					<img id="navbar_title_image" src={logo_ViGtory} className="mx-auto d-block" alt="ViGtory!" />
@@ -62,7 +61,7 @@ function InitialScreen(props) {
 					<Nav 
 						variant="pills"
 						activeKey={props.currentSection}
-						className="m-auto my-3 my-md-0"
+						className="m-auto my-0 my-md-0"
 						style={{ maxHeight: '50%' }}
 						navbarScroll 
 						onSelect={(eventKey) => redirectToPage(eventKey)}

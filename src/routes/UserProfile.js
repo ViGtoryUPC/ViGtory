@@ -1,6 +1,8 @@
 import React from 'react';
+import { useEffect } from 'react';
+import {API_address} from '../libraries/API_address';
 //import ReactDOM from 'react-dom';
-import { Routes, Route, Link, useHistory, useParams } from "react-router-dom";
+import { Routes, Route, Link, useHistory, useNavigate, useParams } from "react-router-dom";
 
 import { Accordion, Button, Form, FloatingLabel } from 'react-bootstrap';
 import { Card, OverlayTrigger, Tooltip, Popover } from 'react-bootstrap';
@@ -13,7 +15,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '../css/main.css';
 import '../css/PostViGtory.css';
 
-import '../libraries/cookie';
+import { Cookie } from '../libraries/cookie';
 
 //IMPORTANTE PARA QUE NO SE VEA MAL AL ABRIR EL TECLADO EN MÓVIL
 //https://stackoverflow.com/questions/32963400/android-keyboard-shrinking-the-viewport-and-elements-using-unit-vh-in-css
@@ -160,7 +162,20 @@ class InitialScreen extends React.Component {
 function UserProfile(props){
 	//document.title = "ViGtory! Pàgina de " + "NOM_USUARI";
 	//const { id } = useParams(); //Hay que usar el mismo nombre
-	
+
+
+	//ESTE TROZO DE CÓDIGO EXPULSA AL USUARIO SI INTENTA CARGAR UNA PÁGINA SIN ESTAR LOGUEADO
+	let navigate = useNavigate();
+	function navigateTo(page) {
+		navigate(page);
+	}
+	useEffect(() => {
+		if (!Cookie.get("jwt")){
+			navigateTo("/signin");
+		}
+	  }, []);
+
+
 	return(
 		<InitialScreen userID={useParams().id} />
 	)

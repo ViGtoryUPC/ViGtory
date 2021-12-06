@@ -1,23 +1,23 @@
 
-.navbar{
+.global_navbar.navbar{
 	margin-top: -15px;
 	padding-bottom: 0px;
 }
 
-.navbar-expand-md .navbar-collapse{
+.global_navbar.navbar-expand-md .navbar-collapse{
 	align-self: flex-end;
 }
 
-.navbar-nav-scroll{
+.global_navbar.navbar-nav-scroll{
 	overflow-y: hidden;
 }
 
 
 
-.navbar-light .navbar-nav .nav-link {
+.global_navbar.navbar-light .navbar-nav .nav-link {
     /*color: rgba(0,255,0,.9);*/
 	font-weight: bold;
-
+	/*background-image: linear-gradient(rgba(159,223,255,1), rgba(255,255,255,1));*/
 	background-image: linear-gradient(rgba(127,191,223,1), rgba(255,255,255,1));
 	background-size: cover;
 	text-align: center;
@@ -29,17 +29,22 @@
 }
 
 
-.navbar-light .navbar-nav .nav-link.active, .navbar-light .navbar-nav .show>.nav-link{
+.global_navbar.navbar-light .navbar-nav .nav-link.active, .global_navbar.navbar-light .navbar-nav .show>.nav-link{
 	/*color: rgba(255, 255, 255, 0.9);*/
 	font-size: 15px;
 	font-weight: bolder;
+	/*color: white;*/
+	/*background-image: linear-gradient(rgba(127,191,223,1), rgba(255,255,255,1));*/
+	background-image: linear-gradient(rgba(0,127,191,1), rgba(255,255,255,1));
+	/*background-image: linear-gradient(rgba(95,223,255,1), rgba(255,255,255,1));*/
+	background-size: cover;
 }
 
 
-.nav-pills .nav-link.active, .nav-pills .show>.nav-link {
+.global_navbar.nav-pills .nav-link.active, .nav-pills .show>.nav-link {
 
-	background-image: linear-gradient(rgba(0,127,191,1), rgba(255,255,255,1));
-	background-size: cover;
+	/*background-image: linear-gradient(rgba(0,127,191,1), rgba(255,255,255,1));
+	background-size: cover;*/
 
     /*background-color: rgba(0,127,191,1);*/
 }

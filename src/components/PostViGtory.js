@@ -1,9 +1,10 @@
 import React from 'react';
+import {API_address} from '../libraries/API_address';
 //import ReactDOM from 'react-dom';
 import { Routes, Route, Link, useHistory } from "react-router-dom";
 
 import { Accordion, Button, Form, FloatingLabel } from 'react-bootstrap';
-import { Card, OverlayTrigger, Tooltip, Popover } from 'react-bootstrap';
+import { Card, OverlayTrigger, Tooltip, Dropdown, Popover } from 'react-bootstrap';
 
 
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -68,7 +69,7 @@ class UpvoteDownvoteButton extends React.Component{
 					: (upTdownF ? NoUpvote_img : NoDownvote_img)
 				}
 				onClick={this.voteAction.bind(this)}
-				className="d-inline votearrow"
+				className="d-inline votearrow mt-0 mb-1"
 			/>
 		);
 	}
@@ -162,9 +163,9 @@ class InitialScreen extends React.Component {
 								{this.props.post_info.post_date.toLocaleDateString('ca-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + ", a les " + this.props.post_info.post_date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
 								</Tooltip>
 							}
-							><p className="text-muted float-end"><small>
+							><p className="text-muted float-end my-0"><small>
 								{this.props.post_info.post_date.toLocaleDateString('ca-ES', { weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric' })}
-								</small></p>
+							</small></p>
 						</OverlayTrigger>
 						<br/>
 					
@@ -172,8 +173,8 @@ class InitialScreen extends React.Component {
 						<div className="mt-2 mb-3">
 							<Card.Title className="d-inline">
 
-							<Link to={"/user/"+this.props.post_info.user_id} className="text-reset text-decoration-none">
-								<img src="aaa" className="user_access_icon d-inline" />
+							<Link to={"/user/"+this.props.post_info.user_name} className="text-reset text-decoration-none">
+								{false ? <img src="aaa" className="user_access_icon d-inline" /> : <></>}
 								{this.props.post_info.user_name}
 							</Link>
 								
@@ -203,9 +204,33 @@ class InitialScreen extends React.Component {
 
 						</div>
 
-							<Card.Link className="d-inline align-items-middle" href="#">
-								{this.props.post_info.post_comment_count}{" Comentari"}{this.props.post_info.post_comment_count==1 ? "":"s"}
-							</Card.Link>
+						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						<Card.Link className="d-inline align-items-middle text-reset text-decoration-none" href="#"><strong>
+							{this.props.post_info.post_comment_count}{" Comentari"}{this.props.post_info.post_comment_count==1 ? "":"s"}
+						</strong></Card.Link>
+
+						
+						{this.props.post_info.post_files.length > 0 ?
+						
+							<OverlayTrigger
+								placement="bottom"
+								overlay={
+									<Tooltip className="tooltip_fitxers"><ol className="mt-1 mb-1">
+									{this.props.post_info.post_files.map((filename, i, namelist) => {return (
+										<li>
+											{filename}
+											{i<namelist.length-1 ? <Dropdown.Divider className="mt-1 mb-1" /> : ""}
+										</li>
+									);})}
+									</ol></Tooltip>
+								}
+								><p className="float-end mt-1 mb-0">
+									{this.props.post_info.post_files.length}{" Fitxer"}{this.props.post_info.post_files.length==1 ? "":"s"}
+								</p>
+							</OverlayTrigger>
+						
+						: ""}
+
 
 
 
