@@ -1,6 +1,8 @@
 import React from 'react';
+import { useEffect } from 'react';
+import {API_address} from '../libraries/API_address';
 //import ReactDOM from 'react-dom';
-import { Routes, Route, Link, useHistory } from "react-router-dom";
+import { Routes, Route, Link, useHistory, useNavigate } from "react-router-dom";
 
 import { Accordion, Button, Form, FloatingLabel } from 'react-bootstrap';
 import { Card, OverlayTrigger, Tooltip, Popover } from 'react-bootstrap';
@@ -13,7 +15,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '../css/main.css';
 import '../css/PostViGtory.css';
 
-import '../libraries/cookie';
+import { Cookie } from '../libraries/cookie';
 
 //IMPORTANTE PARA QUE NO SE VEA MAL AL ABRIR EL TECLADO EN MÓVIL
 //https://stackoverflow.com/questions/32963400/android-keyboard-shrinking-the-viewport-and-elements-using-unit-vh-in-css
@@ -49,8 +51,11 @@ function getPostsTest(current_page, posts_per_page){
 
 	let finalJSON = 
 		{
+			//jwt: jwt,
+            username: "fula__"+randomTextGenerator(30)+"__nito",
+			posts_per_page: [5, 10, 15, 20][Math.floor(4*Math.random())],
+			total_page_count: Math.floor(100*Math.random()),
 			current_page: current_page,
-			posts_per_page: posts_per_page,
 			posts: []
 		};
 
@@ -101,6 +106,7 @@ class InitialScreen extends React.Component {
 		this.state = {
 			
 		};
+		
 	}
 
 
@@ -122,7 +128,12 @@ class InitialScreen extends React.Component {
 
 	
 	render(){
-		
+		/*if (!Cookie.get("jwt")){
+			this.props.navigate("/signin");
+		}*/
+
+
+
 		let page = getPostsTest(0, 10);
 		let posts = page.posts;
 		/*let final_posts = Array.from(posts.map((post_info, i) => { 
@@ -131,8 +142,6 @@ class InitialScreen extends React.Component {
 		} ).values());
 
 		console.log(final_posts);*/
-
-		
 
 
 		return(
@@ -157,6 +166,20 @@ class InitialScreen extends React.Component {
 
 function Home(props){
 	document.title = "ViGtory! Pàgina principal";
+
+
+	//ESTE TROZO DE CÓDIGO EXPULSA AL USUARIO SI INTENTA CARGAR UNA PÁGINA SIN ESTAR LOGUEADO
+	let navigate = useNavigate();
+	function navigateTo(page) {
+		navigate(page);
+	}
+	useEffect(() => {
+		if (!Cookie.get("jwt")){
+			navigateTo("/signin");
+		}
+	  }, []);
+
+
 	return(
 		<InitialScreen currentSection={props.currentSection} />
 	)

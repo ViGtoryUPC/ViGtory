@@ -56,6 +56,14 @@
 
 
 
+.tooltip_fitxers>.tooltip-inner {
+	text-align: start !important;
+}
+
+
+
+
+
 
 /* PANTALLA MÉS ALTA QUE BAIXA */
 @media screen and (orientation:portrait) {

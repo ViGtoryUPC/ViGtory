@@ -35,7 +35,7 @@ ReactDOM.render(
 
 			<Route path="settings" element={<ProfileSettings />} />
 
-			<Route path="user/:id" element={<UserProfile />} />
+			<Route path="user/:username" element={<UserProfile />} />
 
 
 
