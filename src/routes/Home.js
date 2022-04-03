@@ -20,6 +20,7 @@ import '../css/main.css';
 //import '../css/PostEdit.css';
 
 import { Cookie } from '../libraries/cookie';
+import {BaseName} from "../libraries/basename";
 
 //IMPORTANTE PARA QUE NO SE VEA MAL AL ABRIR EL TECLADO EN MÓVIL
 //https://stackoverflow.com/questions/32963400/android-keyboard-shrinking-the-viewport-and-elements-using-unit-vh-in-css
@@ -225,7 +226,7 @@ class InitialScreen extends React.Component {
 		this.current_assignatura = null;
 		this.current_search = null;
 
-		this.limit = 10;
+		this.limit = 2;
 	}
 
 
@@ -287,9 +288,11 @@ class InitialScreen extends React.Component {
 	
 	
 	
+		//console.log("LOCATION:"+this.props.location.pathname);
 		window.history.replaceState(
 			"", "",
-			( window.location.href.substr(0, window.location.href.lastIndexOf("/")+1) ) + "?" + params.toString()
+			//( window.location.href.substr(0, window.location.href.lastIndexOf("/")+1) ) + "?" + params.toString()
+			(BaseName==="/"?"":BaseName) + this.props.location.pathname + "?" + params.toString() //new URL
 		);
 	
 		if ((pageNum != 1) || (currentAssignatura) || (currentSearch)){
@@ -337,8 +340,8 @@ class InitialScreen extends React.Component {
 		if (this.search_ref.current && this.search_ref.current.current_assignatura)
 			data["sigles_ud"] = this.search_ref.current.current_assignatura;
 
-		//if (this.current_assignatura)
-			//data["usernameFind"] = this.props.user_profile;
+		if (this.props.useParams.username)
+			data["usernameFind"] = this.props.useParams.username;
 		
 		return data;
 	}
@@ -361,7 +364,7 @@ class InitialScreen extends React.Component {
 
 		console.log(final_posts);*/
 
-		this.postEdit = <PostEdit new_post={true} current_assignatura={this.current_assignatura} postedit_ref={this.postedit_ref} />;
+		this.postEdit = <PostEdit new_post={false} current_assignatura={this.current_assignatura} postedit_ref={this.postedit_ref} />;
 
 		this.ViGtSearch = <ViGtSearch current_assignatura={this.current_assignatura} current_search={this.current_search} search_ref={this.search_ref} />
 
@@ -374,6 +377,24 @@ class InitialScreen extends React.Component {
 				<NavBar currentSection={this.props.currentSection} />
 
 				<br/><br/><br/><br/>
+
+
+
+				{this.props.useParams.username ? 
+				<>
+					<h2 className="text-center home_title">
+					{"Publicacions aportades per "}
+					<b><Link to={"/user/"+this.props.useParams.username} className="text-reset text-decoration-none">
+						{this.props.useParams.username}
+					</Link></b>
+					{":"}
+					</h2>
+					<br/>
+				</>
+				:""}
+
+
+
 
 				{this.ViGtSearch}
 				<br/><br/>
@@ -417,9 +438,16 @@ class InitialScreen extends React.Component {
 function Home(props){
 	document.title = "ViGtory! Pàgina principal";
 
+
+	const location =  useLocation();
+	const params =  useParams();
+	//let loc = location.pathname;
+	//console.log("USERNAME: " + useParams().username); //nombre o undefined
+
+
 	//let screen_ref = React.createRef();
 	let screen_ref = props.home_ref;
-	let screen = <InitialScreen currentSection={props.currentSection} ref={screen_ref} />
+	let screen = <InitialScreen currentSection={props.currentSection} ref={screen_ref} location={location} useParams={params} />
 
 
 	//ESTE TROZO DE CÓDIGO EXPULSA AL USUARIO SI INTENTA CARGAR UNA PÁGINA SIN ESTAR LOGUEADO
