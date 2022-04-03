@@ -22,9 +22,6 @@ import Downvote_img from '../assets/images/Downvote.png';
 
 
 
-
-
-
 class UpvoteDownvoteButton extends React.Component{
 
 	//https://stackoverflow.com/questions/44604966/how-to-click-an-image-and-make-a-rotation //En otra ocasión
@@ -95,24 +92,30 @@ class InitialScreen extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			upvoted: props.post_info.post_upvoted,
-			downvoted: props.post_info.post_downvoted,
-			vote_count: props.post_info.post_upvotes-props.post_info.post_downvotes
+			//upvoted: props.post_info.post_upvoted,
+			//downvoted: props.post_info.post_downvoted,
+			voted: props.post_info.votUsuari ? props.post_info.votUsuari : 0,
+			//vote_count: props.post_info.post_upvotes-props.post_info.post_downvotes
+			vote_count: props.post_info.votes
 		};
 
 		this.upvote_button_ref = React.createRef();
-		this.upvote_button = <UpvoteDownvoteButton upTdownF={true} voted={this.props.post_info.post_upvoted} updateVote={(upTdownF, voted) => this.updateVote(upTdownF, voted)} ref={this.upvote_button_ref} />;
+		this.upvote_button = <UpvoteDownvoteButton upTdownF={true} voted={/*this.props.post_info.post_upvoted*/this.props.post_info.votUsuari===1} updateVote={(upTdownF, voted) => this.updateVote(upTdownF, voted)} ref={this.upvote_button_ref} />;
 		
 		this.downvote_button_ref = React.createRef();
-		this.downvote_button = <UpvoteDownvoteButton upTdownF={false} voted={this.props.post_info.post_downvoted} updateVote={(upTdownF, voted) => this.updateVote(upTdownF, voted)} ref={this.downvote_button_ref} />;
+		this.downvote_button = <UpvoteDownvoteButton upTdownF={false} voted={/*this.props.post_info.post_downvoted*/this.props.post_info.votUsuari===-1} updateVote={(upTdownF, voted) => this.updateVote(upTdownF, voted)} ref={this.downvote_button_ref} />;
 		
 
 	}
 
 	updateVoteCount(alteration){
 		this.setState(
-			{vote_count: this.props.post_info.post_upvotes-this.props.post_info.post_downvotes
+			/*{vote_count: this.props.post_info.post_upvotes-this.props.post_info.post_downvotes
 				+(this.props.post_info.post_upvoted?(-1):(this.props.post_info.post_downvoted?(+1):0))
+				+alteration
+			}*/
+			{vote_count: this.props.post_info.votes
+				-(this.props.post_info.votUsuari ? this.props.post_info.votUsuari : 0)
 				+alteration
 			}
 		);
@@ -148,6 +151,10 @@ class InitialScreen extends React.Component {
 		//<Popover><Popover.Body>
 		//<Card.Link href="#">Card Link</Card.Link>
 		//Link a perfil de usuario
+
+		let date = new Date(this.props.post_info.createdAt);
+		let file_list = this.props.post_info.post_files ? this.props.post_info.post_files : [];
+
 		return(
 			<>
 				
@@ -160,34 +167,34 @@ class InitialScreen extends React.Component {
 							placement="top"
 							overlay={
 								<Tooltip>
-								{this.props.post_info.post_date.toLocaleDateString('ca-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + ", a les " + this.props.post_info.post_date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+								{date.toLocaleDateString('ca-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + ", a les " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
 								</Tooltip>
 							}
 							><p className="text-muted float-end my-0"><small>
-								{this.props.post_info.post_date.toLocaleDateString('ca-ES', { weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric' })}
+								{date.toLocaleDateString('ca-ES', { weekday: 'short', year: 'numeric', month: 'numeric', day: 'numeric' })}
 							</small></p>
 						</OverlayTrigger>
 						<br/>
 					
 					
 						<div className="mt-2 mb-3">
+							<Card.Subtitle className="text-muted d-inline">
+								<Link to={"/user/"+this.props.post_info.userName} className="text-reset text-decoration-none">
+									{false ? <img src="aaa" className="user_access_icon d-inline" /> : <></>}
+									{this.props.post_info.userName}
+								</Link>
+							</Card.Subtitle>
+								{" diu:"}
+							<br/>
 							<Card.Title className="d-inline">
-
-							<Link to={"/user/"+this.props.post_info.user_name} className="text-reset text-decoration-none">
-								{false ? <img src="aaa" className="user_access_icon d-inline" /> : <></>}
-								{this.props.post_info.user_name}
-							</Link>
-								
-
-
+								<b>{this.props.post_info.title}</b>
 							</Card.Title>
-							<Card.Subtitle className="text-muted d-inline">{" diu:"}</Card.Subtitle>
 						</div>
 
 						
 
 						<Card.Text>
-							{this.props.post_info.post_content}
+							{this.props.post_info.body}
 						</Card.Text>
 
 
@@ -205,18 +212,18 @@ class InitialScreen extends React.Component {
 						</div>
 
 						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-						<Card.Link className="d-inline align-items-middle text-reset text-decoration-none" href="#"><strong>
-							{this.props.post_info.post_comment_count}{" Comentari"}{this.props.post_info.post_comment_count==1 ? "":"s"}
+						<Card.Link className="d-inline align-items-middle text-reset text-decoration-none"><strong>
+							{this.props.post_info.post_comment_count?this.props.post_info.post_comment_count:"0"}{" Comentari"}{this.props.post_info.post_comment_count==1 ? "":"s"}
 						</strong></Card.Link>
 
 						
-						{this.props.post_info.post_files.length > 0 ?
+						{file_list.length > 0 ?
 						
 							<OverlayTrigger
 								placement="bottom"
 								overlay={
 									<Tooltip className="tooltip_fitxers"><ol className="mt-1 mb-1">
-									{this.props.post_info.post_files.map((filename, i, namelist) => {return (
+									{file_list.map((filename, i, namelist) => {return (
 										<li>
 											{filename}
 											{i<namelist.length-1 ? <Dropdown.Divider className="mt-1 mb-1" /> : ""}
@@ -225,7 +232,7 @@ class InitialScreen extends React.Component {
 									</ol></Tooltip>
 								}
 								><p className="float-end mt-1 mb-0">
-									{this.props.post_info.post_files.length}{" Fitxer"}{this.props.post_info.post_files.length==1 ? "":"s"}
+									{file_list.length}{" Fitxer"}{file_list.length==1 ? "":"s"}
 								</p>
 							</OverlayTrigger>
 						

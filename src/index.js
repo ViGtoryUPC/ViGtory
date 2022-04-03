@@ -10,6 +10,7 @@ import Home from "./routes/Home";
 import GradeCalc from "./routes/GradeCalc";
 import ScheduleGen from "./routes/ScheduleGen";
 //import NavBar from "./components/NavBar";
+import {BaseName} from "./libraries/basename";
 
 
 
@@ -18,12 +19,18 @@ import ScheduleGen from "./routes/ScheduleGen";
 
 // ========================================
 
+//MUY IMPORTANTE PARA QUE LAS RUTAS FUNCIONEN EN GITHUB: https://github.com/rafgraph/spa-github-pages
+
+let home_ref = React.createRef();
+let user_home_ref = React.createRef();
+
 //<SignInUp loginTregisterF={false} />
 ReactDOM.render(
-	<BrowserRouter>
+<React.StrictMode>
+	<BrowserRouter basename={BaseName}>
 		<Routes>
 
-			<Route path="/" element={<Home currentSection="/" />} />
+			<Route path="/" element={<Home currentSection="/" home_ref={home_ref} />} />
 
 
 
@@ -32,10 +39,22 @@ ReactDOM.render(
 			<Route path="signup" element={<SignInUp loginTregisterF={false} />} />
 
 			
-
-			<Route path="settings" element={<ProfileSettings />} />
-
-			<Route path="user/:username" element={<UserProfile />} />
+			<Route path="settings/:section" element={<ProfileSettings />} />
+			{
+			//<Route path="settings" element={<ProfileSettings currentSection="username" />} />
+			//<Route path="settings/username" element={<ProfileSettings currentSection="username" />} />
+			
+			/*<Route path="settings/password" element={<ProfileSettings currentSection="password" />} />
+			<Route path="settings/mail" element={<ProfileSettings currentSection="mail" />} />
+			<Route path="settings/mail_student" element={<ProfileSettings currentSection="mail_student" />} />
+			<Route path="settings/degree" element={<ProfileSettings currentSection="degree" />} />
+			*/
+			//<Route path="settings/delete_account" element={<ProfileSettings currentSection="delete_account" />} />
+			}
+			<Route path="user/:username" element={<Home currentSection="/" home_ref={user_home_ref} />} />
+			{
+				//<Route path="user/:username" element={<UserProfile />} />
+			}
 
 
 
@@ -66,6 +85,7 @@ ReactDOM.render(
 			/>
 
 		</Routes>
-  	</BrowserRouter>,
+  	</BrowserRouter>
+</React.StrictMode>,
 	document.getElementById('root')
 );

@@ -54,8 +54,8 @@
 
 
 
-.settings_navbar.navbar-light .navbar-nav .nav-link {
-    /*color: rgba(0,255,0,.9);*/
+.settings_navbar .nav-link {
+    color: rgba(0,0,0,0.6);
 	font-weight: bold;
 
 	background-color: rgba(127,191,223,1);
@@ -63,28 +63,41 @@
 	text-align: center;
 	margin-left: 0.15vw;
 	margin-right: 0.15vw;
+	margin-top: 0.15vw;
+	margin-bottom: 0.15vw;
 	
 	padding-left: 2vw;
 	padding-right: 2vw;
 }
 
+.settings_navbar .nav-link:hover {
+    color: rgba(0,0,0,0.8);
+	background-color: rgba(127,191,223,1);
+}
 
-.settings_navbar.navbar-light .navbar-nav .nav-link.active, .settings_navbar.navbar-light .navbar-nav .show>.nav-link{
-	/*color: rgba(255, 255, 255, 0.9);*/
+
+.settings_navbar .nav-link.active, .settings_navbar .show>.nav-link{
+	color: rgba(255, 255, 255, 0.9);
 	font-size: 15px;
 	font-weight: bolder;
-	background-color: rgba(0,127,191,1);
+}
+
+.settings_navbar .nav-link.active:hover, .settings_navbar .show>.nav-link:hover{
+	color: rgba(255, 255, 255, 1);
+	/*background-color: rgba(0,127,175,1);*/
 }
 
 
 .settings_navbar.nav-pills .nav-link.active, .nav-pills .show>.nav-link {
 
-	background-image: linear-gradient(rgba(0,127,191,1), rgba(255,255,255,1));
+	background-color: rgba(0,127,191,1);
 	background-size: cover;
 
     /*background-color: rgba(0,127,191,1);*/
 }
-
+.settings_navbar.nav-pills .nav-link.active:hover, .nav-pills .show>.nav-link:hover{
+	background-color: rgba(0,127,175,1);
+}
 
 
 
@@ -120,7 +133,7 @@
 @media screen and (orientation:landscape) {
 
 	.settings_navbar{
-		width: var(--landscape-width);
+		width: calc(var(--landscape-width)*1.5);
 	}
 	.content{
 		width: var(--landscape-width);

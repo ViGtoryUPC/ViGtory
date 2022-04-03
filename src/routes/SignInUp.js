@@ -1,4 +1,5 @@
 import React from 'react';
+import { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import {API_address} from '../libraries/API_address';
 //import ReactDOM from 'react-dom';
@@ -7,11 +8,14 @@ import { Routes, Route, Link, useHistory, useNavigate } from "react-router-dom";
 import { Accordion, Button, Form, FloatingLabel } from 'react-bootstrap';
 import { useAccordionButton } from 'react-bootstrap/AccordionButton';
 
+import {getDegreeList, getValidationRegexAndErrorMessages} from '../libraries/data_request';
+
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../css/main.css';
 import '../css/SignInUp.css';
 
 import { Cookie } from '../libraries/cookie';
+import {BaseName} from "../libraries/basename";
 
 import logo_ViGtory from '../assets/images/ViGtory_logo_alt.png';
 
@@ -19,226 +23,6 @@ import logo_ViGtory from '../assets/images/ViGtory_logo_alt.png';
 //https://stackoverflow.com/questions/32963400/android-keyboard-shrinking-the-viewport-and-elements-using-unit-vh-in-css
 var viewport = document.querySelector("meta[name=viewport]");
 viewport.setAttribute("content", viewport.content + ", height=" + window.innerHeight);
-
-
-
-
-
-
-
-
-/*
-function Square(props) {
-	return (
-		<button className="square" onClick={props.onClick}>
-			{props.value}
-		</button>
-	);
-}
-
-	
-class Board extends React.Component {
-
-	renderSquare(i) {
-		return (
-			<Square
-				value={this.props.squares[i]}
-				onClick={() => this.props.onClick(i)}
-			/>
-		);
-	}
-
-
-
-	renderBoard() {
-		const dimensions = [...Array(3).keys()];
-
-		return(
-			dimensions.map(i => {return(
-
-				<div className="board-row">
-
-				{dimensions.map(j => {return(
-					this.renderSquare(i*dimensions.length+j)
-				)})}
-
-				</div>
-
-			)})
-		);
-
-	}
-
-
-
-	render() {
-		return (
-			<div>
-				<div className="status">{this.status}</div>
-				{this.renderBoard()}
-			</div>
-		);
-	}
-}
-
-class Game extends React.Component {
-
-	constructor(props) {
-		super(props);
-		this.state = {
-			history: [{
-				squares: Array(9).fill(null),
-			}],
-			stepNumber: 0,
-			xIsNext: true
-		};
-	}
-
-
-
-	handleClick(i){
-		const history = this.state.history.slice(0, this.state.stepNumber + 1);
-		const current = history[history.length - 1];
-		const squares = current.squares.slice();
-		if (calculateWinner(squares) || squares[i]) {
-			return;
-		}
-		squares[i] = this.state.xIsNext ? 'X' : 'O';
-		this.setState({
-			history: history.concat([{
-				squares: squares,
-			}]),
-			stepNumber: history.length,
-			xIsNext: !this.state.xIsNext
-		});
-	}
-
-
-	jumpTo(step) {
-		this.setState({
-		  stepNumber: step,
-		  xIsNext: (step % 2) === 0,
-		});
-	  }
-
-
-
-	render() {
-
-		const history = this.state.history;
-		const current = history[this.state.stepNumber];
-		const winner = calculateWinner(current.squares);
-
-
-
-		const moves = history.map((step, move) => {
-			const desc = move ?
-				 ((move === history.length-1) ? 'Go to current move' : ('Go to move #' + move)) :
-				'Go to game start';
-			return (
-				<li key={move}>
-					<button onClick={() => this.jumpTo(move)}>{desc}</button>
-				</li>
-			);
-		});
-
-
-
-		let status;
-		if (winner) {
-			status = 'Winner: ' + winner;
-		} else {
-			status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
-		}
-
-		return (
-			<div className="game">
-				<div className="game-board">
-				<Board
-					squares={current.squares}
-					onClick={(i) => this.handleClick(i)}
-				/>
-				</div>
-				<div className="game-info">
-					<div>{status}</div>
-					<ol>{moves}</ol>
-				</div>
-			</div>
-		);
-	}
-}
-
-
-
-function calculateWinner(squares) {
-	const lines = [
-		[0, 1, 2],
-		[3, 4, 5],
-		[6, 7, 8],
-		[0, 3, 6],
-		[1, 4, 7],
-		[2, 5, 8],
-		[0, 4, 8],
-		[2, 4, 6],
-	];
-	for (let i = 0; i < lines.length; i++) {
-		const [a, b, c] = lines[i];
-		if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-			return squares[a];
-		}
-	}
-	return null;
-}
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -545,11 +329,15 @@ class DegreeInput extends React.Component {
 		return(
 
 			<FloatingLabel className="mt-3 mb-2" label="Grau d'estudis d'interès">
-				<Form.Select name={"degree"} aria-label="Floating label select example">
+				<Form.Select name={"degree"}>
 
-					{this.props.degreeList.map((deg_name, i) => { return (
+					{/*this.props.degreeList.map((deg_name, i) => { return (
 						<option value={i} key={i}>{deg_name}</option>
-					)})}
+					)})*/
+					this.props.degreeList.map((deg) => { return (
+						<option value={deg.codi_programa} key={deg.codi_programa}>{deg.nom}</option>
+					)})
+					}
 
 				</Form.Select>
 			</FloatingLabel>
@@ -595,7 +383,10 @@ function changeURLandTitle(loginTregisterF){
 	window.history.replaceState(
 		"", //object or string representing the state of the page
 		"", //new title //aunque parece que no funciona bien xd
-		"/"+(loginTregisterF ? "signin" : "signup") //new URL
+		//"/ViGtory/"+(loginTregisterF ? "signin" : "signup") //new URL
+		//( window.location.href.substr(0, window.location.href.lastIndexOf("/")+1) ) + (loginTregisterF ? "signin" : "signup") //new URL
+		
+		(BaseName==="/"?"":BaseName)+"/"+(loginTregisterF ? "signin" : "signup") //new URL
 	);
 	document.title = "ViGtory! "+(loginTregisterF ? "Inicia sessió" : "Crea un nou compte");
 }
@@ -628,11 +419,14 @@ async function submitDataToAPI(event, route, navigate){
 		data.append(pair[0], pair[1]);
 	}
 	//console.log("DATA===============\n\n"+data+"\n\n==================");
-
+	//return;
 
 	
 	if (route === "signUp"){
-		if (! window.confirm("Podràs modificar aquestes dades més endavant des de la configuració del teu perfil.\n\nTingues en compte, però, que NO hi podràs accedir al teu perfil fins que no hagis verificat la teva adreça de correu electrònic.\n\nEls usuaris amb una adreça ******@estudiantat.upc.edu tindran accés a funcionalitats que els usuaris amb un correu ordinari no, però tindràs la possibilitat d'afegir qualsevol dels dos tipus d'adreces a la configuració del teu perfil.\n\nEstàs d'acord?")){
+		/*if (! window.confirm("Podràs modificar aquestes dades més endavant des de la configuració del teu perfil.\n\nTingues en compte, però, que NO hi podràs accedir al teu perfil fins que no hagis verificat la teva adreça de correu electrònic.\n\nEls usuaris amb una adreça ******@estudiantat.upc.edu tindran accés a funcionalitats que els usuaris amb un correu ordinari no, però tindràs la possibilitat d'afegir qualsevol dels dos tipus d'adreces a la configuració del teu perfil.\n\nEstàs d'acord?")){
+			return;
+		}*/
+		if (! window.confirm("Podràs modificar aquestes dades més endavant des de la configuració del teu perfil, a excepció del teu nom d'usuari.\n\nTingues en compte que NO hi podràs accedir al teu perfil fins que no hagis verificat la teva adreça de correu electrònic.\n\nEls usuaris amb una adreça de correu ******@estudiantat.upc.edu tindran accés a funcionalitats que els usuaris amb un correu ordinari no, però tindràs la possibilitat d'afegir qualsevol dels dos tipus d'adreces a la configuració del teu perfil.\n\nUna vegada confirmada una adreça ******@estudiantat.upc.edu, aquesta no serà modificable.\n\n\nEstàs d'acord?")){
 			return;
 		}
 	}
@@ -658,6 +452,7 @@ async function submitDataToAPI(event, route, navigate){
 	headers.append("Content-Type", "application/x-www-form-urlencoded");
 	//headers.append("Access-Control-Allow-Origin", "*");
 	
+	let resp_ok = true;
 
 	promise = await fetch(
 		event.currentTarget.action, {
@@ -669,7 +464,7 @@ async function submitDataToAPI(event, route, navigate){
 	})
 	.then(
 		resp => { //SÍ ha sido posible conectar con la API
-
+			resp_ok = resp.ok;
 			//Si todo es correcto (status 200-299)
 			if (resp.ok){
 				response = resp.json();
@@ -679,10 +474,15 @@ async function submitDataToAPI(event, route, navigate){
 					navigate("/signin");
 				}
 			}
-			else{
-				window.alert(resp.statusText);
+			/*else{
+				if (route === "signIn"){
+					window.alert("No s'ha pogut iniciar sessió.\nComprova que les teves credencials siguin correctes.");
+				}
+				else if (route === "signUp"){
+					window.alert(resp.statusText);
+				}
 				return;
-			}
+			}*/
 			
 			return response;
 		}, 
@@ -695,10 +495,16 @@ async function submitDataToAPI(event, route, navigate){
 		data => {
 			if (data === undefined) return;
 
+			if (!resp_ok){
+				window.alert(data.error);
+				return;
+			}
+
 			if (route === "signIn"){
 				//Logeamos al user y le llevamos a Home
 				Cookie.set("jwt", data.jwt, 30);
-				console.log(Cookie.get("jwt"));
+				Cookie.set("username", data.usuari, 30);
+				//console.log(Cookie.get("jwt"));
 				//navigate("/", { replace: true }) //Para evitar que un usuario que se acaba de loguear vuelva a la pantalla de Login //POR ALGÚN MOTIVO NO FUNCIONA
 				
 				window.history.replaceState(
@@ -766,6 +572,7 @@ class LoginForm extends React.Component {
 		event.preventDefault();
 		if (!this.checkLocalValidity()){
 			window.alert("Tots els camps han de ser omplerts correctament.");
+			return; //Para evitar que la gente trastee con el HTML
 		}
 		//console.log("TOT CORRECTE!");
 
@@ -854,6 +661,7 @@ class RegisterForm extends React.Component {
 		event.preventDefault();
 		if (!this.checkLocalValidity()){
 			window.alert("Tots els camps han de ser omplerts correctament.");
+			return; //Para evitar que la gente trastee con el HTML
 		}
 		//console.log("TOT CORRECTE!");
 
@@ -895,17 +703,18 @@ class RegisterForm extends React.Component {
 
 class InitialScreen extends React.Component {
 
-	constructor(props) {
+	constructor(props){
 		super(props);
 		this.state = {
 			loginTregisterF: this.props.loginTregisterF
 			//loginTregisterF: true
 		};
 		changeURLandTitle(this.props.loginTregisterF);
+		this.degreeList = [];
 		
 	}
 
-	LoginOrRegisterClick() {
+	LoginOrRegisterClick(){
 		changeURLandTitle(!this.state.loginTregisterF);
 		this.setState({
 			loginTregisterF: !this.state.loginTregisterF
@@ -915,40 +724,10 @@ class InitialScreen extends React.Component {
 	
 
 
-
-	getValidationRegexAndErrorMessages(){
-
-		//Uso de los regex: regex.test(string); //(pero el regex es idetificado por las barras, y no puede ser un string)
-		//Para poder usar el string regex a modo de objeto regex, hará falta usar RegExp y slice:
-		//(new RegExp("/^.+@.+$/".slice(1, -1)).test("hola@gmail.com"));
-
-		let validation_rgx_msg = 
-		{
-			"username" : [
-				{"/^.{2,32}$/" : "El teu nom d'usuari només pot ocupar 2-32 caràcters."},
-				{"/^[a-zA-Z0-9_\\-\\.]+$/" : "El teu nom d'usuari només pot contenir caràcters [a-z, A-Z, 0-9, _, -, .]."}
-			],
-			"password" : [
-				{"/^.{8,32}$/" : "La teva contrasenya només pot ocupar 8-32 caràcters."},
-				{"/^[a-zA-Z0-9_\\-\\.]+$/" : "La teva contrasenya només pot contenir caràcters [a-z, A-Z, 0-9, _, -, .]."},
-				{"/(?=.*[a-z])/" : "La teva contrasenya ha de contenir almenys 1 lletra minúscula (a-z)."},
-				{"/(?=.*[A-Z])/" : "La teva contrasenya ha de contenir almenys 1 lletra majúscula (A-Z)."},
-				{"/(?=.*[0-9])/" : "La teva contrasenya ha de contenir almenys 1 nombre (0-9)."}
-			],
-			"mail" : [
-				{"/^.+@.+\\..+$/" : "És necessària una adreça electrònica vàlida.\nPer exemple: usuari@domini.xyz"}
-			]
-
-		};
-
-		//Como lo pasaremos como prop, no hace falta hacer JSON.stringify()
-		return validation_rgx_msg;
-	}
-
-	getDegreeList(){
+	/*getDegreeList(){
 
 		let degreeList = [
-			"Grau en Àmbit Industrial",
+			//"Grau en Àmbit Industrial",
 			"Grau en Enginyeria Mecànica",
 			"Grau en Enginyeria Elèctrica",
 			"Grau en Enginyeria Electrònica Industrial i Automàtica",
@@ -958,16 +737,23 @@ class InitialScreen extends React.Component {
 
 		return degreeList;
 
+	}*/
+
+
+	updateData(data){
+		this.degreeList = data.graus;
+		this.forceUpdate();
 	}
-
-
 
 
 	
 	render(){
 		
-		let validation_rgx_msg = this.getValidationRegexAndErrorMessages();
-		let degreeList = this.getDegreeList();
+		//let validation_rgx_msg = this.getValidationRegexAndErrorMessages();
+		let validation_rgx_msg = getValidationRegexAndErrorMessages();
+		//let degreeList = this.getDegreeList();
+		//let degreeList = getDegreeList();
+		let degreeList = this.degreeList;
 		
 		return(
 			<>
@@ -1017,8 +803,23 @@ function SignInUP(loginTregisterF){
 		navigate(page);
 	}
 
+
+
+	let screen_ref = React.createRef();
+	let screen = <InitialScreen loginTregisterF={loginTregisterF.loginTregisterF} navigate={navigateTo} ref={screen_ref}/>;
+	useEffect(() => {
+		getDegreeList().then((data) => {
+			screen_ref.current.updateData(data);
+		});
+	}, []);
+
+
+
+
 	return(
-		<InitialScreen loginTregisterF={loginTregisterF.loginTregisterF} navigate={navigateTo}/>
+	<>
+		{screen}
+	</>
 	)
 }
 export default SignInUP;

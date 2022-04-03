@@ -1,0 +1,47 @@
+/*:root {
+	--tooltip-color: rgba(0,127,191,1);
+}*/
+
+/*.vig_pagination{
+	overflow: scroll;
+	
+}*/
+
+
+
+.visual_active .page-link{
+	color: #fff !important;
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+}
+
+
+.visual_inactive .page-link{
+	color: #0a58ca !important;
+	background-color: #e9ecef !important;
+    border-color: #dee2e6 !important;
+}
+
+
+
+
+
+
+/* PANTALLA MÉS ALTA QUE BAIXA */
+@media screen and (orientation:portrait) {
+
+	.vig_pagination{
+		width: 92vw;
+	}
+
+}
+
+
+/* PANTALLA MÉS BAIXA QUE ALTA */
+@media screen and (orientation:landscape) {
+
+	.vig_pagination{
+		width: max(72vh, 305px);
+	}
+
+}

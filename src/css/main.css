@@ -8,7 +8,7 @@ html{
 
 body {
 	font: 14px "Century Gothic", Futura, sans-serif !important;
-	margin: 20px;
+	/*margin: 20px;*/
 	overflow-y: scroll;
 	background-color: rgba(0, 0, 0, 0.0) !important;
 }
