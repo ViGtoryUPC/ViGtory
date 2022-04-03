@@ -79,9 +79,36 @@ class UpvoteDownvoteButton extends React.Component{
 
 
 
+/*var stringToColor = function(str) {
+	var hash = 0;
+	for (var i = 0; i < str.length; i++) {
+		hash = str.charCodeAt(i) + ((hash << 5) - hash);
+	}
+	var color = '#';
+	for (var i = 0; i < 3; i++) {
+		var value = (hash >> (i * 8)) & 0xFF;
+		color += ('00' + value.toString(16)).substr(-2);
+	}
+	return color;
+}*/
 
 
-
+function stringToColor(value, lightness) {
+    return value.getHashCode().intToHSL(lightness);
+}
+String.prototype.getHashCode = function() {
+    var hash = 0;
+    if (this.length == 0) return hash;
+    for (var i = 0; i < this.length; i++) {
+        hash = this.charCodeAt(i) + ((hash << 5) - hash);
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return hash;
+};
+Number.prototype.intToHSL = function(lightness) {
+    var shortened = this % 360;
+    return "hsl("+shortened+",100%,"+lightness+"%)";
+};
 
 
 
@@ -153,7 +180,7 @@ class InitialScreen extends React.Component {
 		//Link a perfil de usuario
 
 		let date = new Date(this.props.post_info.createdAt);
-		let file_list = this.props.post_info.post_files ? this.props.post_info.post_files : [];
+		let file_list = this.props.post_info.fitxers ? this.props.post_info.fitxers : [];
 
 		return(
 			<>
@@ -161,6 +188,17 @@ class InitialScreen extends React.Component {
 
 				<Card className="mx-auto mb-4" >
 					<Card.Body>
+						<Link to={"/?p=1&sub="+this.props.post_info.sigles_ud} className="text-reset text-decoration-none">
+							<Button size="sm" className="sigles_ud_nav py-0" 
+							style={{
+								"--bttn_color":stringToColor(this.props.post_info.sigles_ud, 40),
+								"--bttn_color_hover":stringToColor(this.props.post_info.sigles_ud, 35),
+								border:"none"
+								}}
+							>
+								<b>{this.props.post_info.sigles_ud}</b>
+							</Button>
+						</Link>
 
 						
 						<OverlayTrigger
@@ -177,21 +215,23 @@ class InitialScreen extends React.Component {
 						<br/>
 					
 					
-						<div className="mt-2 mb-3">
+						<div className="mt-1 mb-1">
 							<Card.Subtitle className="text-muted d-inline">
-								<Link to={"/user/"+this.props.post_info.userName} className="text-reset text-decoration-none">
+								<Link to={"/user/"+this.props.post_info.userName} className="text-reset text-decoration-none username_nav px-2">
 									{false ? <img src="aaa" className="user_access_icon d-inline" /> : <></>}
-									{this.props.post_info.userName}
+									<b>{this.props.post_info.userName}</b>
 								</Link>
 							</Card.Subtitle>
-								{" diu:"}
+								{"diu:"}
 							<br/>
+						</div>
+
+						
+						<div className="mt-1 mb-2">
 							<Card.Title className="d-inline">
 								<b>{this.props.post_info.title}</b>
 							</Card.Title>
 						</div>
-
-						
 
 						<Card.Text>
 							{this.props.post_info.body}

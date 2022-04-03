@@ -64,6 +64,24 @@
 
 
 
+.sigles_ud_nav {
+	background-color: var(--bttn_color) !important;
+}
+.sigles_ud_nav:hover {
+	background-color: var(--bttn_color_hover) !important;
+}
+
+.username_nav {
+	background-color: rgb(222,233,244);
+	border-radius: 1rem;
+	filter: brightness(1);
+}
+.username_nav:hover {
+	filter: brightness(0.97);
+}
+
+
+
 
 /* PANTALLA MÉS ALTA QUE BAIXA */
 @media screen and (orientation:portrait) {

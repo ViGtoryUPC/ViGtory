@@ -26,7 +26,7 @@ async function uploadFile(file, post_id){
 
 	
 	const data = new FormData();
-	data.append('file', file);
+	data.append('file', file, file["name"]);
 	data.append('aportacioId', post_id);
 
 
@@ -38,7 +38,7 @@ async function uploadFile(file, post_id){
 	let promise = new Promise(()=>{}, ()=>{}, ()=>{});
 	
 	let headers = new Headers();
-	headers.append("Content-Type", "multipart/form-data");
+	//headers.append("Content-Type", "multipart/form-data");
 	headers.append("authorization", Cookie.get("jwt"));
 
 	let resp_ok = true;
@@ -75,15 +75,14 @@ async function uploadFile(file, post_id){
 	)
 	.then(
 		data => {
+			console.log(data);
+
 			if (data === undefined) return;
 			
 			if (!resp_ok){
 				window.alert(data.error);
 				return;
 			}
-
-
-			console.log(data);
 		}
 	);
 
@@ -121,6 +120,10 @@ async function createOrUpdatePostToAPI(text_data, route, files_to_add, files_to_
 	console.log(data.toString());
 
 
+
+	//console.log(files_to_add);
+	//console.log(files_to_add[0]["name"]);
+	//return;
 
 
 	/*console.log(null);
@@ -183,6 +186,7 @@ async function createOrUpdatePostToAPI(text_data, route, files_to_add, files_to_
 	.then(
 		data => {
 			console.log(data);
+			console.log(data["IdAportacio"]);
 
 			if (data === undefined) return;
 			
@@ -192,14 +196,14 @@ async function createOrUpdatePostToAPI(text_data, route, files_to_add, files_to_
 			}
 
 			//AÑADIMOS LOS ARCHIVOS UNO A UNO, CADA UNO CON SU PROPIA PETICIÓN
-			/*for (let i = 0; i < files_to_add.length; i++) {
+			for (let i = 0; i < files_to_add.length; i++) {
 				console.log(data["IdAportacio"]);
 				uploadFile(files_to_add[i], data["IdAportacio"]);
 			}
 			//ELIMINAMOS LOS ARCHIVOS UNO A UNO, CADA UNO CON SU PROPIA PETICIÓN
 			for (let i = 0; i < files_to_delete.length; i++) {
 				console.log(data["IdAportacio"]);
-			}*/
+			}
 
 			console.log(data);
 		}
@@ -268,8 +272,9 @@ class FitxersInput extends React.Component {
 		this.valid = true;
 
 
-		console.log(file_list);
+		//console.log(file_list);
 		this.file_list = file_list;
+		//console.log(this.file_list);
 		return;
 	}
 
@@ -642,7 +647,9 @@ class InitialScreen extends React.Component {
 		}
 		//console.log(new FormData(event.currentTarget));
 
-		let files_to_add = (this.fitxersInput_ref) ? (this.fitxersInput_ref.file_list?this.fitxersInput_ref.file_list:[]) : ([]);
+		//console.log("fitxersInput_ref: "+this.fitxersInput_ref.current);
+		//console.log("fitxersInput_ref.file_list: "+this.fitxersInput_ref.current.file_list);
+		let files_to_add = (this.fitxersInput_ref.current) ? (this.fitxersInput_ref.current.file_list?this.fitxersInput_ref.current.file_list:[]) : ([]);
 		let files_to_delete = [];
 
 		createOrUpdatePostToAPI(

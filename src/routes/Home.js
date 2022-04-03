@@ -79,7 +79,7 @@ function getPostsTest(current_page, posts_per_page){
 				votes: Math.floor(100*Math.random()),
 				//post_upvotes: Math.floor(100*Math.random()),
 				//post_downvotes: Math.floor(100*Math.random()),
-				post_files: randomFileListGenerator(5),
+				fitxers: randomFileListGenerator(5),
 				post_comment_count: Math.floor(100*Math.random()),
 
 				//post_upvoted: post_upvoted,
@@ -226,7 +226,7 @@ class InitialScreen extends React.Component {
 		this.current_assignatura = null;
 		this.current_search = null;
 
-		this.limit = 2;
+		this.limit = 10;
 	}
 
 
