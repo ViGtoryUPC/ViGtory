@@ -60,6 +60,10 @@ class AssignaturesDropdown extends React.Component {
 	constructor(props) {
 		super(props);
 		this.current_assignatura = props.current_assignatura;
+		//this.hasBeenUsed = false;
+
+		let params = new URLSearchParams(window.location.search);
+		this.assignatura_search = params.get("sub");
 		this.hasBeenUsed = false;
 	}
 
@@ -80,6 +84,17 @@ class AssignaturesDropdown extends React.Component {
 
 
 
+	/*updateSelected(selected, actionbyuser){
+		//this.props.update_assignatura(selected);
+		if (actionbyuser){this.hasBeenUsed = true;}
+		if (!this.hasBeenUsed || actionbyuser){
+			this.current_assignatura = selected;
+			this.forceUpdate();
+		}
+	}*/
+
+
+
 	updateSelected(selected){
 		//console.log(selected);
 		this.hasBeenUsed = true;
@@ -93,7 +108,10 @@ class AssignaturesDropdown extends React.Component {
 
 	render(){
 
-		let current_assignatura = this.current_assignatura;
+		//let current_assignatura = this.current_assignatura;
+		//this.current_assignatura = ( this.current_assignatura ? this.current_assignatura : (this.props.current_assignatura ? this.props.current_assignatura : null) );
+		this.current_assignatura = this.hasBeenUsed ? this.current_assignatura : ( this.current_assignatura ? this.current_assignatura : (this.props.current_assignatura ? this.props.current_assignatura : null) );
+
 		let assignatures = this.alphabetize(this.props.subjectList.assignatures);
 		//let assignatures = this.props.subjectList.assignatures;
 		//let assignatures = this.assignatures;
@@ -112,12 +130,12 @@ class AssignaturesDropdown extends React.Component {
 			<DropdownButton
 				key={"dropdownbutton"}
 				size="sm"
-				title={current_assignatura?current_assignatura:(this.hasBeenUsed?"General":"Assignatura")}
+				title={this.current_assignatura?this.current_assignatura:(this.hasBeenUsed?"General":"Assignatura")}
 				onSelect={(e)=>{this.updateSelected(e)}}
 			>
 				<Dropdown.Item key={-1}
 					eventKey={""}
-					className={current_assignatura?"":"current_assignatura"}
+					className={this.current_assignatura?"":"current_assignatura"}
 				>
 					<b key={-1+"b"}>{"General"}</b><br key={-1+"br"}/>
 					&nbsp;&nbsp;&nbsp;
@@ -134,7 +152,7 @@ class AssignaturesDropdown extends React.Component {
 						<Dropdown.Divider className="my-0" key={k+"_"} />
 						<Dropdown.Item key={k}
 							eventKey={v.sigles_ud}
-							className={(current_assignatura===v.sigles_ud)?"current_assignatura":""}
+							className={(this.current_assignatura===v.sigles_ud)?"current_assignatura":""}
 						>
 							<b key={k+"b"}>{v.sigles_ud}</b>
 							{" "+
@@ -178,6 +196,8 @@ class InitialScreen extends React.Component {
 		this.current_assignatura = props.current_assignatura;
 		this.current_search = props.current_search;
 		this.subjectList = {};
+
+		this.assignDrop_ref = React.createRef();
 	}
 
 
@@ -186,6 +206,8 @@ class InitialScreen extends React.Component {
 		//console.log(selected);
 		//this.forceUpdate();
 	}
+
+	
 
 	update_search(event){
 		this.current_search = event.currentTarget.value;
@@ -201,6 +223,7 @@ class InitialScreen extends React.Component {
 	newParams(o_params, new_se, new_su){
 		let params = newParamsSearch(o_params, new_se);
 		params = newParamsSubject(params, new_su);
+		params.delete("p");
 		return params;
 	}
 
@@ -208,6 +231,14 @@ class InitialScreen extends React.Component {
 		this.props.navigate(this.props.location+"?"+this.newParams(this.params, this.current_search, this.current_assignatura));
 	}
 	
+
+
+	updateSelectedAssignatura(selected){
+		if (this.assignDrop_ref.current)
+		this.assignDrop_ref.current.updateSelected(selected);
+	}
+
+
 
 	
 	render(){

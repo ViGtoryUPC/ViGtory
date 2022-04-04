@@ -89,6 +89,9 @@
 	.card{
 		width: 90vw;
 	}
+	.card.individual{
+		width: 93vw;
+	}
 
 }
 
@@ -98,6 +101,9 @@
 
 	.card{
 		width: max(70vh, 300px);
+	}
+	.card.individual{
+		width: max(82vh, 315px);
 	}
 
 }

@@ -94,6 +94,7 @@ class UpvoteDownvoteButton extends React.Component{
 
 
 function stringToColor(value, lightness) {
+	//console.log("stringToColor input value: "+value);
     return value.getHashCode().intToHSL(lightness);
 }
 String.prototype.getHashCode = function() {
@@ -186,20 +187,23 @@ class InitialScreen extends React.Component {
 			<>
 				
 
-				<Card className="mx-auto mb-4" >
+				<Card className={"mx-auto"+(this.props.individualView?" mb-0 individual":" mb-4")} >
 					<Card.Body>
-						<Link to={"/?p=1&sub="+this.props.post_info.sigles_ud} className="text-reset text-decoration-none">
-							<Button size="sm" className="sigles_ud_nav py-0" 
-							style={{
-								"--bttn_color":stringToColor(this.props.post_info.sigles_ud, 40),
-								"--bttn_color_hover":stringToColor(this.props.post_info.sigles_ud, 35),
-								border:"none"
-								}}
-							>
-								<b>{this.props.post_info.sigles_ud}</b>
-							</Button>
-						</Link>
+						{this.props.post_info.sigles_ud ?
+							<Link to={"/?p=1&sub="+this.props.post_info.sigles_ud} className="text-reset text-decoration-none">
+								<Button size="sm" className="sigles_ud_nav py-0" 
+								style={{
+									"--bttn_color":stringToColor(this.props.post_info.sigles_ud, 40),
+									"--bttn_color_hover":stringToColor(this.props.post_info.sigles_ud, 35),
+									border:"none"
+									}}
+								>
+									<b>{this.props.post_info.sigles_ud}</b>
+								</Button>
+							</Link>
 
+							:""
+						}
 						
 						<OverlayTrigger
 							placement="top"
@@ -252,12 +256,12 @@ class InitialScreen extends React.Component {
 						</div>
 
 						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-						<Card.Link className="d-inline align-items-middle text-reset text-decoration-none"><strong>
+						<Link to={"post/"+this.props.post_info._id} className="d-inline align-items-middle text-reset text-decoration-none"><strong>
 							{this.props.post_info.post_comment_count?this.props.post_info.post_comment_count:"0"}{" Comentari"}{this.props.post_info.post_comment_count==1 ? "":"s"}
-						</strong></Card.Link>
+						</strong></Link>
 
 						
-						{file_list.length > 0 ?
+						{((file_list.length > 0) && (!this.props.individualView)) ?
 						
 							<OverlayTrigger
 								placement="bottom"
@@ -301,7 +305,7 @@ class InitialScreen extends React.Component {
 
 function PostViGtory(props){
 	return(
-		<InitialScreen post_info={props.post_info} />
+		<InitialScreen post_info={props.post_info} individualView={props.individualView} />
 	)
 }
 export default PostViGtory;

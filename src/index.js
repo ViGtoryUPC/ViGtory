@@ -5,8 +5,8 @@ import { Button } from 'react-bootstrap';
 
 import SignInUp from "./routes/SignInUp";
 import ProfileSettings from "./routes/ProfileSettings";
-import UserProfile from "./routes/UserProfile";
 import Home from "./routes/Home";
+import IndividualPostView from "./routes/IndividualPostView";
 import GradeCalc from "./routes/GradeCalc";
 import ScheduleGen from "./routes/ScheduleGen";
 //import NavBar from "./components/NavBar";
@@ -31,6 +31,8 @@ ReactDOM.render(
 		<Routes>
 
 			<Route path="/" element={<Home currentSection="/" home_ref={home_ref} />} />
+
+			<Route path="post/:id" element={<IndividualPostView currentSection="/" />} />
 
 
 
