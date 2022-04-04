@@ -160,6 +160,7 @@ async function getPosts(search_fields_data){
 			//body: data,
 			//body: search_fields_data,
 			headers: headers,
+			//cache: "no-cache",
 			timeout: 5000
 	})
 	.then(
@@ -227,6 +228,8 @@ class InitialScreen extends React.Component {
 		this.current_search = null;
 
 		this.limit = 10;
+
+		this.params = new URLSearchParams();
 	}
 
 
@@ -244,8 +247,8 @@ class InitialScreen extends React.Component {
 		if (this.postedit_ref.current)
 		this.postedit_ref.current.updateSelected(selected);
 		
-		//if (this.search_ref.current)
-		//this.search_ref.current.updateSelectedAssignatura(selected);
+		if (this.search_ref.current)
+		this.search_ref.current.updateSelectedAssignatura(selected);
 	}
 
 
@@ -255,26 +258,6 @@ class InitialScreen extends React.Component {
 
 		this.page = data;
 
-
-
-		//Reconocimiento de parámetros de búsqueda en la URL (?x=z&a=b)
-		let params = new URLSearchParams(window.location.search);
-
-		let pageNum = params.has("p") ? ( isNaN(parseInt(params.get("p"))) ? 1 : parseInt(params.get("p")) ) : 1;
-		pageNum = Math.max(pageNum, 1); //Para evitar números negativos
-		params.set("p", pageNum);
-
-		let currentAssignatura = params.has("sub") ? params.get("sub") : null;
-
-		let currentSearch = params.has("search") ? params.get("search") : null;
-
-
-
-		//A partir de aquí usamos lo obtenido de DATA
-
-
-
-
 		//USAR Math.ceil(total/limit)
 		//let last_p = 1234; //Este valor lo obtendríamos del GetAportacions
 		this.last_p = Math.ceil((data?data.numAportacions:0)/this.limit);
@@ -282,7 +265,10 @@ class InitialScreen extends React.Component {
 			pageNum = Math.min(pageNum, last_p); //Para evitar números fuera de rango  //TO DO: NECESITARÍA QUE LA API SE COMPORTE DE FORMA SIMILAR A ESTO
 			params.set("p", pageNum);
 		*/
-		if (pageNum>this.last_p){pageNum = this.last_p;}
+		if (this.current_p>this.last_p){
+			this.current_p = this.last_p;
+			this.params.set("p", this.current_p);
+		}
 	
 	
 	
@@ -292,21 +278,21 @@ class InitialScreen extends React.Component {
 		window.history.replaceState(
 			"", "",
 			//( window.location.href.substr(0, window.location.href.lastIndexOf("/")+1) ) + "?" + params.toString()
-			(BaseName==="/"?"":BaseName) + this.props.location.pathname + "?" + params.toString() //new URL
+			(BaseName==="/"?"":BaseName) + this.props.location.pathname + "?" + this.params.toString() //new URL
 		);
 	
-		if ((pageNum != 1) || (currentAssignatura) || (currentSearch)){
+		if ((this.current_p != 1) || (this.current_assignatura) || (this.current_search)){
 			document.title = "ViGtory! Cerca"
 	
 			//+ (currentSearch ? " de \""+currentSearch+"\"" : "")
-			+ (currentSearch ? " de «"+currentSearch+"»" : "")
+			+ (this.current_search ? " de «"+this.current_search+"»" : "")
 			//+ (currentSearch ? " de ❝"+currentSearch+"❞" : "")
 			//+ (currentSearch ? " de ❮❮"+currentSearch+"❯❯" : "")
 	
-			+ (currentAssignatura ? " a "+currentAssignatura : "")
+			+ (this.current_assignatura ? " a "+this.current_assignatura : "")
 			
 			//+ ((pageNum != 1) ? " (pàgina "+pageNum+")" : "")
-			+ (" (pàgina "+pageNum+")")
+			+ (" (pàgina "+this.current_p+")")
 			;
 		}
 
@@ -314,9 +300,6 @@ class InitialScreen extends React.Component {
 
 
 
-
-		this.current_assignatura = currentAssignatura;
-		this.current_search = currentSearch;
 
 
 
@@ -328,6 +311,27 @@ class InitialScreen extends React.Component {
 
 
 	getSearchFieldsData(){
+
+		//Reconocimiento de parámetros de búsqueda en la URL (?x=z&a=b)
+		this.params = new URLSearchParams(window.location.search);
+
+		this.current_p = this.params.has("p") ? ( isNaN(parseInt(this.params.get("p"))) ? 1 : parseInt(this.params.get("p")) ) : 1;
+		this.current_p = Math.max(this.current_p, 1); //Para evitar números negativos
+		this.params.set("p", this.current_p);
+
+		this.current_assignatura = this.params.has("sub") ? this.params.get("sub") : null;
+
+		this.current_search = this.params.has("search") ? this.params.get("search") : null;
+
+
+
+
+
+
+
+
+
+
 		let data = {};
 		data["ordre"] = -1; //( 1=Ascendent | -1=Descendent )
 		data["criteri"] = 0; //( 0=Data | 1=Vots )
@@ -337,8 +341,11 @@ class InitialScreen extends React.Component {
 		if (this.search_ref.current && this.search_ref.current.current_search)
 			data["busca"] = this.search_ref.current.current_search;
 
-		if (this.search_ref.current && this.search_ref.current.current_assignatura)
-			data["sigles_ud"] = this.search_ref.current.current_assignatura;
+		//if (this.search_ref.current && this.search_ref.current.current_assignatura)
+		//	data["sigles_ud"] = this.search_ref.current.current_assignatura;
+		if (this.current_assignatura)
+			data["sigles_ud"] = this.current_assignatura;
+		
 
 		if (this.props.useParams.username)
 			data["usernameFind"] = this.props.useParams.username;
@@ -364,7 +371,7 @@ class InitialScreen extends React.Component {
 
 		console.log(final_posts);*/
 
-		this.postEdit = <PostEdit new_post={false} current_assignatura={this.current_assignatura} postedit_ref={this.postedit_ref} />;
+		this.postEdit = <PostEdit new_post={true} current_assignatura={this.current_assignatura} postedit_ref={this.postedit_ref} />;
 
 		this.ViGtSearch = <ViGtSearch current_assignatura={this.current_assignatura} current_search={this.current_search} search_ref={this.search_ref} />
 

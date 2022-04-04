@@ -24,10 +24,13 @@ import {getSubjectList} from '../libraries/data_request';
 
 async function uploadFile(file, post_id){
 
-	
+	//console.log("post_id in uploadFile: "+post_id);
+
+	//Aparentemente, el orden en que añadía los datos antes nulificaba el valor de aportacioId y al backend llegaba como undefined.
+	//Puesto en este orden ahora funciona
 	const data = new FormData();
-	data.append('file', file, file["name"]);
 	data.append('aportacioId', post_id);
+	data.append('file', file, file["name"]);
 
 
 
@@ -46,9 +49,10 @@ async function uploadFile(file, post_id){
 	promise = await fetch(
 		API_address + "/aportacio/addFile", {
 			method: "POST",
-			mode: 'cors',
-			body: data,
+			//mode: 'cors',
 			headers: headers,
+			body: data,
+			redirect: 'follow',
 			timeout: 5000
 	})
 	.then(
@@ -75,7 +79,7 @@ async function uploadFile(file, post_id){
 	)
 	.then(
 		data => {
-			console.log(data);
+			//console.log(data);
 
 			if (data === undefined) return;
 			
@@ -117,7 +121,7 @@ async function createOrUpdatePostToAPI(text_data, route, files_to_add, files_to_
 		//console.log(key+" -> "+text_data[key]);
 		data.append(key, text_data[key]);
 	}
-	console.log(data.toString());
+	//console.log(data.toString());
 
 
 
@@ -185,8 +189,8 @@ async function createOrUpdatePostToAPI(text_data, route, files_to_add, files_to_
 	)
 	.then(
 		data => {
-			console.log(data);
-			console.log(data["IdAportacio"]);
+			//console.log(data);
+			//console.log(data["IdAportacio"]);
 
 			if (data === undefined) return;
 			
@@ -197,7 +201,7 @@ async function createOrUpdatePostToAPI(text_data, route, files_to_add, files_to_
 
 			//AÑADIMOS LOS ARCHIVOS UNO A UNO, CADA UNO CON SU PROPIA PETICIÓN
 			for (let i = 0; i < files_to_add.length; i++) {
-				console.log(data["IdAportacio"]);
+				//console.log(data["IdAportacio"]);
 				uploadFile(files_to_add[i], data["IdAportacio"]);
 			}
 			//ELIMINAMOS LOS ARCHIVOS UNO A UNO, CADA UNO CON SU PROPIA PETICIÓN
@@ -205,7 +209,7 @@ async function createOrUpdatePostToAPI(text_data, route, files_to_add, files_to_
 				console.log(data["IdAportacio"]);
 			}
 
-			console.log(data);
+			//console.log(data);
 		}
 	);
 	
