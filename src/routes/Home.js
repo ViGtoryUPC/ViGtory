@@ -18,7 +18,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '../css/main.css';
 import '../css/Home.css';
 //import '../css/PostViGtory.css';
-//import '../css/PostEdit.css';
+//import '../css/PostEdit.css'; 
 
 import { Cookie } from '../libraries/cookie';
 import {BaseName} from "../libraries/basename";
