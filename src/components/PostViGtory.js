@@ -6,72 +6,105 @@ import { Routes, Route, Link, useHistory } from "react-router-dom";
 import { Accordion, Button, Form, FloatingLabel } from 'react-bootstrap';
 import { Card, OverlayTrigger, Tooltip, Dropdown, Popover } from 'react-bootstrap';
 
+import ViGtVote from "./ViGtVote";
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../css/main.css';
 import '../css/PostViGtory.css';
 
-import '../libraries/cookie';
-
-import NoUpvote_img from '../assets/images/NoUpvote.png';
-import Upvote_img from '../assets/images/Upvote.png';
-import NoDownvote_img from '../assets/images/NoDownvote.png';
-import Downvote_img from '../assets/images/Downvote.png';
+import {Cookie} from '../libraries/cookie';
+import {BaseName} from "../libraries/basename";
 
 
 
 
 
-class UpvoteDownvoteButton extends React.Component{
-
-	//https://stackoverflow.com/questions/44604966/how-to-click-an-image-and-make-a-rotation //En otra ocasión
-
-	constructor(props) {
-		super(props);
-		this.state = {
-			voted: props.voted
-		};
-	}
-
-
-	updateVoteSelf(voted){
-		this.setState({ 
-			voted: voted //Aquí debería haber el valor que diga la API, para que no haya bugs
-		})
-	}
 
 
 
-	voteAction(){
-		//Enviar voto a la API y hacer el setState que toque
-
-		let voted = !this.state.voted;
 
 
-		this.updateVoteSelf(voted);
-		this.props.updateVote(this.props.upTdownF, voted);
-
-	}
 
 
-	render() {
-		const { voted } = this.state;
-		const upTdownF = this.props.upTdownF;
+
+
+
+async function deletePost(post_id, individual, sub, hidePost){
 	
-		return (
-			<img
-				src={
-					voted
-					? (upTdownF ? Upvote_img : Downvote_img)
-					: (upTdownF ? NoUpvote_img : NoDownvote_img)
-				}
-				onClick={this.voteAction.bind(this)}
-				className="d-inline votearrow mt-0 mb-1"
-			/>
-		);
-	}
+	let data = new URLSearchParams();
+	data.append("aportacioId", post_id);
+	
 
+	let err_mssg = "En aquests moments sembla que no podem contactar els nostres servidors.\nTorna a intentar-ho més endevant.";
+
+
+	let response = {};
+	let promise = new Promise(()=>{}, ()=>{}, ()=>{});
+	
+	let headers = new Headers();
+	headers.append("Content-Type", "application/x-www-form-urlencoded");
+	
+
+	headers.append("authorization", Cookie.get("jwt"));
+
+	let resp_ok = true;
+
+	promise = await fetch(
+		API_address + "/aportacio/deleteAportacio", {
+			method: "DELETE",
+			//mode: 'cors',
+			body: data,
+			headers: headers,
+			timeout: 5000
+	})
+	.then(
+		resp => { //SÍ ha sido posible conectar con la API
+
+			//Si todo es correcto (status 200-299)
+			if (resp.ok){
+				response = resp.json();
+				
+				if (individual){
+					//window.location.reload();
+					window.location.href = 
+						window.location.protocol+"//"+window.location.host+
+						(BaseName==="/"?"":BaseName) + "/?sub="+sub //Pàgina 1 de l'assignatura
+				}
+				else{hidePost();}
+			}
+			
+			return response;
+		}, 
+		resp => { //NO ha sido posible conectar con la API
+			window.alert(err_mssg);
+			return;
+		}
+	)
+	/*.then(
+		data => {
+			//console.log(data);
+		}
+	);*/
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -119,21 +152,7 @@ class InitialScreen extends React.Component {
 
 	constructor(props) {
 		super(props);
-		this.state = {
-			//upvoted: props.post_info.post_upvoted,
-			//downvoted: props.post_info.post_downvoted,
-			voted: props.post_info.votUsuari ? props.post_info.votUsuari : 0,
-			//vote_count: props.post_info.post_upvotes-props.post_info.post_downvotes
-			vote_count: props.post_info.votes
-		};
-
-		this.upvote_button_ref = React.createRef();
-		this.upvote_button = <UpvoteDownvoteButton upTdownF={true} voted={/*this.props.post_info.post_upvoted*/this.props.post_info.votUsuari===1} updateVote={(upTdownF, voted) => this.updateVote(upTdownF, voted)} ref={this.upvote_button_ref} />;
-		
-		this.downvote_button_ref = React.createRef();
-		this.downvote_button = <UpvoteDownvoteButton upTdownF={false} voted={/*this.props.post_info.post_downvoted*/this.props.post_info.votUsuari===-1} updateVote={(upTdownF, voted) => this.updateVote(upTdownF, voted)} ref={this.downvote_button_ref} />;
-		
-
+		this.showPost = true;
 	}
 
 	updateVoteCount(alteration){
@@ -169,26 +188,48 @@ class InitialScreen extends React.Component {
 	}
 
 
+	hidePost(){
+		this.showPost = false;
+		this.forceUpdate();
+	}
 
-	//<UpvoteDownvoteButton voted={this.props.post_info.post_upvoted}/>
-	//<UpvoteDownvoteButton voted={this.props.post_info.post_downvoted}/>
+
 	render(){
 		
-		//<Card.Title>Card Title</Card.Title>
-		//<Card.Subtitle className="mb-2 text-muted">Card Subtitle</Card.Subtitle>
-		//<Popover><Popover.Body>
-		//<Card.Link href="#">Card Link</Card.Link>
-		//Link a perfil de usuario
+		if (!this.showPost) return(<></>);
+
 
 		let date = new Date(this.props.post_info.createdAt);
 		let file_list = this.props.post_info.fitxers ? this.props.post_info.fitxers : [];
 
+
+
 		return(
 			<>
+				<div className={"post mx-auto"+(this.props.individualView?" mb-0 individual":" mb-4")}>
 				
+				<div className="d-flex px-2 justify-content-end">
+					{(Cookie.get("username")===this.props.post_info.userName)?				
+						<Button
+							size="sm"
+							variant="danger"
+							className="px-1 py-0"
+							style={{borderBottomLeftRadius:0, borderBottomRightRadius:0}}
+							onClick={()=>{
+								if (window.confirm("Realment vols eliminar aquesta aportació?\n\nTítol:\n    «"+this.props.post_info.title+"»")){
+									deletePost(
+										this.props.post_info._id,
+										this.props.individualView,
+										this.props.post_info.sigles_ud,
+										() => {this.hidePost()})
+								}
+							}}
+						>❌Elimina</Button>
+					:""}
+				</div>
 
-				<Card className={"mx-auto"+(this.props.individualView?" mb-0 individual":" mb-4")} >
-					<Card.Body>
+				<Card className={"mx-auto"+(this.props.individualView?" mb-0":" mb-4")} >
+					<Card.Body className="pb-1">
 						{this.props.post_info.sigles_ud ?
 							<Link to={"/?p=1&sub="+this.props.post_info.sigles_ud} className="text-reset text-decoration-none">
 								<Button size="sm" className="sigles_ud_nav py-0" 
@@ -243,17 +284,7 @@ class InitialScreen extends React.Component {
 
 
 
-						<div className="d-inline">
-
-							{this.upvote_button}
-
-							<h5 className="d-inline"><strong>
-								{(this.state.vote_count).toString()}
-							</strong></h5>
-
-							{this.downvote_button}
-
-						</div>
+						<ViGtVote post_id={this.props.post_info._id} comment_id={null} votUsuari={this.props.post_info.votUsuari} voteCount={this.props.post_info.votes}/>
 
 						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 						<Link to={"post/"+this.props.post_info._id} className="d-inline align-items-middle text-reset text-decoration-none"><strong>
@@ -275,8 +306,12 @@ class InitialScreen extends React.Component {
 									);})}
 									</ol></Tooltip>
 								}
-								><p className="float-end mt-1 mb-0">
+								>
+								
+								<p className="float-end mt-1 mb-0">
+								<Link to={"post/"+this.props.post_info._id} className="d-inline align-items-middle text-reset text-decoration-none">
 									{file_list.length}{" Fitxer"}{file_list.length==1 ? "":"s"}
+								</Link>
 								</p>
 							</OverlayTrigger>
 						
@@ -289,7 +324,7 @@ class InitialScreen extends React.Component {
 
 					</Card.Body>
 				</Card>
-					
+				</div>
 				
 
 			</>

@@ -36,13 +36,95 @@ viewport.setAttribute("content", viewport.content + ", height=" + window.innerHe
 
 
 
+async function downloadFile(post_id, file_name){
+
+	const data = new URLSearchParams();
+
+	if (file_name !== null)
+		data.append('nomFitxer', file_name);
+
+	data.append('aportacioId', post_id);
+	
+	let route = (file_name===null) ? "/aportacio/downloadAllFiles" : "/aportacio/downloadFile"
+	route += "?"+data.toString();
+
+	console.log(route);
+
+
+	let err_mssg = "En aquests moments sembla que no podem contactar els nostres servidors.\nTorna a intentar-ho més endevant.";
+
+
+	let response = {};
+	let promise = new Promise(()=>{}, ()=>{}, ()=>{});
+	
+	let headers = new Headers();
+	//headers.append("Content-Type", "multipart/form-data");
+	headers.append("authorization", Cookie.get("jwt"));
+
+	let resp_ok = true;
+
+	promise = await fetch(
+		API_address + route, {
+			method: "GET",
+			//mode: 'cors',
+			headers: headers,
+			//body: data,
+			redirect: 'follow',
+			timeout: 5000
+	})
+	.then(
+		resp => { //SÍ ha sido posible conectar con la API
+
+			//Si todo es correcto (status 200-299)
+			if (resp.ok){
+				response = resp.blob();
+			}
+			return response;
+		}, 
+		resp => { //NO ha sido posible conectar con la API
+			console.log(resp);
+			window.alert(err_mssg);
+			return;
+		}
+	)
+	.then(
+		data => {
+			//console.log(data.vot);
+			console.log(data);
+
+			if (data === undefined) return;
+			
+			if (!resp_ok){
+				window.alert(data.error);
+				return;
+			}
+
+
+			if (file_name === null)
+				file_name = post_id+".zip";
+
+			var url = window.URL.createObjectURL(data);
+
+			let downloadHyperlink = document.createElement('a');
+			downloadHyperlink.href = url;
+			downloadHyperlink.download = file_name;
+			downloadHyperlink.click();
+
+		}
+	);
+
+
+}
+
+
+
+
 
 
 
 
 
 async function getPostData(post_id){
-	
 
 	let err_mssg = "En aquests moments sembla que no podem contactar els nostres servidors.\nTorna a intentar-ho més endevant.";
 
@@ -191,7 +273,7 @@ class InitialScreen extends React.Component {
 												<span 
 													className="individualDownload px-2" 
 													style={{whiteSpace:"nowrap"}}
-													onClick={()=>{console.log("click click")}}
+													onClick={()=>{downloadFile(post_info._id, filename)}}
 												>
 												Descarrega
 												&nbsp;
@@ -202,7 +284,7 @@ class InitialScreen extends React.Component {
 									);})}
 									<Button 
 										size="sm"
-										onClick={()=>{console.log("CLICK")}}
+										onClick={()=>{downloadFile(post_info._id, null)}}
 									>
 										{/*justify-content-between es una alternativa interesante*/}
 										<b className="text-decoration-none d-flex align-items-center justify-content-center">
@@ -278,8 +360,8 @@ function IndividualPostView(props){
 
 
 		getPostData(params.id).then((data) => {
-			console.log(data);
-			console.log("screen_ref.current: "+screen_ref.current)
+			//console.log(data);
+			//console.log("screen_ref.current: "+screen_ref.current)
 			//if (screen_ref.current)
 			screen_ref.current.updatePageContent(data);
 		});

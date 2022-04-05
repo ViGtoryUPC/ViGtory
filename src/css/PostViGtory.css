@@ -2,7 +2,7 @@
 	--tooltip-color: rgba(0,127,191,1);
 }
 
-.card{
+.post{
 
 	overflow: visible;
 	--b_width: min(0.2vh, 0.4vw);
@@ -42,20 +42,6 @@
 
 
 
-.votearrow{
-	width: 20px;
-	margin-left: 0.4vw;
-	margin-right: 0.4vw;
-}
-.votearrow:hover{
-	cursor: pointer;
-}
-
-
-
-
-
-
 .tooltip_fitxers>.tooltip-inner {
 	text-align: start !important;
 }
@@ -86,10 +72,10 @@
 /* PANTALLA MÉS ALTA QUE BAIXA */
 @media screen and (orientation:portrait) {
 
-	.card{
+	.post{
 		width: 90vw;
 	}
-	.card.individual{
+	.post.individual{
 		width: 93vw;
 	}
 
@@ -99,10 +85,10 @@
 /* PANTALLA MÉS BAIXA QUE ALTA */
 @media screen and (orientation:landscape) {
 
-	.card{
+	.post{
 		width: max(70vh, 300px);
 	}
-	.card.individual{
+	.post.individual{
 		width: max(82vh, 315px);
 	}
 

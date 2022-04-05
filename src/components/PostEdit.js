@@ -13,6 +13,7 @@ import '../css/main.css';
 import '../css/PostEdit.css';
 
 import {Cookie} from '../libraries/cookie';
+import {BaseName} from "../libraries/basename";
 import {getSubjectList} from '../libraries/data_request';
 
 
@@ -22,7 +23,7 @@ import {getSubjectList} from '../libraries/data_request';
 
 
 
-async function uploadFile(file, post_id){
+async function uploadFile(file, post_id, i, uploaded_ready, checkFinish){
 
 	//console.log("post_id in uploadFile: "+post_id);
 
@@ -87,6 +88,11 @@ async function uploadFile(file, post_id){
 				window.alert(data.error);
 				return;
 			}
+
+
+
+			uploaded_ready[i] = true;
+			checkFinish();
 		}
 	);
 
@@ -103,7 +109,7 @@ async function uploadFile(file, post_id){
 
 
 
-async function createOrUpdatePostToAPI(text_data, route, files_to_add, files_to_delete, navigate){
+async function createOrUpdatePostToAPI(createTupdateF, text_data, route, files_to_add, files_to_delete/*, navigate*/){
 	//console.log(event.currentTarget.action);
 	//event.currentTarget.submit();
 		//event.currentTarget.action = API_address + "/aportacio/" + route;
@@ -116,10 +122,10 @@ async function createOrUpdatePostToAPI(text_data, route, files_to_add, files_to_
 		data.append(pair[0], pair[1]);
 	}
 	data.append("sigles_ud", more_data);*/
-	const data = new URLSearchParams();
+	const data_to_send = new URLSearchParams();
 	for (var key of Object.keys(text_data)) {
 		//console.log(key+" -> "+text_data[key]);
-		data.append(key, text_data[key]);
+		data_to_send.append(key, text_data[key]);
 	}
 	//console.log(data.toString());
 
@@ -161,7 +167,7 @@ async function createOrUpdatePostToAPI(text_data, route, files_to_add, files_to_
 		route, {
 			method: "POST",
 			mode: 'cors',
-			body: data,
+			body: data_to_send,
 			headers: headers,
 			timeout: 5000
 	})
@@ -199,21 +205,61 @@ async function createOrUpdatePostToAPI(text_data, route, files_to_add, files_to_
 				return;
 			}
 
+			let uploaded_ready = new Array(files_to_add.length).fill(false);
+			let deleted_ready = new Array(files_to_delete.length).fill(false);
+
+			var checkFinish = () => {check_if_finished(uploaded_ready, deleted_ready, 
+				//navigate,//  /ViGtory
+				window.location.protocol+"//"+window.location.host+(BaseName==="/"?"":BaseName) + 
+				(createTupdateF ? 
+					"/?sub="+data_to_send.get("sigles_ud") //Pàgina 1 de l'assignatura
+				: 
+					"/post/"+data["IdAportacio"] //Pàgina individual de la publicació
+				)
+				)};
+
+			checkFinish();
+
 			//AÑADIMOS LOS ARCHIVOS UNO A UNO, CADA UNO CON SU PROPIA PETICIÓN
 			for (let i = 0; i < files_to_add.length; i++) {
 				//console.log(data["IdAportacio"]);
-				uploadFile(files_to_add[i], data["IdAportacio"]);
+				uploadFile(files_to_add[i], data["IdAportacio"], i, uploaded_ready, checkFinish);
 			}
 			//ELIMINAMOS LOS ARCHIVOS UNO A UNO, CADA UNO CON SU PROPIA PETICIÓN
 			for (let i = 0; i < files_to_delete.length; i++) {
 				console.log(data["IdAportacio"]);
+				//deleteFile(files_to_delete[i], data["IdAportacio"], i, deleted_ready, checkFinish)
 			}
 
-			//console.log(data);
+			console.log(data);
 		}
 	);
-	
 }
+
+
+function check_if_finished(uploaded_ready, deleted_ready, /*navigate,*/ callback_url){
+
+	console.log(uploaded_ready);
+	for (let i = 0; i < uploaded_ready.length; i++) {
+		if (!uploaded_ready[i]) return;
+	}
+	for (let i = 0; i < deleted_ready.length; i++) {
+		if (!deleted_ready[i]) return;
+	}
+
+
+	//console.log("SUCCESS!!! Todos los ficheros que debían ser subidos o eliminados lo han sido con éxito!");
+	//navigate to callback_url //always ?sub=currentsub
+	//navigate(callback_url);
+	
+	window.location.href = callback_url;
+}
+
+
+
+
+
+
 
 
 
@@ -657,11 +703,12 @@ class InitialScreen extends React.Component {
 		let files_to_delete = [];
 
 		createOrUpdatePostToAPI(
+			this.props.new_post,
 			this.getCurrentEditedData(),
 			(API_address + "/aportacio/" + "newAportacio"),
 			files_to_add,
-			files_to_delete,
-			this.props.navigate
+			files_to_delete//,
+			//this.props.navigate
 		);
 
 	}

@@ -1,0 +1,23 @@
+
+.votearrow{
+	width: 20px;
+	margin-left: 0.4vw;
+	margin-right: 0.4vw;
+}
+.votearrow:hover{
+	cursor: pointer;
+	filter: brightness(0.85);
+}
+
+/* PANTALLA MÉS ALTA QUE BAIXA */
+@media screen and (orientation:portrait) {
+
+
+}
+
+
+/* PANTALLA MÉS BAIXA QUE ALTA */
+@media screen and (orientation:landscape) {
+
+
+}
