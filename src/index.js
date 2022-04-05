@@ -21,6 +21,62 @@ import {BaseName} from "./libraries/basename";
 
 //MUY IMPORTANTE PARA QUE LAS RUTAS FUNCIONEN EN GITHUB: https://github.com/rafgraph/spa-github-pages
 
+
+
+/*
+//Para mutear logs molestos
+const log = console.log;
+function logLog(...parameters) {
+    let filter = parameters.find(parameter => {
+        return (
+        // Filter error because XXX
+        parameter.includes('no-unused-vars')
+        // Another error to filter because of YYYY
+        //|| parameter.includes("Warning:")
+        );
+    });
+    if(!filter) log(...parameters);
+}
+console.log  = logLog;
+*/
+
+
+//Para mutear errores molestos
+const error = console.error;
+function logError(...parameters) {
+    let filter = parameters.find(parameter => {
+        return (
+        // Filter error because XXX
+        parameter.includes('Warning: Each child in a list should have a unique "key" prop.')
+        // Another error to filter because of YYYY
+        //|| parameter.includes("Warning:")
+        );
+    });
+    if(!filter) error(...parameters);
+}
+console.error  = logError;
+
+//Para mutear warnings molestos
+const warn = console.warn;
+function logWarn(...parameters) {
+    let filter = parameters.find(parameter => {
+        return (
+        // Filter error because XXX
+        parameter.includes('no-unused-vars')
+        // Another error to filter because of YYYY
+        //|| parameter.includes("Warning:")
+        );
+    });
+    if(!filter) warn(...parameters);
+}
+console.warn = logWarn;
+
+
+
+
+
+
+
 let home_ref = React.createRef();
 let user_home_ref = React.createRef();
 

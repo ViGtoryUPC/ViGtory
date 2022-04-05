@@ -10,8 +10,14 @@
 	border-bottom-right-radius: 0;
 }
 
+.individualDownload{
+	background-color: rgba(13,110,253, 0.15);
+	border-radius: 0.5rem;
+}
 .individualDownload:hover{
+	background-color: rgba(13,110,253, 0.25);
 	cursor: pointer;
+	/*color: #0d6efd;*/
 }
 
 .fitxersDownloadList{

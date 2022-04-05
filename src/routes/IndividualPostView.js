@@ -183,13 +183,13 @@ class InitialScreen extends React.Component {
 								<ListGroup className="fitxersDownloadList">
 									
 									{file_list.map((filename, i, namelist) => {return (
-										<ListGroup.Item>
+										<ListGroup.Item className="pe-2">
 											<span className="text-decoration-none d-flex align-items-center justify-content-between">
 												<span className="text-break me-2">
 												{filename}
 												</span>
 												<span 
-													className="individualDownload" 
+													className="individualDownload px-2" 
 													style={{whiteSpace:"nowrap"}}
 													onClick={()=>{console.log("click click")}}
 												>

@@ -18,7 +18,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '../css/main.css';
 import '../css/Home.css';
 //import '../css/PostViGtory.css';
-//import '../css/PostEdit.css'; 
+//import '../css/PostEdit.css';
 
 import { Cookie } from '../libraries/cookie';
 import {BaseName} from "../libraries/basename";
@@ -118,7 +118,7 @@ async function getPosts(search_fields_data){
 		//console.log(key+" -> "+search_fields_data[key]);
 		data.append(key, search_fields_data[key]);
 	}
-	console.log("GET POSTS WITH INFO: "+data.toString());
+	//console.log("GET POSTS WITH INFO: "+data.toString());
 
 
 	let err_mssg = "En aquests moments sembla que no podem contactar els nostres servidors.\nTorna a intentar-ho més endevant.";
@@ -229,6 +229,8 @@ class InitialScreen extends React.Component {
 		this.current_search = null;
 
 		this.limit = 10;
+		this.ordre = -1;
+		this.criteri = 0;
 
 		this.params = new URLSearchParams();
 	}
@@ -244,12 +246,17 @@ class InitialScreen extends React.Component {
 	}
 	*/
 
-	propagateAssigUpdate(selected){
+	propagateUpdate(){
 		if (this.postedit_ref.current)
-		this.postedit_ref.current.updateSelected(selected);
+		this.postedit_ref.current.updateSelected(this.current_assignatura);
 		
-		if (this.search_ref.current)
-		this.search_ref.current.updateSelectedAssignatura(selected);
+		if (this.search_ref.current){
+			this.search_ref.current.updateSelectedAssignatura(this.current_assignatura);
+			this.search_ref.current.updateSearch(this.current_search);
+			this.search_ref.current.updateLimit(this.limit);
+			//console.log("ORDRE: "+this.ordre+", "+this.criteri)
+			this.search_ref.current.updateOrdre(this.ordre, this.criteri);
+		}
 	}
 
 
@@ -324,23 +331,30 @@ class InitialScreen extends React.Component {
 
 		this.current_search = this.params.has("search") ? this.params.get("search") : null;
 
+		this.limit = this.params.has("lim") ? this.params.get("lim") : this.limit;
 
+		this.ordre = this.params.has("ord") ? this.params.get("ord") : this.ordre;
+		this.criteri = this.params.has("cri") ? this.params.get("cri") : this.criteri;
 
+		//console.log("HOME ORD CRI: "+this.ordre+", "+this.criteri);
 
-
+		this.propagateUpdate();
+		//this.propagateLimitUpdate(this.limit);
 
 
 
 
 
 		let data = {};
-		data["ordre"] = -1; //( 1=Ascendent | -1=Descendent )
-		data["criteri"] = 0; //( 0=Data | 1=Vots )
+		data["ordre"] = this.ordre; //-1; //( 1=Ascendent | -1=Descendent )
+		data["criteri"] = this.criteri; //0; //( 0=Data | 1=Vots )
 		data["limit"] = this.limit;
 		data["pagina"] = this.current_p;
 
-		if (this.search_ref.current && this.search_ref.current.current_search)
-			data["busca"] = this.search_ref.current.current_search;
+		//if (this.search_ref.current && this.search_ref.current.current_search)
+		//	data["busca"] = this.search_ref.current.current_search;
+		if (this.current_search)
+			data["busca"] = this.current_search;
 
 		//if (this.search_ref.current && this.search_ref.current.current_assignatura)
 		//	data["sigles_ud"] = this.search_ref.current.current_assignatura;
@@ -374,9 +388,9 @@ class InitialScreen extends React.Component {
 
 		this.postEdit = <PostEdit new_post={true} current_assignatura={this.current_assignatura} postedit_ref={this.postedit_ref} />;
 
-		this.ViGtSearch = <ViGtSearch current_assignatura={this.current_assignatura} current_search={this.current_search} search_ref={this.search_ref} />
+		this.ViGtSearch = <ViGtSearch current_assignatura={this.current_assignatura} current_search={this.current_search} search_ref={this.search_ref} current_limit={this.limit} />
 
-		this.propagateAssigUpdate(this.current_assignatura);
+		
 
 
 
@@ -489,10 +503,10 @@ function Home(props){
 
 
 		let search_fields_data = screen_ref.current.getSearchFieldsData();
-		console.log(search_fields_data);
+		//console.log(search_fields_data);
 		getPosts(search_fields_data).then((data) => {
-			console.log(data);
-			console.log("screen_ref.current: "+screen_ref.current)
+			//console.log(data);
+			//console.log("screen_ref.current: "+screen_ref.current)
 			//if (screen_ref.current)
 			screen_ref.current.updatePageContent(data);//Algo se rompe al usar esto; puede que tenga que ver con las peticiones recursivas //SE HA SOLUCIONADO AÑADIENDO <React.StrictMode> EN index.js???????? O puede que no...
 		});
