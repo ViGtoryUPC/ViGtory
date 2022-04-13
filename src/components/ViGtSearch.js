@@ -127,14 +127,17 @@ class OrdreDropdown extends React.Component {
 		//data["ordre"] = -1; //( 1=Ascendent | -1=Descendent )
 		//data["criteri"] = 0; //( 0=Data | 1=Vots )
 		let text = "Ordre: ";
-		if (json["criteri"] === 1){
-			text += (json["ordre"]===1 ? "Pitjor" : "Millor") + " valorades"
+		if (json["criteri"] == 1){
+			text += (json["ordre"]==1 ? "Pitjor" : "Millor") + " valorades"
 		}
 		else{
-			if (json["criteri"] === 0){
+			/*if (json["criteri"] == 0){
 				text += "Data";
 			}
-			text += " "+(json["ordre"]===1 ? "ascendent" : "descendent");
+			text += " "+(json["ordre"]==1 ? "ascendent" : "descendent");*/
+			if (json["criteri"] == 0){
+				text += "Més " + (json["ordre"]==1 ? "antigues" : "recents")
+			}
 		}
 
 		return text;

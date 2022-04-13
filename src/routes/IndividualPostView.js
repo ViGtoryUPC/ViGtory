@@ -309,36 +309,6 @@ class InitialScreen extends React.Component {
 
 
 
-							{
-								(post_info.post_comment_count > 0) ?
-								<>
-
-
-									
-
-
-
-								</>:<>
-
-
-
-									<p className="text-center">
-										<br/><br/>
-										No hi ha cap comentari que mostrar aquí.
-										<br/><br/>
-										Sigues la primera persona a comentar!
-									</p>
-
-
-
-								</>
-							}
-
-
-
-
-
-
 
 
 

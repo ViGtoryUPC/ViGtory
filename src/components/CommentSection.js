@@ -1,7 +1,8 @@
 import React from 'react';
+import { useEffect } from 'react';
 import {API_address} from '../libraries/API_address';
 //import ReactDOM from 'react-dom';
-import { Routes, Route, Link, useHistory, useNavigate } from "react-router-dom";
+import { Routes, Route, Link, useHistory, useNavigate, useLocation } from "react-router-dom";
 
 import { Accordion, Button, Form, FloatingLabel, DropdownButton } from 'react-bootstrap';
 import { Card, OverlayTrigger, Tooltip, Dropdown, Popover } from 'react-bootstrap';
@@ -29,29 +30,26 @@ import {BaseName} from "../libraries/basename";
 
 
 
-async function deletePost(post_id, individual, sub, hidePost){
+async function deleteComentari(comment_id, hideComment){
 	
 	let data = new URLSearchParams();
-	data.append("aportacioId", post_id);
-	
+	data.append("comentariId", comment_id);
 
 	let err_mssg = "En aquests moments sembla que no podem contactar els nostres servidors.\nTorna a intentar-ho més endevant.";
-
 
 	let response = {};
 	let promise = new Promise(()=>{}, ()=>{}, ()=>{});
 	
 	let headers = new Headers();
 	headers.append("Content-Type", "application/x-www-form-urlencoded");
-	
 
 	headers.append("authorization", Cookie.get("jwt"));
 
 	let resp_ok = true;
 
 	promise = await fetch(
-		API_address + "/aportacio/deleteAportacio", {
-			method: "DELETE",
+		API_address + "/comentari/deleteComentari", {
+			method: "DELETE", //en la docu todavía sale como POST, ojo cuidao'
 			//mode: 'cors',
 			body: data,
 			headers: headers,
@@ -63,14 +61,7 @@ async function deletePost(post_id, individual, sub, hidePost){
 			//Si todo es correcto (status 200-299)
 			if (resp.ok){
 				response = resp.json();
-				
-				if (individual){
-					//window.location.reload();
-					window.location.href = 
-						window.location.protocol+"//"+window.location.host+
-						(BaseName==="/"?"":BaseName) + "/?sub="+sub //Pàgina 1 de l'assignatura
-				}
-				else{hidePost();}
+				hideComment();
 			}
 			
 			return response;
@@ -86,6 +77,259 @@ async function deletePost(post_id, individual, sub, hidePost){
 		}
 	);*/
 }
+
+
+
+async function newComentari(post_id, text, parent_id){
+	
+	let data = new URLSearchParams();
+	data.append("idAportacio", post_id);
+	data.append("body", text);
+
+	if (parent_id)
+		data.append("idParent", parent_id);
+
+	let err_mssg = "En aquests moments sembla que no podem contactar els nostres servidors.\nTorna a intentar-ho més endevant.";
+
+	let response = {};
+	let promise = new Promise(()=>{}, ()=>{}, ()=>{});
+	
+	let headers = new Headers();
+	headers.append("Content-Type", "application/x-www-form-urlencoded");
+
+	headers.append("authorization", Cookie.get("jwt"));
+
+	let resp_ok = true;
+
+	promise = await fetch(
+		API_address + "/comentari/newComentari", {
+			method: "POST",
+			//mode: 'cors',
+			body: data,
+			headers: headers,
+			timeout: 5000
+	})
+	.then(
+		resp => { //SÍ ha sido posible conectar con la API
+
+			//Si todo es correcto (status 200-299)
+			if (resp.ok){
+				response = resp.json();
+				window.location.reload();
+			}
+			
+			return response;
+		}, 
+		resp => { //NO ha sido posible conectar con la API
+			window.alert(err_mssg);
+			return;
+		}
+	)
+	/*.then(
+		data => {
+			//console.log(data);
+		}
+	);*/
+}
+
+
+
+
+async function getComentaris(post_id){
+	
+	let data = new URLSearchParams();
+	data.append("idAportacio", post_id);
+
+	let err_mssg = "En aquests moments sembla que no podem contactar els nostres servidors.\nTorna a intentar-ho més endevant.";
+
+	let response = {};
+	let promise = new Promise(()=>{}, ()=>{}, ()=>{});
+	
+	let headers = new Headers();
+	headers.append("Content-Type", "application/x-www-form-urlencoded");
+
+	headers.append("authorization", Cookie.get("jwt"));
+
+	let resp_ok = true;
+
+	return promise = await fetch(
+		API_address + "/comentari/getComentaris"+"?"+data.toString(), {
+			method: "GET",
+			//body: data,
+			headers: headers,
+			timeout: 5000
+	})
+	.then(
+		resp => { //SÍ ha sido posible conectar con la API
+
+			//Si todo es correcto (status 200-299)
+			if (resp.ok){
+				response = resp.json();
+			}
+			
+			return response;
+		}, 
+		resp => { //NO ha sido posible conectar con la API
+			window.alert(err_mssg);
+			return;
+		}
+	)
+	/*.then(
+		data => {
+			//console.log(data);
+		}
+	);*/
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function newParamsOrdre(params, new_o, new_c){
+	//Recibimos un objeto URLSearchParams y devolvemos una copia con los parámetros ord y cri cambiados
+	//ordre; //-1; //( 1=Ascendent | -1=Descendent )
+	//criteri; //1; //( 0=Data | 1=Vots )
+
+	let params_ = new URLSearchParams(params.toString());
+	params_.set("ord", new_o.toString());
+	params_.set("cri", new_c.toString());
+
+	return params_;
+}
+
+
+class OrdreDropdown extends React.Component {
+
+	constructor(props) {
+		super(props);
+		this.hasBeenUsed = false;
+
+		this.valid_ordres = [-1, 1];
+		this.valid_criteris = [0, 1];
+
+		let params = new URLSearchParams(window.location.search);
+		this.current_ordre = this.valid_ordres.includes(parseInt(params.get("ord")))?parseInt(params.get("ord")):-1;
+		this.current_criteri = this.valid_criteris.includes(parseInt(params.get("cri")))?parseInt(params.get("cri")):1;
+		this.updateURL();
+	}
+
+	updateURL(){
+		let new_params = newParamsOrdre(new URLSearchParams(window.location.search), this.current_ordre, this.current_criteri);
+		window.history.replaceState(
+			"", "",
+			(BaseName==="/"?"":BaseName) + this.props.location.pathname + "?" + new_params.toString() //new URL
+		);
+	}
+
+
+	updateSelected(selected){
+		selected = JSON.parse(selected);
+		//console.log(selected);
+		this.hasBeenUsed = true;
+		this.current_ordre = parseInt(selected["ordre"]);
+		this.current_criteri = parseInt(selected["criteri"]);
+
+		this.updateURL();
+
+		this.props.reoder_comments();
+		this.forceUpdate();
+	}
+
+	ordreJSON(ordre, criteri){
+		return {"ordre": ordre, "criteri": criteri};
+	}
+	getJSONtext(json){
+		//data["ordre"] = -1; //( 1=Ascendent | -1=Descendent )
+		//data["criteri"] = 1; //( 0=Data | 1=Vots )
+		let text = "Ordre: ";
+		if (json["criteri"] == 1){
+			text += (json["ordre"]==1 ? "Pitjor" : "Millor") + " valorats"
+		}
+		else{
+			/*if (json["criteri"] == 0){
+				text += "Data";
+			}
+			text += " "+(json["ordre"]==1 ? "ascendent" : "descendent");*/
+			if (json["criteri"] == 0){
+				text += "Més " + (json["ordre"]==1 ? "antics" : "recents")
+			}
+		}
+
+		return text;
+	}
+	
+
+	render(){
+		let params = new URLSearchParams(window.location.search);
+
+		this.current_ordre = this.hasBeenUsed ? this.current_ordre : ( this.current_ordre ? this.current_ordre : (params.has("ord") ? params.get("ord") : -1));
+
+		this.current_criteri = this.hasBeenUsed ? this.current_criteri : ( this.current_criteri ? this.current_criteri : (params.has("cri") ? params.get("cri") : 1));
+
+
+
+		return(<>
+
+			<DropdownButton
+				align="end"
+				key={"dropdownbutton"}
+				variant="outline-primary"
+				size="sm"
+				title={this.getJSONtext(this.ordreJSON(this.current_ordre, this.current_criteri))}
+				onSelect={(e)=>{this.updateSelected(e)}}
+			>
+				
+				{ this.valid_criteris.map((v_c, k_c) => { 
+					return this.valid_ordres.map((v_o, k_o) => { 
+					let json = this.ordreJSON(v_o, v_c);
+					//console.log(this.getJSONtext(json));
+					return (
+						<>
+						<Dropdown.Divider className="my-0" key={k_c+"_"+k_o+"_"} />
+						<Dropdown.Item key={k_c+"_"+k_o}
+							eventKey={JSON.stringify(json)}
+							className={(this.current_ordre===v_o && this.current_criteri===v_c)?"current_selection":""}
+						>
+							{this.getJSONtext(json)}
+						</Dropdown.Item>
+						</>
+					)
+
+				} )
+				} ) }
+
+			</DropdownButton>
+
+		</>);
+	}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -423,7 +667,121 @@ class InitialScreen extends React.Component {
 
 	constructor(props) {
 		super(props);
+
+		this.comment_tree = {replies: []};
+		//this.current_ordre = props.current_ordre;
+		//this.current_criteri = props.current_criteri;
+		this.ordcriDrop_ref = React.createRef();
+
 	}
+
+
+
+
+
+	orderJSONlistBy(json_list, prop, ascdesc){
+		//return json_list;
+		if (!json_list) return [];
+		//let prop = "sigles_ud";
+		return json_list.sort(
+			(a, b) => {
+				if (a[prop] > b[prop]) {return 1*ascdesc;}
+				else if (a[prop] < b[prop]) {return -1*ascdesc;}
+				return 0;
+			}
+		);
+	}
+
+	orderCommentsRecursively(tree, prop, ascdesc){
+		this.orderJSONlistBy(tree.replies, prop, ascdesc);
+		for (let i=0; i<tree.replies.length; i++){
+			this.orderCommentsRecursively(tree.replies[i], prop, ascdesc);
+		}
+	}
+
+
+	placeCommentInTree(comment, tree, depth){
+		if (comment.hasOwnProperty("parent")){
+			for (let i=0; i<tree.replies.length; i++){
+				if (tree.replies[i]._id == comment.parent){
+					comment["depth"] = depth+1;
+					comment["replies"] = [];
+					tree.replies[i].replies.push(comment);
+					return;
+				}
+			}
+			for (let i=0; i<tree.replies.length; i++){
+				this.placeCommentInTree(comment, tree.replies[i], depth+1);
+			}
+		}
+		else{
+			comment["depth"] = depth;
+			comment["replies"] = [];
+			tree.replies.push(comment);
+			return;
+		}
+	}
+
+
+	renderLinearizedTree(tree){
+		
+		return (tree.replies).map((comment, k) => {
+			return (
+				<>
+					{"__".repeat(comment.depth)}
+					{comment.body}
+					{comment.createdAt}
+					<br/><br/>
+					<>{
+						this.renderLinearizedTree(comment)
+					}</>
+				</>
+			);
+		} );
+
+
+	}
+
+
+
+
+	reoder_comments(){
+		this.comment_tree = {replies: []};
+
+		let params = new URLSearchParams(window.location.search);
+
+		let ord = params.has("ord") ? params.get("ord") : -1; //ordre; //-1; //( 1=Ascendent | -1=Descendent )
+		let cri = params.has("cri") ? params.get("cri") : 1;  //criteri; //1; //( 0=Data | 1=Vots )
+
+		let base_tree = {replies: []}; //ord=-1;cri=0
+		getComentaris(this.props.post_id).then(data=>{
+			//console.log(data);
+			for (let i=0; i<data.comentaris.length; i++){
+				//console.log(data.comentaris[i].body);
+				console.log(data.comentaris[i].createdAt);
+				this.placeCommentInTree(data.comentaris[i], base_tree, 0);
+			}
+
+			if (ord==1 && cri==0){
+				this.comment_tree = base_tree;
+				//console.log("unchanged")
+			}
+			else {
+				let criteri = cri==0 ? "createdAt" : "votes";
+				this.orderCommentsRecursively(base_tree, criteri, ord);
+				this.comment_tree = base_tree;
+			}
+			//console.log(base_tree);
+			//for (let i=0; i<base_tree.replies.length; i++){
+			//	console.log(base_tree.replies[i].createdAt);
+			//}
+
+			this.forceUpdate();
+
+		})
+	}
+
+
 
 	
 	render(){
@@ -431,16 +789,68 @@ class InitialScreen extends React.Component {
 
 		return(
 			<>
-			<div className={"post mx-auto"+(this.props.individualView?" mb-0 individual":" mb-4")}>
-				<Card className={"mx-auto"+(this.props.individualView?" mb-0":" mb-4")} >
+			<div className={"commentsection mx-auto mb-0 mt-3"}>
+			
+				<div className="my_dropdown_selector ordre_dropdown">
+					<OrdreDropdown current_ordre={this.props.current_ordre} current_criteri={this.props.current_criteri} reoder_comments={() => {this.reoder_comments();}} ref={this.ordcriDrop_ref} location={this.props.location} />
+				</div>
+
+
+
+
+
+
+
+
+
+
+				<Card className={"commentlist mx-auto mb-0 w-100"} >
 					<Card.Body className="pb-1">
 
 
 
+					
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+					{
+						(this.comment_tree.replies.length > 0) ?
+						<>
+
+
+							{this.renderLinearizedTree(this.comment_tree)}
+
+
+
+						</>:<>
+
+
+
+							<p className="text-center">
+								<br/>
+								No hi ha cap comentari que mostrar aquí.
+								<br/><br/>
+								Sigues la primera persona a comentar!
+								<br/><br/>
+							</p>
+
+
+
+						</>
+					}
 
 
 
@@ -482,13 +892,23 @@ class InitialScreen extends React.Component {
 
 function CommentSection(props){
 
+	
+	const location =  useLocation();
 	let navigate = useNavigate();
 	function navigateTo(page) {
 		navigate(page);
 	}
 
+	let commentSection_ref = React.createRef();
+	useEffect(() => {
+		commentSection_ref.current.reoder_comments();
+	}, []);
+
+
+
+
 	return(
-		<InitialScreen post_id={props.post_id} />
+		<InitialScreen post_id={props.post_id} location={location} ref={commentSection_ref} />
 	)
 }
 export default CommentSection;
