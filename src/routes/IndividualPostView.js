@@ -10,15 +10,11 @@ import { useAccordionButton } from 'react-bootstrap/AccordionButton';
 
 import NavBar from "../components/NavBar";
 import PostViGtory from "../components/PostViGtory";
-import PostEdit from "../components/PostEdit";
-import ViGtPagination from "../components/ViGtPagination";
-import ViGtSearch from "../components/ViGtSearch";
+import CommentSection from "../components/CommentSection";
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../css/main.css';
 import '../css/IndividualPostView.css';
-//import '../css/PostViGtory.css';
-//import '../css/PostEdit.css';
 
 import { Cookie } from '../libraries/cookie';
 import {BaseName} from "../libraries/basename";
@@ -253,8 +249,13 @@ class InitialScreen extends React.Component {
 							<PostViGtory key={post_info._id} post_info={post_info} individualView={true} ></PostViGtory>
 
 
+
+
+
+
+
 							{
-								((file_list.length > 0) && (!this.props.individualView)) ?
+								(file_list.length > 0) ?
 						
 								<>
 								<div className="fitxersDownloadList mb-0 px-3 mt-2">
@@ -297,6 +298,41 @@ class InitialScreen extends React.Component {
 								</ListGroup>
 								</>
 							: ""}
+
+
+
+
+
+
+
+							<CommentSection post_id={post_info._id} />
+
+
+
+							{
+								(post_info.post_comment_count > 0) ?
+								<>
+
+
+									
+
+
+
+								</>:<>
+
+
+
+									<p className="text-center">
+										<br/><br/>
+										No hi ha cap comentari que mostrar aquí.
+										<br/><br/>
+										Sigues la primera persona a comentar!
+									</p>
+
+
+
+								</>
+							}
 
 
 

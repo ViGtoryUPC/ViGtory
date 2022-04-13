@@ -10,7 +10,7 @@ import ViGtVote from "./ViGtVote";
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../css/main.css';
-import '../css/PostViGtory.css';
+import '../css/CommentSection.css';
 
 import {Cookie} from '../libraries/cookie';
 import {BaseName} from "../libraries/basename";
@@ -95,72 +95,17 @@ async function deletePost(post_id, individual, sub, hidePost){
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*var stringToColor = function(str) {
-	var hash = 0;
-	for (var i = 0; i < str.length; i++) {
-		hash = str.charCodeAt(i) + ((hash << 5) - hash);
-	}
-	var color = '#';
-	for (var i = 0; i < 3; i++) {
-		var value = (hash >> (i * 8)) & 0xFF;
-		color += ('00' + value.toString(16)).substr(-2);
-	}
-	return color;
-}*/
-
-
-function stringToColor(value, lightness) {
-	//console.log("stringToColor input value: "+value);
-    return value.getHashCode().intToHSL(lightness);
-}
-String.prototype.getHashCode = function() {
-    var hash = 0;
-    if (this.length == 0) return hash;
-    for (var i = 0; i < this.length; i++) {
-        hash = this.charCodeAt(i) + ((hash << 5) - hash);
-        hash = hash & hash; // Convert to 32bit integer
-    }
-    return hash;
-};
-Number.prototype.intToHSL = function(lightness) {
-    var shortened = this % 360;
-    return "hsl("+shortened+",100%,"+lightness+"%)";
-};
-
-
-
-
-
-class InitialScreen extends React.Component {
+/*
+class IndividualComment extends React.Component {
 
 	constructor(props) {
 		super(props);
+		this.depth = props.depth ? props.depth : 0;
 		this.showPost = true;
 	}
 
 	updateVoteCount(alteration){
 		this.setState(
-			/*{vote_count: this.props.post_info.post_upvotes-this.props.post_info.post_downvotes
-				+(this.props.post_info.post_upvoted?(-1):(this.props.post_info.post_downvoted?(+1):0))
-				+alteration
-			}*/
 			{vote_count: this.props.post_info.votes
 				-(this.props.post_info.votUsuari ? this.props.post_info.votUsuari : 0)
 				+alteration
@@ -208,25 +153,7 @@ class InitialScreen extends React.Component {
 			<>
 			<div className={"post mx-auto"+(this.props.individualView?" mb-0 individual":" mb-4")}>
 				
-				{/*<div className="d-flex px-2 justify-content-end">
-					{(Cookie.get("username")===this.props.post_info.userName)?				
-						<Button
-							size="sm"
-							variant="danger"
-							className="px-1 py-0"
-							style={{borderBottomLeftRadius:0, borderBottomRightRadius:0}}
-							onClick={()=>{
-								if (window.confirm("Realment vols eliminar aquesta aportació?\n\nTítol:\n    «"+this.props.post_info.title+"»")){
-									deletePost(
-										this.props.post_info._id,
-										this.props.individualView,
-										this.props.post_info.sigles_ud,
-										() => {this.hidePost()})
-								}
-							}}
-						>❌Elimina</Button>
-					:""}
-				</div>*/}
+				
 
 
 				<Card className={"mx-auto"+(this.props.individualView?" mb-0":" mb-4")} >
@@ -323,7 +250,7 @@ class InitialScreen extends React.Component {
 							className="float-end d-inline"
 						>
 
-{/*
+
 							<Dropdown.Item 
 								size="sm"
 								key={"edit_"+this.props.post_info._id}
@@ -333,7 +260,7 @@ class InitialScreen extends React.Component {
 							>
 								{"✏️Edita"}
 							</Dropdown.Item>
-*/}
+
 
 
 							<Dropdown.Item 
@@ -457,13 +384,103 @@ class InitialScreen extends React.Component {
 
 	};
 }
+*/
+
+
+
+class IndividualComment extends React.Component {
+
+	constructor(props) {
+		super(props);
+		this.depth = props.depth ? props.depth : 0;
+		this.showPost = true;
+	}
+
+	render(){
+		return(<>comment of depth {this.depth}</>);
+	}
+
+}
 
 
 
 
 
 
-function PostViGtory(props){
+
+
+
+
+
+
+
+
+
+
+
+
+class InitialScreen extends React.Component {
+
+	constructor(props) {
+		super(props);
+	}
+
+	
+	render(){
+		
+
+		return(
+			<>
+			<div className={"post mx-auto"+(this.props.individualView?" mb-0 individual":" mb-4")}>
+				<Card className={"mx-auto"+(this.props.individualView?" mb-0":" mb-4")} >
+					<Card.Body className="pb-1">
+
+
+
+
+
+
+
+
+
+
+
+
+
+					
+
+
+						
+
+					</Card.Body>
+				</Card>
+			</div>
+			</>
+		);
+
+	};
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function CommentSection(props){
 
 	let navigate = useNavigate();
 	function navigateTo(page) {
@@ -471,7 +488,7 @@ function PostViGtory(props){
 	}
 
 	return(
-		<InitialScreen post_info={props.post_info} individualView={props.individualView} navigate={navigateTo} />
+		<InitialScreen post_id={props.post_id} />
 	)
 }
-export default PostViGtory;
+export default CommentSection;

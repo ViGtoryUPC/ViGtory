@@ -429,11 +429,13 @@ class InitialScreen extends React.Component {
 	update_limit(selected){
 		this.current_limit = selected;
 		//this.forceUpdate();
+		//this.executeSearch();
 	}
 	update_ordre(selected_ordre, selected_criteri){
 		this.current_ordre = selected_ordre;
 		this.current_criteri = selected_criteri;
 		//this.forceUpdate();
+		//this.executeSearch();
 	}
 
 

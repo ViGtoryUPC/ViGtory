@@ -49,7 +49,7 @@ function logError(...parameters) {
         // Filter error because XXX
         parameter.includes('Warning: Each child in a list should have a unique "key" prop.')
         // Another error to filter because of YYYY
-        || parameter.includes('<a> cannot appear as a descendant of <a>.')
+        || parameter.includes('cannot appear as a descendant of')
         );
     });
     if(!filter) error(...parameters);
@@ -64,7 +64,8 @@ function logWarn(...parameters) {
         // Filter error because XXX
         parameter.includes('no-unused-vars')
         // Another error to filter because of YYYY
-        || parameter.includes('<a> cannot appear as a descendant of <a>.')
+        || parameter.includes('cannot appear as a descendant of')
+        || parameter.includes('Popper: CSS "margin" styles cannot be used to apply padding')
         );
     });
     if(!filter) warn(...parameters);
