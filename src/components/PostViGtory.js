@@ -155,37 +155,6 @@ class InitialScreen extends React.Component {
 		this.showPost = true;
 	}
 
-	updateVoteCount(alteration){
-		this.setState(
-			/*{vote_count: this.props.post_info.post_upvotes-this.props.post_info.post_downvotes
-				+(this.props.post_info.post_upvoted?(-1):(this.props.post_info.post_downvoted?(+1):0))
-				+alteration
-			}*/
-			{vote_count: this.props.post_info.votes
-				-(this.props.post_info.votUsuari ? this.props.post_info.votUsuari : 0)
-				+alteration
-			}
-		);
-	}
-
-	updateVote(upTdownF, voted){
-		//console.log(upTdownF +" "+ voted);
-
-		if (voted){
-			if (upTdownF){
-				if (this.downvote_button_ref.current.state.voted){
-					this.downvote_button_ref.current.updateVoteSelf(false);
-				}
-			}
-			else{
-				if (this.upvote_button_ref.current.state.voted){
-					this.upvote_button_ref.current.updateVoteSelf(false);
-				}
-			}
-		}
-
-		this.updateVoteCount( ( (upTdownF && voted) ? (1) : ( ((!upTdownF) && voted) ? (-1) : 0 ) ) );
-	}
 
 
 	hidePost(){
@@ -371,7 +340,9 @@ class InitialScreen extends React.Component {
 									<b>{this.props.post_info.userName}</b>
 								</Link>
 							</Card.Subtitle>
+							<span className="text-muted">
 								{"diu:"}
+							</span>
 							<br/>
 						</div>
 
@@ -407,13 +378,17 @@ class InitialScreen extends React.Component {
 						</Card.Text>
 
 
+						<div className="d-inline-flex">
+							<ViGtVote post_id={this.props.post_info._id} comment_id={null} votUsuari={this.props.post_info.votUsuari} voteCount={this.props.post_info.votes}/>
 
-						<ViGtVote post_id={this.props.post_info._id} comment_id={null} votUsuari={this.props.post_info.votUsuari} voteCount={this.props.post_info.votes}/>
 
-						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-						<Link to={"/post/"+this.props.post_info._id} className="d-inline align-items-middle text-reset text-decoration-none"><strong>
-							{this.props.post_info.post_comment_count?this.props.post_info.post_comment_count:"0"}{" Comentari"}{this.props.post_info.post_comment_count==1 ? "":"s"}
-						</strong></Link>
+							<div className="d-inline-flex flex-grow">
+								&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+								<Link to={"/post/"+this.props.post_info._id} className="d-inline align-self-center text-reset text-decoration-none"><strong>
+									{this.props.post_info.comentaris?this.props.post_info.comentaris:"0"}{" Comentari"}{this.props.post_info.comentaris==1 ? "":"s"}
+								</strong></Link>
+							</div>
+						</div>
 
 						
 						{((file_list.length > 0) && (!this.props.individualView)) ?

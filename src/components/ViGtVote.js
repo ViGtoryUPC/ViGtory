@@ -56,7 +56,8 @@ async function performVote(vote, post_id, comment_id, expected, definitiveVoteAc
 
 	promise = await fetch(
 		API_address + route, {
-			method: "PUT",
+			//method: "PUT",
+			method: comment_id ? "POST":"PUT", //PROVISIONAL...
 			//mode: 'cors',
 			headers: headers,
 			body: data,
@@ -167,7 +168,7 @@ class UpvoteDownvoteButton extends React.Component{
 						((vote===false)?0:(this.props.upTdownF?1:-1)),
 						this.props.definitiveVote)
 					}}
-				className="d-inline votearrow mt-0 mb-2"
+				className="d-inline votearrow mt-0 mb-0 align-self-start"
 			/>
 		);
 	}
@@ -270,15 +271,22 @@ class InitialScreen extends React.Component {
 		
 
 		return(
-			<div className="d-inline">
+			<div className="d-inline-flex">
 
-				{this.upvote_button}
 
-				<h5 className="d-inline"><strong>
-					{(this.state.vote_count).toString()}
-				</strong></h5>
+				<div className="d-flex">
 
-				{this.downvote_button}
+					{this.upvote_button}
+
+					<h5 className="mb-0"><strong>
+						{(this.state.vote_count).toString()}
+					</strong></h5>
+
+					{this.downvote_button}
+
+				</div>
+
+
 
 			</div>
 		);
