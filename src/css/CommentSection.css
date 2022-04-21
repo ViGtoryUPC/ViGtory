@@ -10,6 +10,9 @@
 
 
 
+.commentlist.card{
+	background: none;
+}
 .commentlist{
 
 	/*overflow-y: auto;*/
@@ -20,7 +23,40 @@
 
 	/*border-top-right-radius: 0;*/
 	/*border-color: #0d6efd;*/
+
+	/*PARA QUE NO PAREZCA QUE HAY UNA CAJA!!!*/
+	/*border: none; */
+	/*background: none;*/
+	background-image: linear-gradient(
+		to bottom, 
+		rgba(255,255,255,1) 0%, 
+		rgba(255,255,255,0) min(20vh, 40vw)
+		);
+
+	border-style: solid;
+	border-image: linear-gradient(
+		to bottom, 
+		rgba(0,127,191,0.5) 0%, 
+		rgba(255,255,255,0) min(20vh, 40vw)
+		) 1;
+	border-bottom: none;
 }
+.no_commentlist{
+	/*overflow-y: auto;*/
+	--b_width: min(0.2vh, 0.4vw);
+	--b_color: rgba(0,127,191,0.5);
+	border-color: var(--b_color);
+	border-width: var(--b_width);
+
+	background-image: none;
+	background-color: white !important;
+	border-image: none;
+	border-style: solid;
+}
+
+
+
+
 
 .commentlist .dropdown-toggle {
 	background-color: rgba(0,0,0,0) !important;
@@ -89,11 +125,11 @@
 
 
 
-.delete_post_btn{
+.delete_comm_btn{
 	color: white !important;
 	background-color: #dc3545;
 }
-.delete_post_btn:hover{
+.delete_comm_btn:hover{
 	background-color: #bb2d3b;
 }
 
@@ -172,12 +208,16 @@
 .commentlist .username_nav {
 	/*background-color: rgba(0,155,199, 0.2);*/
 	/*background-color: rgba(222,233,244, 1);*/
-	background-color: rgba(207,229,252, 1);
+	/*background-color: rgba(207,229,252, 1);*/
+	background-color: rgba(255,255,255, 0.5);
 	border-radius: 1rem;
 	filter: brightness(1);
 }
 .commentlist .username_nav:hover {
-	filter: brightness(0.97);
+	transition: 0.2s;
+	/*filter: brightness(0.95);*/
+	background-color: rgba(64,128,155, 0.3);
+	color: black !important;
 }
 
 
@@ -209,7 +249,7 @@
 	overflow-y: scroll;
 }
 .my_comment_dropdown_selector .my_dropdown_selector .dropdown-item{
-	width: fit-content !important;
+	/*width: fit-content !important;*/
 	white-space: nowrap;
 }
 .my_comment_dropdown_selector .my_dropdown_selector .dropdown-item.current_selection{
@@ -251,6 +291,18 @@
 
 
 
+.open_reply_button{
+	color: rgba(13,110,253,1);
+	background-color: rgba(13,110,253,0.1);
+}
+.open_reply_button:hover{
+	transition: 0.5s;
+	color: rgba(13,110,253,1);
+	background-color: rgba(13,110,253,0.25);
+}
+.new_comment_button{
+	box-shadow: none !important;
+}
 
 
 
@@ -258,12 +310,13 @@
 
 
 
-
-
-
-
-
-
+.addCommentButton.disabled, .addCommentButton:disabled, fieldset:disabled .addCommentButton{
+	opacity: 100%;
+}
+.addCommentButton.disabled, .addCommentButton:disabled{
+	background-color: rgba(98,161,254,1);
+	border-color: rgba(98,161,254,1);
+}
 
 
 

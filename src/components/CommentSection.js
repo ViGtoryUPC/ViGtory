@@ -1,10 +1,10 @@
 import React from 'react';
-import { useEffect } from 'react';
+import { useEffect, useContext } from 'react';
 import {API_address} from '../libraries/API_address';
 //import ReactDOM from 'react-dom';
 import { Routes, Route, Link, useHistory, useNavigate, useLocation } from "react-router-dom";
 
-import { Accordion, Button, Form, FloatingLabel, DropdownButton } from 'react-bootstrap';
+import { Accordion, Button, Form, FloatingLabel, DropdownButton, useAccordionButton, AccordionContext } from 'react-bootstrap';
 import { Card, OverlayTrigger, Tooltip, Dropdown, Popover } from 'react-bootstrap';
 
 import ViGtVote from "./ViGtVote";
@@ -115,7 +115,10 @@ async function newComentari(post_id, text, parent_id){
 			//Si todo es correcto (status 200-299)
 			if (resp.ok){
 				response = resp.json();
-				window.location.reload();
+				//window.location.reload();
+				window.location.href = 
+						window.location.protocol+"//"+window.location.host+
+						(BaseName==="/"?"":BaseName) + "/post/"+post_id+"??ord=-1&cri=0" //Secció de comentaris de l'aportació actual, amb vista als comentaris més recents
 			}
 			
 			return response;
@@ -326,9 +329,257 @@ class OrdreDropdown extends React.Component {
 
 
 
+class TextAreaInput extends React.Component {
+
+	constructor(props) {
+		super(props);
+		this.state = {
+			valid: true,
+			err_msg: ""
+		};
+		this.content_txt = "";
+		this.valid = false;
+	}
+
+
+	validate_content_clientside(){
+
+		let content = this.content_txt;
+		//console.log("CONTENT: "+content);
+		if (content.length <= 0){
+			this.setState({
+				valid: false,
+				//err_msg: validations[i][regex]
+				err_msg: "No pots enviar un comentari buit."
+			});
+			this.valid = false;
+			return this.valid;
+		}
+		//Si todo es correcto
+		this.setState({
+			valid: true,
+			err_msg: ""
+		});
+		this.valid = true;
+		return this.valid;
+	}
+
+
+	render(){
+
+		return(
+
+			<>
+				<Form.Control
+					readOnly={false}
+					type="text" 
+					as="textarea" 
+					name="body"
+					placeholder="Opino que... Afegeixo..."
+					onChange={(e) => {this.content_txt=e.currentTarget.value; this.validate_content_clientside(); this.props.global_validity_action();}}
+					required 
+					rows={this.props.parentTreplyF ? "5" : "3"}
+					isInvalid={!this.state.valid}
+					style={{zIndex:"0", position:"relative"}}
+				/>
+
+
+				<p className={"my-0 "+(this.props.parentTreplyF?"text-center":"text-end")} >
+					<Button 
+						type="submit" 
+						size="sm" 
+						className="mt-1 mb-0 pt-0 addCommentButton" 
+						disabled={!this.valid}
+						style={this.props.parentTreplyF ? {} : {
+							zIndex:"5",
+							position:"absolute",
+							bottom:"0",
+							right:"0.2rem"
+						}}
+					>
+						Comenta
+					</Button>
+				</p>
+
+
+				{
+					/*this.valid?"":
+					<p style={{
+						color:"#dc3545", 
+						position:"absolute", 
+						bottom:"-0.9rem", 
+						left:"0.5rem",
+						zIndex:"5"
+					}}>
+						{this.state.err_msg}
+					</p>
+				*/}
+				{
+				<Form.Control.Feedback 
+					type="invalid"
+					style={{
+						position:"absolute", 
+						bottom:((this.props.parentTreplyF)?"2.1rem":"0.1rem"), 
+						left:"0.5rem",
+						zIndex:"5",
+						width:"fit-content",
+						//whiteSpace:"normal"
+					}}
+				>
+					{this.state.err_msg}
+				</Form.Control.Feedback>
+				}
+
+			</>
+
+		);
+	};
+}
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class CommentEdit extends React.Component{
+
+	constructor(props) {
+		super(props);
+		this.state = {allValid: false};
+		this.new_body_ref = React.createRef();
+	}
+
+//<CommentEdit comm_id={this.props.comm_info._id} post_id={this.props.post_id} parentTreplyF={false}/>
+
+
+
+	checkLocalValidity(notify_invalid){
+		let valid = true;
+		valid = this.new_body_ref.current.validate_content_clientside();
+		this.setState({allValid: valid});
+		//console.log(this.getCurrentEditedData());
+		return valid;
+	}
+
+
+	submitButtonAction(event){
+		event.preventDefault();
+
+		console.log("button clicked");
+
+		if (!this.checkLocalValidity(true)){
+			alert("Tots els camps han de ser omplerts correctament.");
+			return;
+		}
+		
+		newComentari(this.props.post_id, this.new_body_ref.current.content_txt, this.props.comm_id);
+
+	}
+
+
+
+
+
+	render(){
+		return(<>
+
+			<Accordion.Collapse eventKey={this.props.parentTreplyF ? "accord_new_comment_"+this.props.post_id : ("accord_new_reply_"+this.props.comm_id)} style={{zIndex: "5", position: "relative"}}><div>
+				{/*
+				<div className="ms-1">
+				{Array.apply(null, Array(this.props.depth)).map(()=>{
+					return(
+						<div className="d-inline flex-grow ms-2" style={{backgroundColor:"rgba(0,127,191,0.4)", color:"rgba(0,0,0,0)"}} >{"."}</div>
+					);
+				})}
+				</div>
+				*/}
+				<Form noValidate method="post" action="http://httpbin.org/post" onSubmit={(e) => this.submitButtonAction(e)} >
+
+				<div id={this.props.parentTreplyF ? "comm_"+this.props.post_id : "reply_"+this.props.comm_id} className={"my-0 mx-1"} style={{maxWidth:"100%"}}>
+					<TextAreaInput ref={this.new_body_ref} global_validity_action={() => this.checkLocalValidity()} parentTreplyF={this.props.parentTreplyF} />
+					
+
+				</div>
+
+				</Form>
+				
+
+			</div></Accordion.Collapse>
+
+
+
+		</>);
+	}
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function ScreenToggleCommEdit({ children, eventKey, parentTreplyF }){
+	const { activeEventKey } = useContext(AccordionContext);
+	const switchScreen = useAccordionButton(eventKey, null);
+
+	//console.log(eventKey);
+	//console.log(activeEventKey);
+	
+	return(<>
+
+		<Button 
+			onClick={switchScreen}
+			variant={parentTreplyF ? "primary" : "outline-primary"}
+			size={parentTreplyF ? "md" : "sm"}
+			fontWeight="bolder"
+			className={"py-0 border-0 new_comment_button "+(parentTreplyF ? "mt-1" : "ps-2 pe-1 open_reply_button")}
+		>
+			<b className="d-flex align-items-center">
+				<span style={{fontFamily: "monospace", padding:"0"}}>
+					{//Ojo, que usamos "–", no "-"; tiene exactamente el mismo ancho que "+"
+						((eventKey===activeEventKey)?"–":"+")
+					}
+				</span>
+				&nbsp;
+				{parentTreplyF ? "Nou comentari" : "Respon"}
+			</b>
+		</Button>
+
+	</>);
+}
 
 
 
@@ -367,162 +618,170 @@ class IndividualComment extends React.Component {
 
 		return(
 			<>
+
+			<Accordion className="m-0" defaultActiveKey={""}>
 			<div className="d-flex mx-1">
 
-			{Array.apply(null, Array(this.depth)).map(()=>{
-				return(
-					<div className="d-inline flex-grow ms-2" style={{backgroundColor:"rgba(0,127,191,0.4)", color:"rgba(0,0,0,0)"}} >{"."}</div>
-				);
-			})}
-			
+				{Array.apply(null, Array(this.depth)).map(()=>{
+					return(
+						<div className="d-inline flex-grow ms-2" style={{backgroundColor:"rgba(0,127,191,0.4)", color:"rgba(0,0,0,0)"}} >{"."}</div>
+					);
+				})}
+				
 
-			<div id={"comment_"+this.props.comm_info._id} className={"post mb-0 mt-2 flex-fill "} style={{maxWidth:"100%"}}>
-			{
-				//overflow-hidden impide que los comentarios se salgan de la card, pero también impide visualizar correctamente el dropdown... PARECE que con maxWidth se soluciona
-			}
+				<div id={"comment_"+this.props.comm_info._id} className={"mb-0 mt-2 flex-fill"} style={{maxWidth:"100%"}}>
+					{
+						//^^^^^ overflow-hidden impide que los comentarios se salgan de la card, pero también impide visualizar correctamente el dropdown... PARECE que con maxWidth se soluciona
+					}
 
-				<div className={"mx-auto mb-0 p-1"} style={{backgroundColor:"rgba(0,127,191,0.1)", borderRadius:"0.5rem"}} >
+					<div className={"mx-auto mb-0 p-1"} style={{
+						backgroundColor:"rgba(0,127,191,0.2)", 
+						//backgroundColor:"rgba(229,242,248,1)", 
+						borderRadius:"0.5rem"}} >
 
-					<div className="pb-0" >
-
-
-						<div className="mt-1 mb-1 ms-0 d-inline" style={{width:"fit-content"}}>
-							<strong className="text-muted d-inline">
-								<Link to={"/user/"+this.props.comm_info.userName} className="text-reset text-decoration-none username_nav px-1">
-									{false ? <img src="aaa" className="user_access_icon d-inline" /> : <></>}
-									<b>{this.props.comm_info.userName}</b>
-								</Link>
-							</strong>
-							<span className="text-muted">
-								{this.depth>0 ? "respon:" : "diu:"}
-							</span>
-						</div>
+						<div className="pb-0" >
 
 
-
-						<OverlayTrigger
-							placement="top"
-							overlay={
-								<Tooltip>
-								{date.toLocaleDateString('ca-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + ", a les " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-								</Tooltip>
-							}
-							><p className="text-muted float-end my-0"><small>
-								{date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " - " + date.toLocaleDateString('ca-ES', {year: '2-digit', month: 'numeric', day: 'numeric' })}
-							</small></p>
-						</OverlayTrigger>
-
-
-						<br/>
-
-						{(Cookie.get("username")===this.props.comm_info.userName)?
-						<DropdownButton
-							align="end"
-							key={"dropdownbutton"}
-							variant="light"
-							size="md"
-							title={"⋮"}
-							className="float-end d-inline"
-						>
-
-
-							<Dropdown.Item 
-								size="sm"
-								key={"edit_"+this.props.comm_info._id}
-								onClick={()=>{
-									console.log("EDITA EDITA EDITA");
-								}}
-							>
-								{"✏️Edita"}
-							</Dropdown.Item>
-
-
-
-							<Dropdown.Item 
-								size="sm"
-								key={"del_"+this.props.comm_info._id}
-								className="delete_post_btn"
-								onClick={()=>{
-									if (window.confirm("Realment vols eliminar aquesta aportació?\n\nTítol:\n    «"+this.props.comm_info.title+"»")){
-										deleteComentari(
-											this.props.comm_info._id,
-											this.props.individualView,
-											this.props.comm_info.sigles_ud,
-											() => {this.hideComment()})
-									}
-								}}
-							>
-								{"❌Elimina"}
-							</Dropdown.Item>
-
-
-
-						</DropdownButton>
-						:""}
-
-
-
-
-
-					
-						
-
-
-
-
-
-
-
-
-
-						<div className="ms-2">
-
-						<Card.Text className="mb-0 mb-1">
-								{this.props.comm_info.body}
-						</Card.Text>
-
-
-
-						<div className="d-inline-flex">
-							<ViGtVote post_id={this.props.comm_info.aportacio} comment_id={this.props.comm_info._id} votUsuari={this.props.comm_info.votUsuari} voteCount={this.props.comm_info.votes} key={this.props.comm_info.aportacio} key={"vote_"+this.props.comm_info._id} />
-
-
-							<div className="d-inline-flex flex-grow">
-								&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-								<strong className="d-inline align-self-center">
-									{" "}
+							<div className="mt-1 mb-1 ms-0 d-inline" style={{width:"fit-content"}}>
+								<strong className="text-muted d-inline">
+									<Link to={this.props.comm_info.esborrat?"/post/"+this.props.post_id:"/user/"+this.props.comm_info.userName} className="text-reset text-decoration-none username_nav px-1">
+										{false ? <img src="aaa" className="user_access_icon d-inline" /> : <></>}
+										<b>{this.props.comm_info.esborrat?"???":this.props.comm_info.userName}</b>
+									</Link>
 								</strong>
+								<span className="text-muted">
+									{this.depth>0 ? "respon:" : "diu:"}
+								</span>
+							</div>
+
+
+
+							<OverlayTrigger
+								placement="top"
+								overlay={
+									<Tooltip>
+									{date.toLocaleDateString('ca-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + ", a les " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+									</Tooltip>
+								}
+								><p className="text-muted float-end my-0"><small>
+									{date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " - " + date.toLocaleDateString('ca-ES', {year: '2-digit', month: 'numeric', day: 'numeric' })}
+								</small></p>
+							</OverlayTrigger>
+
+
+							<br/>
+
+							{(Cookie.get("username")===this.props.comm_info.userName && !this.props.comm_info.esborrat)?
+							<DropdownButton
+								align="end"
+								key={"dropdownbutton"}
+								variant="light"
+								size="md"
+								title={"⋮"}
+								className="float-end d-inline"
+							>
+
+
+								<Dropdown.Item 
+									size="sm"
+									key={"edit_"+this.props.comm_info._id}
+									onClick={()=>{
+										console.log("EDITA EDITA EDITA");
+									}}
+								>
+									{"✏️Edita"}
+								</Dropdown.Item>
+
+
+
+								<Dropdown.Item 
+									size="sm"
+									key={"del_"+this.props.comm_info._id}
+									className="delete_comm_btn"
+									onClick={()=>{
+										if (window.confirm("Realment vols eliminar aquest comentari?\n\nContingut:\n    «"+this.props.comm_info.body+"»")){
+											deleteComentari(
+												this.props.comm_info._id,
+												() => {this.hideComment()})
+										}
+									}}
+								>
+									{"❌Elimina"}
+								</Dropdown.Item>
+
+
+
+							</DropdownButton>
+							:""}
+
+
+
+
+
+						
+							
+
+
+
+
+
+
+
+
+
+							<div className="ms-2">
+
+							<Card.Text className="mb-0 mb-1" style={this.props.comm_info.esborrat?{color:"rgba(255,0,0,0.5)"}:{}}>
+									{this.props.comm_info.esborrat?"<comentari esborrat>":this.props.comm_info.body}
+							</Card.Text>
+
+
+
+							<div className="d-inline-flex">
+								<ViGtVote post_id={this.props.comm_info.aportacio} comment_id={this.props.comm_info._id} votUsuari={this.props.comm_info.votUsuari} voteCount={this.props.comm_info.votes} key={this.props.comm_info.aportacio} key={"vote_"+this.props.comm_info._id} />
+
+
+								<div className="d-inline-flex flex-grow">
+									&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+									<strong className="d-inline align-self-center">
+										{" "}
+
+
+
+										<span className="text-center" style={{marginBottom: "-1.25rem", zIndex: "6", position: "relative"}} >
+											<ScreenToggleCommEdit eventKey={"accord_new_reply_"+this.props.comm_info._id} parentTreplyF={false}/>
+										</span>
+
+
+
+
+
+
+									</strong>
+								</div>
+							</div>
+
+
+
+
+
+
+
+
+							
+
 							</div>
 						</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-						
-
-						</div>
-
-						
-
 					</div>
-
-
 				</div>
-
-
-
 			</div>
+			
 
-			</div>
+			<CommentEdit comm_id={this.props.comm_info._id} post_id={this.props.post_id} parentTreplyF={false} depth={this.depth+1}/>
+
+
+			</Accordion>
+
 			</>
 		);
 
@@ -616,7 +875,7 @@ class InitialScreen extends React.Component {
 					//<br/><br/>
 			return (
 				<>
-					<IndividualComment comm_info={comment} />
+					<IndividualComment comm_info={comment} post_id={this.props.post_id} />
 					{this.renderLinearizedTree(comment)}
 				</>
 			);
@@ -691,7 +950,7 @@ class InitialScreen extends React.Component {
 
 
 
-				<Card className={"commentlist mx-auto mb-0 w-100"} >
+				<Card className={"commentlist mx-auto mb-0 w-100 pb-1"+(this.comment_tree.replies.length>0 ? "":" no_commentlist")} >
 					<Card.Body className="py-1 px-1">
 
 
@@ -701,9 +960,14 @@ class InitialScreen extends React.Component {
 						<>
 
 
+							<Accordion className="m-0 mb-2" defaultActiveKey={""}>
+								<p className="text-center" style={{marginBottom: "-0.5rem", zIndex: "6", position: "relative"}} >
+									<ScreenToggleCommEdit eventKey={"accord_new_comment_"+this.props.post_id} parentTreplyF={true}/>
+								</p>
+								<CommentEdit comm_id={null} post_id={this.props.post_id} parentTreplyF={true}/>
+							</Accordion>
+
 							{this.renderLinearizedTree(this.comment_tree)}
-
-
 
 						</>:<>
 
@@ -714,20 +978,27 @@ class InitialScreen extends React.Component {
 								No hi ha cap comentari que mostrar aquí.
 								<br/><br/>
 								Sigues la primera persona a comentar!
-								<br/><br/>
+								<br/>
 							</p>
 
-
+							<Accordion className="m-0" defaultActiveKey={""}>
+								<p className="text-center" style={{marginBottom: "-0.5rem", zIndex: "6", position: "relative"}} >
+									<ScreenToggleCommEdit eventKey={"accord_new_comment_"+this.props.post_id} parentTreplyF={true}/>
+								</p>
+								<CommentEdit comm_id={null} post_id={this.props.post_id} parentTreplyF={true}/>
+							</Accordion>
+							<br/>
 
 						</>
 					}
-
 
 						
 
 					</Card.Body>
 				</Card>
 			</div>
+			
+			<br/><br/><br/><br/><br/>
 			</>
 		);
 
