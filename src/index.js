@@ -50,6 +50,7 @@ function logError(...parameters) {
         parameter.includes('Warning: Each child in a list should have a unique "key" prop.')
         // Another error to filter because of YYYY
         || parameter.includes('cannot appear as a descendant of')
+		|| parameter.includes("Using UNSAFE_componentWillReceiveProps in strict mode is not recommended and may indicate bugs in your code")
         );
     });
     if(!filter) error(...parameters);

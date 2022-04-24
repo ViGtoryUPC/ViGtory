@@ -13,6 +13,8 @@ import PostViGtory from "../components/PostViGtory";
 import PostEdit from "../components/PostEdit";
 import ViGtPagination from "../components/ViGtPagination";
 import ViGtSearch from "../components/ViGtSearch";
+import RatingsAssignatura from "../components/RatingsAssignatura";
+
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../css/main.css';
@@ -423,7 +425,7 @@ class InitialScreen extends React.Component {
 						</Link></b>
 						{":"}
 						</h2>
-						<br/>
+						<RatingsAssignatura sub={this.current_assignatura} />
 					</>
 					:
 					""
