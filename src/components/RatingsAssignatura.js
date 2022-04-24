@@ -247,10 +247,10 @@ class InitialScreen extends React.Component {
 		this.fractions = 1; //Preferiblemente esto debería estar puesto a 1 o a 2; otros valores mejor que no
 
 		this.userVotes = {
-			dificultat: 2.5,
-			professorat: 2.5,
-			interesant: 2.5,
-			feina: 2.5
+			dificultat: 3,
+			professorat: 3,
+			interesant: 3,
+			feina: 3
 		};
 		this.allVotes = {
 			dificultat: null,
@@ -274,6 +274,7 @@ class InitialScreen extends React.Component {
 		};
 		
 		this.hasVoted = false;
+		this.isStudent = true;
 	}
 
 
@@ -289,15 +290,20 @@ class InitialScreen extends React.Component {
 
 		getVots(this.props.sub).then(data=>{
 			console.log(data);
-			if (data.votUsuari && data.votUsuari!=[]){
-				this.hasVoted = true;
+			//if (data.votUsuari && data.votUsuari!=[]){ //NO QUIERE FUNCIONAR ASÍ!!!
+				//this.hasVoted = true;
+				this.hasVoted = data.votUsuari.votDificultat ? true : false;
 				this.userVotes = {
-					dificultat: data.votUsuari.votDificultat,
-					professorat: data.votUsuari.votProfessorat,
-					interesant: data.votUsuari.votInteresant,
-					feina: data.votUsuari.votFeina
+					//dificultat: data.votUsuari.votDificultat,
+					//professorat: data.votUsuari.votProfessorat,
+					//interesant: data.votUsuari.votInteresant,
+					//feina: data.votUsuari.votFeina
+					dificultat: data.votUsuari.votDificultat ? data.votUsuari.votDificultat : this.userVotes.dificultat,
+					professorat: data.votUsuari.votProfessorat ? data.votUsuari.votProfessorat : this.userVotes.professorat,
+					interesant: data.votUsuari.votInteresant ? data.votUsuari.votInteresant : this.userVotes.interesant,
+					feina: data.votUsuari.votFeina ? data.votUsuari.votFeina : this.userVotes.feina
 				};
-			}
+			//}
 			this.allVotes = {
 				dificultat: data.dificultat,
 				professorat: data.professorat,
@@ -306,6 +312,7 @@ class InitialScreen extends React.Component {
 				vots: data.vots
 			}
 
+			console.log(this.userVotes);
 			this.forceUpdate();
 		})
 	}
@@ -337,7 +344,7 @@ class InitialScreen extends React.Component {
 
 	render_rating(field){
 		let promig = parseFloat(this.allVotes[field]?this.allVotes[field]:0).toFixed(2);
-		console.log(promig);
+		//console.log(promig);
 		
 		//https://reactjsexample.com/a-rating-react-component-with-custom-symbols/
 		return <>
@@ -355,7 +362,9 @@ class InitialScreen extends React.Component {
 						if (Math.ceil(rate))
 						window.document.getElementById('label-onrate-'+field+"-"+(Math.ceil(rate))).innerHTML = rate || "&nbsp";
 						}}
-					onChange={(e)=>{console.log(e)}}
+					initialRating={this.isStudent ? (this.userVotes[field]) : Math.ceil(promig+0.00000001)}
+					readonly={false}
+					onChange={(e)=>{this.userVotes[field] = e;}}
 				/>
 				</p>
 				<p className="text-center mb-5 mt-0 text-decoration-underline">
@@ -375,12 +384,8 @@ class InitialScreen extends React.Component {
 		event.preventDefault();
 
 		console.log(this.userVotes);
-		/*if (!this.checkLocalValidity(true)){
-			alert("Tots els camps han de ser omplerts correctament.");
-			return; //Para evitar que la gente trastee con el HTML
-		}
-		
-		createOrUpdatePostToAPI(
+
+		/*createOrUpdatePostToAPI(
 			this.props.new_post,
 			this.getCurrentEditedData(),
 			(API_address + "/aportacio/" + "newAportacio"),
@@ -434,6 +439,7 @@ class InitialScreen extends React.Component {
 								<p className="text-center mb-3 mt-2">
 									<Button 
 										className="fw-bold"
+										onClick={(e)=>this.submitButtonAction(e)}
 									>
 									VOTA!
 									</Button>
