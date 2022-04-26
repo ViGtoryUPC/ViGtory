@@ -350,7 +350,7 @@ class TextAreaInput extends React.Component {
 			this.setState({
 				valid: false,
 				//err_msg: validations[i][regex]
-				err_msg: "No pots enviar un comentari buit."
+				err_msg: "No pots "+(this.props.newTeditF?"enviar":"desar")+" un comentari buit."
 			});
 			this.valid = false;
 			return this.valid;
@@ -397,7 +397,7 @@ class TextAreaInput extends React.Component {
 							right:"0.2rem"
 						}}
 					>
-						Comenta
+						{this.props.newTeditF ? "Comenta" : "Edita"}
 					</Button>
 				</p>
 
@@ -497,7 +497,18 @@ class CommentEdit extends React.Component{
 	render(){
 		return(<>
 
-			<Accordion.Collapse eventKey={this.props.parentTreplyF ? "accord_new_comment_"+this.props.post_id : ("accord_new_reply_"+this.props.comm_id)} style={{zIndex: "5", position: "relative"}}><div>
+			<Accordion.Collapse eventKey={(
+				this.props.newTeditF ?
+					(
+						this.props.parentTreplyF ? 
+							("accord_new_comment_"+this.props.post_id) 
+						: 
+							("accord_new_reply_"+this.props.comm_id)
+					)
+					:
+					("accord_edit_comm_"+this.props.comm_id)
+						
+				)} style={{zIndex: "5", position: "relative"}}><div>
 				{/*
 				<div className="ms-1">
 				{Array.apply(null, Array(this.props.depth)).map(()=>{
@@ -510,7 +521,7 @@ class CommentEdit extends React.Component{
 				<Form noValidate method="post" action="http://httpbin.org/post" onSubmit={(e) => this.submitButtonAction(e)} >
 
 				<div id={this.props.parentTreplyF ? "comm_"+this.props.post_id : "reply_"+this.props.comm_id} className={"my-0 mx-1"} style={{maxWidth:"100%"}}>
-					<TextAreaInput ref={this.new_body_ref} global_validity_action={() => this.checkLocalValidity()} parentTreplyF={this.props.parentTreplyF} />
+					<TextAreaInput newTeditF={this.props.newTeditF} ref={this.new_body_ref} global_validity_action={() => this.checkLocalValidity()} parentTreplyF={this.props.parentTreplyF} />
 					
 
 				</div>
@@ -551,7 +562,7 @@ class CommentEdit extends React.Component{
 
 
 
-function ScreenToggleCommEdit({ children, eventKey, parentTreplyF }){
+function ScreenToggleNewCommEdit({ children, eventKey, parentTreplyF }){
 	const { activeEventKey } = useContext(AccordionContext);
 	const switchScreen = useAccordionButton(eventKey, null);
 
@@ -581,7 +592,22 @@ function ScreenToggleCommEdit({ children, eventKey, parentTreplyF }){
 	</>);
 }
 
+function ScreenToggleCommEdit({ children, eventKey, comm_id }){
+	const { activeEventKey } = useContext(AccordionContext);
+	const switchScreen = useAccordionButton(eventKey, null);
+	
+	return(<>
 
+		<Dropdown.Item 
+			size="sm"
+			key={"edit_"+comm_id}
+			onClick={switchScreen}
+		>
+			{"✏️Edita"}
+		</Dropdown.Item>
+
+	</>);
+}
 
 
 
@@ -597,17 +623,23 @@ class IndividualComment extends React.Component {
 		super(props);
 		this.depth = props.comm_info.depth ? props.comm_info.depth : 0;
 		this.showComment = true;
+		this.deleted = props.comm_info.esborrat ? props.comm_info.esborrat : false;
+		this.edited = props.comm_info.editat ? props.comm_info.editat : false;
 	}
 
 
 
 	hideComment(){
-		this.showComment = false;
+		//this.showComment = false;
+		this.deleted = true;
 		this.forceUpdate();
 	}
 
 
 	render(){
+		let shadWid = "1px";
+		let delCol = "rgba(255,0,0,1)";
+		let ediCol = "rgba(255,255,0,1)";
 		
 		if (!this.showComment) return(<></>);
 
@@ -619,7 +651,7 @@ class IndividualComment extends React.Component {
 		return(
 			<>
 
-			<Accordion className="m-0" defaultActiveKey={""}>
+			<Accordion className="m-0" defaultActiveKey={""} >
 			<div className="d-flex mx-1">
 
 				{Array.apply(null, Array(this.depth)).map(()=>{
@@ -681,17 +713,7 @@ class IndividualComment extends React.Component {
 								className="float-end d-inline"
 							>
 
-
-								<Dropdown.Item 
-									size="sm"
-									key={"edit_"+this.props.comm_info._id}
-									onClick={()=>{
-										console.log("EDITA EDITA EDITA");
-									}}
-								>
-									{"✏️Edita"}
-								</Dropdown.Item>
-
+								<ScreenToggleCommEdit eventKey={"accord_edit_comm_"+this.props.comm_info._id} comm_id={this.props.comm_info._id} />
 
 
 								<Dropdown.Item 
@@ -731,8 +753,50 @@ class IndividualComment extends React.Component {
 
 							<div className="ms-2">
 
-							<Card.Text className="mb-0 mb-1" style={this.props.comm_info.esborrat?{color:"rgba(255,0,0,0.5)"}:{}}>
-									{this.props.comm_info.esborrat?"<comentari esborrat>":this.props.comm_info.body}
+							<Card.Text className="mb-0 mb-1" style={
+								this.deleted
+										?
+										{
+											fontWeight:"bolder", 
+											//textStroke: "5px red",
+											//textShadow:"0 0 2px rgba(255,0,0,1)"
+											color:"white",
+											textShadow:(
+												"-"+shadWid+" -"+shadWid+" 0px "+delCol+","+
+												" "+shadWid+" -"+shadWid+" 0px "+delCol+","+
+												"-"+shadWid+"  "+shadWid+" 0px "+delCol+","+
+												" "+shadWid+"  "+shadWid+" 0px "+delCol
+											)
+										}
+										:
+										(this.edited ?
+											{
+												fontWeight:"bolder", 
+												//textStroke: "5px yellow",
+												//textShadow:"0 0 2px rgba(255,255,0,1)"
+												//color:"white",
+												textShadow:(
+													"-"+shadWid+" -"+shadWid+" 0px "+ediCol+","+
+													" "+shadWid+" -"+shadWid+" 0px "+ediCol+","+
+													"-"+shadWid+"  "+shadWid+" 0px "+ediCol+","+
+													" "+shadWid+"  "+shadWid+" 0px "+ediCol
+												)
+											}
+											:
+											{}
+										)
+								}>
+									{
+										this.deleted
+										?
+										"<comentari esborrat>"
+										:
+										(this.edited ?
+											"<comentari editat>"
+											:
+											this.props.comm_info.body
+										)
+									}
 							</Card.Text>
 
 
@@ -749,7 +813,7 @@ class IndividualComment extends React.Component {
 
 
 										<span className="text-center" style={{marginBottom: "-1.25rem", zIndex: "6", position: "relative"}} >
-											<ScreenToggleCommEdit eventKey={"accord_new_reply_"+this.props.comm_info._id} parentTreplyF={false}/>
+											<ScreenToggleNewCommEdit eventKey={"accord_new_reply_"+this.props.comm_info._id} parentTreplyF={false}/>
 										</span>
 
 
@@ -777,8 +841,8 @@ class IndividualComment extends React.Component {
 			</div>
 			
 
-			<CommentEdit comm_id={this.props.comm_info._id} post_id={this.props.post_id} parentTreplyF={false} depth={this.depth+1}/>
-
+			<CommentEdit newTeditF={false} comm_id={this.props.comm_info._id} post_id={this.props.post_id} parentTreplyF={false} depth={this.depth+1}/>
+			<CommentEdit newTeditF={true} comm_id={this.props.comm_info._id} post_id={this.props.post_id} parentTreplyF={false} depth={this.depth+1}/>
 
 			</Accordion>
 
@@ -962,7 +1026,7 @@ class InitialScreen extends React.Component {
 
 							<Accordion className="m-0 mb-2" defaultActiveKey={""}>
 								<p className="text-center" style={{marginBottom: "-0.5rem", zIndex: "6", position: "relative"}} >
-									<ScreenToggleCommEdit eventKey={"accord_new_comment_"+this.props.post_id} parentTreplyF={true}/>
+									<ScreenToggleNewCommEdit eventKey={"accord_new_comment_"+this.props.post_id} parentTreplyF={true}/>
 								</p>
 								<CommentEdit comm_id={null} post_id={this.props.post_id} parentTreplyF={true}/>
 							</Accordion>
@@ -983,7 +1047,7 @@ class InitialScreen extends React.Component {
 
 							<Accordion className="m-0" defaultActiveKey={""}>
 								<p className="text-center" style={{marginBottom: "-0.5rem", zIndex: "6", position: "relative"}} >
-									<ScreenToggleCommEdit eventKey={"accord_new_comment_"+this.props.post_id} parentTreplyF={true}/>
+									<ScreenToggleNewCommEdit eventKey={"accord_new_comment_"+this.props.post_id} parentTreplyF={true}/>
 								</p>
 								<CommentEdit comm_id={null} post_id={this.props.post_id} parentTreplyF={true}/>
 							</Accordion>

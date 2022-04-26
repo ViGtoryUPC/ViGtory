@@ -34,14 +34,10 @@ import Rating from 'react-rating';
 
 
 
-async function newComentari(post_id, text, parent_id){
+async function votaAssignatura(data, update_votes){
 	
-	let data = new URLSearchParams();
-	data.append("idAportacio", post_id);
-	data.append("body", text);
-
-	if (parent_id)
-		data.append("idParent", parent_id);
+	
+	
 
 	let err_mssg = "En aquests moments sembla que no podem contactar els nostres servidors.\nTorna a intentar-ho més endevant.";
 
@@ -56,8 +52,8 @@ async function newComentari(post_id, text, parent_id){
 	let resp_ok = true;
 
 	promise = await fetch(
-		API_address + "/comentari/newComentari", {
-			method: "POST",
+		API_address + "/assignatura/voteAssignatura", {
+			method: "PUT",
 			//mode: 'cors',
 			body: data,
 			headers: headers,
@@ -70,9 +66,7 @@ async function newComentari(post_id, text, parent_id){
 			if (resp.ok){
 				response = resp.json();
 				//window.location.reload();
-				window.location.href = 
-						window.location.protocol+"//"+window.location.host+
-						(BaseName==="/"?"":BaseName) + "/post/"+post_id+"??ord=-1&cri=0" //Secció de comentaris de l'aportació actual, amb vista als comentaris més recents
+				update_votes();
 			}
 			
 			return response;
@@ -192,7 +186,7 @@ async function getVots(sub){
 
 
 
-function ScreenToggleRatingsAssignatura({ children, eventKey }){
+function ScreenToggleRatingsAssignatura({ children, eventKey, isStudent }){
 	const { activeEventKey } = useContext(AccordionContext);
 	const switchScreen = useAccordionButton(eventKey, null);
 
@@ -215,7 +209,7 @@ function ScreenToggleRatingsAssignatura({ children, eventKey }){
 					}
 				</span>
 				&nbsp;
-				{"Vota l'assignatura"}
+				{isStudent ? "Valora l'assignatura" : "Valoracions de l'assignatura"}
 			</b>
 		</Button>
 
@@ -245,6 +239,7 @@ class InitialScreen extends React.Component {
 		this.fields = ["dificultat", "professorat", "interesant", "feina"]
 
 		this.fractions = 1; //Preferiblemente esto debería estar puesto a 1 o a 2; otros valores mejor que no
+		this.showVoteButton = true;
 
 		this.userVotes = {
 			dificultat: 3,
@@ -292,18 +287,23 @@ class InitialScreen extends React.Component {
 			console.log(data);
 			//if (data.votUsuari && data.votUsuari!=[]){ //NO QUIERE FUNCIONAR ASÍ!!!
 				//this.hasVoted = true;
-				this.hasVoted = data.votUsuari.votDificultat ? true : false;
+				//this.hasVoted = data.votUsuari.votDificultat ? true : false;
+			if (data.votUsuari && !(Array.isArray(data.votUsuari) && data.votUsuari.length==0)){
+				this.hasVoted = true;
+				this.showVoteButton = false;
 				this.userVotes = {
-					//dificultat: data.votUsuari.votDificultat,
-					//professorat: data.votUsuari.votProfessorat,
-					//interesant: data.votUsuari.votInteresant,
-					//feina: data.votUsuari.votFeina
+					dificultat: data.votUsuari.votDificultat,
+					professorat: data.votUsuari.votProfessorat,
+					interesant: data.votUsuari.votInteresant,
+					feina: data.votUsuari.votFeina
+					/*
 					dificultat: data.votUsuari.votDificultat ? data.votUsuari.votDificultat : this.userVotes.dificultat,
 					professorat: data.votUsuari.votProfessorat ? data.votUsuari.votProfessorat : this.userVotes.professorat,
 					interesant: data.votUsuari.votInteresant ? data.votUsuari.votInteresant : this.userVotes.interesant,
 					feina: data.votUsuari.votFeina ? data.votUsuari.votFeina : this.userVotes.feina
+					*/
 				};
-			//}
+			}
 			this.allVotes = {
 				dificultat: data.dificultat,
 				professorat: data.professorat,
@@ -312,7 +312,7 @@ class InitialScreen extends React.Component {
 				vots: data.vots
 			}
 
-			console.log(this.userVotes);
+			//console.log(this.userVotes);
 			this.forceUpdate();
 		})
 	}
@@ -345,10 +345,12 @@ class InitialScreen extends React.Component {
 	render_rating(field){
 		let promig = parseFloat(this.allVotes[field]?this.allVotes[field]:0).toFixed(2);
 		//console.log(promig);
+		//console.log(Math.ceil(parseFloat(promig)+0.00000001)-1);
+		//total_vots = 27;
 		
 		//https://reactjsexample.com/a-rating-react-component-with-custom-symbols/
 		return <>
-				<p className="text-center mb-0">
+				<p className={"text-center" + ((this.allVotes.vots > 0) ? " mb-0" : " mb-3")} >
 				<h5 className="fw-bold mb-0">{this.title[field]+":"}</h5>
 				<Rating 
 					fractions={this.fractions}
@@ -362,14 +364,25 @@ class InitialScreen extends React.Component {
 						if (Math.ceil(rate))
 						window.document.getElementById('label-onrate-'+field+"-"+(Math.ceil(rate))).innerHTML = rate || "&nbsp";
 						}}
-					initialRating={this.isStudent ? (this.userVotes[field]) : Math.ceil(promig+0.00000001)}
-					readonly={false}
-					onChange={(e)=>{this.userVotes[field] = e;}}
+					initialRating={this.isStudent ? (this.userVotes[field]) : Math.trunc(promig)}
+					readonly={!this.isStudent}
+					onChange={(e)=>{
+						this.userVotes[field] = e;
+						if (this.isStudent && !this.showVoteButton) this.submitAction();
+						}}
 				/>
 				</p>
-				<p className="text-center mb-5 mt-0 text-decoration-underline">
-					Promig: <b>{(this.emojiSeq[field][Math.ceil(promig+0.00000001)-1])+promig}</b>
-				</p>
+				{(this.allVotes.vots > 0) ? 
+					<p className="text-center mb-5 mt-0">
+						{this.hasVoted ? <>
+							(el teu vot: {this.emojiSeq[field][this.userVotes[field]-1]+this.userVotes[field]})
+							<br/>
+						</>:""}
+						<span className="text-decoration-underline">
+							Promig: <b>{(this.emojiSeq[field][Math.trunc(promig)-1])+promig}</b>/5
+						</span>
+					</p>
+				: ""}
 			
 
 			</>
@@ -378,22 +391,24 @@ class InitialScreen extends React.Component {
 
 
 
+	submitAction(){
+		//console.log(this.userVotes);
 
+		let data = new URLSearchParams();
+		data.append("assignaturaId", this.props.sub);
+
+		Object.keys(this.userVotes).forEach((key)=>{
+			//console.log('Key : ' + key + ', Value : ' + data[key])
+			data.append( ("vot"+(key[0].toUpperCase())+(key.substring(1))), this.userVotes[key]);
+		})
+		//console.log(data.toString());
+
+		votaAssignatura(data, ()=>{this.load_votes()});
+	}
 
 	submitButtonAction(event){
 		event.preventDefault();
-
-		console.log(this.userVotes);
-
-		/*createOrUpdatePostToAPI(
-			this.props.new_post,
-			this.getCurrentEditedData(),
-			(API_address + "/aportacio/" + "newAportacio"),
-			files_to_add,
-			files_to_delete//,
-			//this.props.navigate
-		);*/
-
+		this.submitAction();
 	}
 
 
@@ -402,9 +417,9 @@ class InitialScreen extends React.Component {
 
 		return(
 			<>
-				<Accordion className="m-0 mb-2" defaultActiveKey={"accord_ratings_assig_"+this.props.sub}>
+				<Accordion className="m-0 mb-2" defaultActiveKey={''/*"accord_ratings_assig_"+this.props.sub*/}>
 					<p className="text-center" style={{marginBottom: "-0.5rem", zIndex: "6", position: "relative"}} >
-						<ScreenToggleRatingsAssignatura eventKey={"accord_ratings_assig_"+this.props.sub}/>
+						<ScreenToggleRatingsAssignatura eventKey={"accord_ratings_assig_"+this.props.sub} isStudent={this.isStudent} />
 					</p>
 
 					<Accordion.Collapse eventKey={"accord_ratings_assig_"+this.props.sub} style={{zIndex: "5", position: "relative"}}><div>
@@ -412,15 +427,21 @@ class InitialScreen extends React.Component {
 							<Card.Body className="py-1 px-1">
 
 
-								{this.hasVoted ?
-								<p className="text-center mb-3 mt-2">
-									{"Encara no has votat a "+this.props.sub+"..."}
-									<br/>
-									{"Vota ara!"}
-								</p>:""
-								}
+								{(this.isStudent) ?
+									<p className="text-center mb-2 mt-2">
+										{this.hasVoted ? 
+											"Ja has votat aquí, però pots canviar el teu vot!"
+										: 
+										<>
+											{"Encara no has votat a "+this.props.sub+"..."}
+											<br/>
+											{"Vota ara!"}
+										</>
+										}
+									</p>
+								:""}
 
-								<p className="text-center mb-4 mt-2">
+								<p className="text-center mb-4 mt-3">
 									{this.allVotes.vots ? 
 									(
 										(this.allVotes.vots==1) ?
@@ -435,15 +456,17 @@ class InitialScreen extends React.Component {
 
 									{this.fields.map(v=>this.render_rating(v))}
 
-	
-								<p className="text-center mb-3 mt-2">
-									<Button 
-										className="fw-bold"
-										onClick={(e)=>this.submitButtonAction(e)}
-									>
-									VOTA!
-									</Button>
-								</p>
+								{(this.isStudent && this.showVoteButton) ?
+									<p className="text-center mb-3 mt-2">
+										<Button 
+											className="fw-bold"
+											onClick={(e)=>this.submitButtonAction(e)}
+										>
+										VOTA!
+										</Button>
+									</p>
+								:""}
+								
 
 							</Card.Body>
 						</Card>

@@ -425,7 +425,7 @@ class InitialScreen extends React.Component {
 						</Link></b>
 						{":"}
 						</h2>
-						<RatingsAssignatura sub={this.current_assignatura} />
+						<RatingsAssignatura sub={this.current_assignatura} key={"VOTE_"+this.current_assignatura} />
 					</>
 					:
 					""

@@ -56,8 +56,8 @@ async function performVote(vote, post_id, comment_id, expected, definitiveVoteAc
 
 	promise = await fetch(
 		API_address + route, {
-			//method: "PUT",
-			method: comment_id ? "POST":"PUT", //PROVISIONAL...
+			method: "PUT",
+			//method: comment_id ? "POST":"PUT", //PROVISIONAL...
 			//mode: 'cors',
 			headers: headers,
 			body: data,

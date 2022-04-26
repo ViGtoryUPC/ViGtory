@@ -68,6 +68,9 @@ class InitialScreen extends React.Component {
 					<Navbar.Toggle aria-controls="navbarScroll" />
 
 					<Navbar.Collapse id="navbarScroll">
+						{
+						//<div className="w-100 d-flex justify-content-center align-content-end">
+						}
 
 						<Nav 
 							variant="pills"
@@ -102,7 +105,7 @@ class InitialScreen extends React.Component {
 								nom_usuari
 								} 
 							id="nav-dropdown" 
-							className="d-flex" 
+							className="d-flex justify-content-end" 
 							onSelect={
 								//this.handleSelect
 								(e) => this.handleSelect(e)
@@ -130,6 +133,9 @@ class InitialScreen extends React.Component {
 						</NavDropdown>
 
 
+						{
+						//</div>
+						}
 					</Navbar.Collapse>
 					
 				</Container>

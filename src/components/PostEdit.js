@@ -23,15 +23,16 @@ import {getSubjectList} from '../libraries/data_request';
 
 
 
-async function uploadFile(file, post_id, i, uploaded_ready, checkFinish){
+async function uploadOrDeleteFile(upTdelF, file, post_id, i, uploaded_ready, checkFinish){
 
 	//console.log("post_id in uploadFile: "+post_id);
 
 	//Aparentemente, el orden en que añadía los datos antes nulificaba el valor de aportacioId y al backend llegaba como undefined.
 	//Puesto en este orden ahora funciona
-	const data = new FormData();
+	const data = upTdelF ? (new FormData()) : (new URLSearchParams());
 	data.append('aportacioId', post_id);
-	data.append('file', file, file["name"]);
+	if (upTdelF){data.append('file', file, file["name"]);}
+	else{data.append('file', file);}
 
 
 
@@ -48,8 +49,8 @@ async function uploadFile(file, post_id, i, uploaded_ready, checkFinish){
 	let resp_ok = true;
 
 	promise = await fetch(
-		API_address + "/aportacio/addFile", {
-			method: "POST",
+		API_address + "/aportacio/"+(upTdelF ? "add" : "delete")+"File", {
+			method: (upTdelF ? "POST" : "DELETE"),
 			//mode: 'cors',
 			headers: headers,
 			body: data,
@@ -95,10 +96,6 @@ async function uploadFile(file, post_id, i, uploaded_ready, checkFinish){
 			checkFinish();
 		}
 	);
-
-
-
-
 
 
 }
@@ -208,45 +205,48 @@ async function createOrUpdatePostToAPI(createTupdateF, text_data, route, files_t
 			let uploaded_ready = new Array(files_to_add.length).fill(false);
 			let deleted_ready = new Array(files_to_delete.length).fill(false);
 
-			var checkFinish = () => {check_if_finished(uploaded_ready, deleted_ready, 
-				//navigate,//  /ViGtory
-				window.location.protocol+"//"+window.location.host+(BaseName==="/"?"":BaseName) + 
-				(createTupdateF ? 
-					"/?sub="+data_to_send.get("sigles_ud") //Pàgina 1 de l'assignatura
-				: 
-					"/post/"+data["IdAportacio"] //Pàgina individual de la publicació
-				)
-				)};
+			let callback_url = window.location.protocol+"//"+window.location.host+(BaseName==="/"?"":BaseName) + 
+			(createTupdateF ? 
+				"/?sub="+data_to_send.get("sigles_ud") //Pàgina 1 de l'assignatura
+			: 
+				"/post/"+data["IdAportacio"] //Pàgina individual de la publicació
+			);
 
+			var checkFinish = () => {check_if_finished(uploaded_ready, deleted_ready, callback_url);};
 			checkFinish();
 
-			//AÑADIMOS LOS ARCHIVOS UNO A UNO, CADA UNO CON SU PROPIA PETICIÓN
-			for (let i = 0; i < files_to_add.length; i++) {
-				//console.log(data["IdAportacio"]);
-				uploadFile(files_to_add[i], data["IdAportacio"], i, uploaded_ready, checkFinish);
+			var uploadFiles = () => {
+				//AÑADIMOS LOS ARCHIVOS UNO A UNO, CADA UNO CON SU PROPIA PETICIÓN
+				for (let i = 0; i < files_to_add.length; i++) {
+					//console.log(data["IdAportacio"]);
+					uploadOrDeleteFile(true, files_to_add[i], data["IdAportacio"], i, uploaded_ready, checkFinish);
+				}
 			}
-			//ELIMINAMOS LOS ARCHIVOS UNO A UNO, CADA UNO CON SU PROPIA PETICIÓN
-			for (let i = 0; i < files_to_delete.length; i++) {
-				console.log(data["IdAportacio"]);
-				//deleteFile(files_to_delete[i], data["IdAportacio"], i, deleted_ready, checkFinish)
+			if (files_to_delete.length == 0){uploadFiles();}
+			else{
+				var checkFinishDel = () => {check_if_finished_deleting(uploaded_ready, deleted_ready, callback_url, uploadFiles);};
+
+				//ELIMINAMOS LOS ARCHIVOS UNO A UNO, CADA UNO CON SU PROPIA PETICIÓN (se hace lo primero, por si acaso alguien pretende subir un fichero con el mismo nombre que uno que se va a eliminar)
+				for (let i = 0; i < files_to_delete.length; i++) {
+					console.log(data["IdAportacio"]);
+					uploadOrDeleteFile(false, files_to_delete[i], data["IdAportacio"], i, deleted_ready, checkFinishDel);
+				}
 			}
 
-			console.log(data);
+			//console.log(data);
 		}
 	);
 }
 
-
-function check_if_finished(uploaded_ready, deleted_ready, /*navigate,*/ callback_url){
+function check_if_finished(uploaded_ready, deleted_ready, callback_url){
 
 	console.log(uploaded_ready);
-	for (let i = 0; i < uploaded_ready.length; i++) {
-		if (!uploaded_ready[i]) return;
-	}
 	for (let i = 0; i < deleted_ready.length; i++) {
 		if (!deleted_ready[i]) return;
 	}
-
+	for (let i = 0; i < uploaded_ready.length; i++) {
+		if (!uploaded_ready[i]) return;
+	}
 
 	//console.log("SUCCESS!!! Todos los ficheros que debían ser subidos o eliminados lo han sido con éxito!");
 	//navigate to callback_url //always ?sub=currentsub
@@ -256,6 +256,15 @@ function check_if_finished(uploaded_ready, deleted_ready, /*navigate,*/ callback
 }
 
 
+function check_if_finished_deleting(uploaded_ready, deleted_ready, callback_url, continue_to_upload_files){
+
+	console.log(uploaded_ready);
+	for (let i = 0; i < deleted_ready.length; i++) {
+		if (!deleted_ready[i]) return;
+	}
+	
+	continue_to_upload_files();
+}
 
 
 
