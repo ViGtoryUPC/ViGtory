@@ -80,14 +80,16 @@ async function deleteComentari(comment_id, hideComment){
 
 
 
-async function newComentari(post_id, text, parent_id){
+async function sendComentari(newTeditF, post_id, text, _id, postEditAct){
 	
 	let data = new URLSearchParams();
-	data.append("idAportacio", post_id);
-	data.append("body", text);
+	if (newTeditF)
+		data.append("idAportacio", post_id);
 
-	if (parent_id)
-		data.append("idParent", parent_id);
+	data.append((newTeditF ? "body" : "newBody"), text);
+
+	if (_id)
+		data.append((newTeditF ? "idParent":"comentariId"), _id);
 
 	let err_mssg = "En aquests moments sembla que no podem contactar els nostres servidors.\nTorna a intentar-ho més endevant.";
 
@@ -102,8 +104,8 @@ async function newComentari(post_id, text, parent_id){
 	let resp_ok = true;
 
 	promise = await fetch(
-		API_address + "/comentari/newComentari", {
-			method: "POST",
+		API_address + "/comentari/"+(newTeditF ? "new":"edit")+"Comentari", {
+			method: (newTeditF ? "POST":"PUT"),
 			//mode: 'cors',
 			body: data,
 			headers: headers,
@@ -114,12 +116,20 @@ async function newComentari(post_id, text, parent_id){
 
 			//Si todo es correcto (status 200-299)
 			if (resp.ok){
+
 				response = resp.json();
+				
+				if (newTeditF){
 				//window.location.reload();
 				window.location.href = 
 						window.location.protocol+"//"+window.location.host+
-						(BaseName==="/"?"":BaseName) + "/post/"+post_id+"??ord=-1&cri=0" //Secció de comentaris de l'aportació actual, amb vista als comentaris més recents
-			}
+						(BaseName==="/"?"":BaseName) + "/post/"+post_id+"?ord=-1&cri=0" //Secció de comentaris de l'aportació actual, amb vista als comentaris més recents
+				}
+				else{postEditAct(text);}
+			
+			
+			
+					}
 			
 			return response;
 		}, 
@@ -381,6 +391,7 @@ class TextAreaInput extends React.Component {
 					rows={this.props.parentTreplyF ? "5" : "3"}
 					isInvalid={!this.state.valid}
 					style={{zIndex:"0", position:"relative"}}
+					defaultValue={(this.props.newTeditF ? "":this.props.body)}
 				/>
 
 
@@ -479,14 +490,15 @@ class CommentEdit extends React.Component{
 	submitButtonAction(event){
 		event.preventDefault();
 
-		console.log("button clicked");
+		//console.log("button clicked");
 
 		if (!this.checkLocalValidity(true)){
 			alert("Tots els camps han de ser omplerts correctament.");
 			return;
 		}
 		
-		newComentari(this.props.post_id, this.new_body_ref.current.content_txt, this.props.comm_id);
+		let postEditAct = this.props.postEditAct ? (n_b)=>{this.props.postEditAct(n_b)} : ()=>{};
+		sendComentari(this.props.newTeditF, this.props.post_id, this.new_body_ref.current.content_txt, this.props.comm_id, postEditAct);
 
 	}
 
@@ -521,7 +533,7 @@ class CommentEdit extends React.Component{
 				<Form noValidate method="post" action="http://httpbin.org/post" onSubmit={(e) => this.submitButtonAction(e)} >
 
 				<div id={this.props.parentTreplyF ? "comm_"+this.props.post_id : "reply_"+this.props.comm_id} className={"my-0 mx-1"} style={{maxWidth:"100%"}}>
-					<TextAreaInput newTeditF={this.props.newTeditF} ref={this.new_body_ref} global_validity_action={() => this.checkLocalValidity()} parentTreplyF={this.props.parentTreplyF} />
+					<TextAreaInput newTeditF={this.props.newTeditF} ref={this.new_body_ref} global_validity_action={() => this.checkLocalValidity()} parentTreplyF={this.props.parentTreplyF} body={this.props.body} />
 					
 
 				</div>
@@ -602,8 +614,9 @@ function ScreenToggleCommEdit({ children, eventKey, comm_id }){
 			size="sm"
 			key={"edit_"+comm_id}
 			onClick={switchScreen}
+			id={"open_accord_edit_comm_"+comm_id}
 		>
-			{"✏️Edita"}
+			{(eventKey===activeEventKey)?"✏️Deixa d'editar":"✏️Edita"}
 		</Dropdown.Item>
 
 	</>);
@@ -635,8 +648,11 @@ class IndividualComment extends React.Component {
 		this.deleted = true;
 		this.forceUpdate();
 	}
-	markAsEdited(){
+	markAsEdited(new_body){
 		this.edited = true;
+		this.body = new_body;
+		//useAccordionButton("accord_edit_comm_"+this.props.comm_info._id, null);
+		window.document.getElementById("open_accord_edit_comm_"+this.props.comm_info._id).click()
 
 		this.forceUpdate();
 	}
@@ -766,7 +782,7 @@ class IndividualComment extends React.Component {
 
 							<div className="ms-2">
 
-							<Card.Text className="mb-0 mb-1">
+							<Card.Text className="mb-0 mb-1" style={{whiteSpace:"pre-line"}}>
 								<span style={
 									this.deleted
 											?
@@ -861,8 +877,8 @@ class IndividualComment extends React.Component {
 			</div>
 			
 
-			<CommentEdit newTeditF={false} comm_id={this.props.comm_info._id} post_id={this.props.post_id} parentTreplyF={false} depth={this.depth+1}/>
-			<CommentEdit newTeditF={true} comm_id={this.props.comm_info._id} post_id={this.props.post_id} parentTreplyF={false} depth={this.depth+1}/>
+			<CommentEdit newTeditF={false} comm_id={this.props.comm_info._id} post_id={this.props.post_id} parentTreplyF={false} depth={this.depth+1} body={this.body} postEditAct={(n_b)=>{this.markAsEdited(n_b)}} />
+			<CommentEdit newTeditF={true} comm_id={this.props.comm_info._id} post_id={this.props.post_id} parentTreplyF={false} depth={this.depth+1} />
 
 			</Accordion>
 
@@ -1048,7 +1064,7 @@ class InitialScreen extends React.Component {
 								<p className="text-center" style={{marginBottom: "-0.5rem", zIndex: "6", position: "relative"}} >
 									<ScreenToggleNewCommEdit eventKey={"accord_new_comment_"+this.props.post_id} parentTreplyF={true}/>
 								</p>
-								<CommentEdit comm_id={null} post_id={this.props.post_id} parentTreplyF={true}/>
+								<CommentEdit newTeditF={true} comm_id={null} post_id={this.props.post_id} parentTreplyF={true}/>
 							</Accordion>
 
 							{this.renderLinearizedTree(this.comment_tree)}
@@ -1069,7 +1085,7 @@ class InitialScreen extends React.Component {
 								<p className="text-center" style={{marginBottom: "-0.5rem", zIndex: "6", position: "relative"}} >
 									<ScreenToggleNewCommEdit eventKey={"accord_new_comment_"+this.props.post_id} parentTreplyF={true}/>
 								</p>
-								<CommentEdit comm_id={null} post_id={this.props.post_id} parentTreplyF={true}/>
+								<CommentEdit newTeditF={true} comm_id={null} post_id={this.props.post_id} parentTreplyF={true}/>
 							</Accordion>
 							<br/>
 

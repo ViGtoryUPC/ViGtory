@@ -121,7 +121,7 @@ async function submitUpdateDataToAPI(event, route, navigate){
 	.then(
 		data => {
 			if (data === undefined) return;
-			
+
 			if (!resp_ok){
 				window.alert(data.error);
 				return;
@@ -846,11 +846,11 @@ class MailForm extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {allValid: false};
+		this.mail_ref = React.createRef();
 	}
 
 	initialize(){
 		this.confirmed = this.props.confirmed;
-		this.mail_ref = React.createRef();
 		this.mail = <MailInput form_field_name="settings_mail" mail_student={this.props.mail_student} ref={this.mail_ref} validation_rgx_msg={this.props.validation_rgx_msg.mail} global_validity_action={() => this.checkLocalValidity()} defaultValue={this.props.defaultValue} confirmed={this.confirmed} />;
 
 		this.ref_list = [this.mail_ref];

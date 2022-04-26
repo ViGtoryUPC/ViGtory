@@ -1,12 +1,14 @@
 import React from 'react';
+import { useEffect, useContext } from 'react';
 import {API_address} from '../libraries/API_address';
 //import ReactDOM from 'react-dom';
 import { Routes, Route, Link, useHistory, useNavigate } from "react-router-dom";
 
-import { Accordion, Button, Form, FloatingLabel, DropdownButton } from 'react-bootstrap';
+import { Accordion, Button, Form, FloatingLabel, DropdownButton, AccordionContext, useAccordionButton } from 'react-bootstrap';
 import { Card, OverlayTrigger, Tooltip, Dropdown, Popover } from 'react-bootstrap';
 
 import ViGtVote from "./ViGtVote";
+import PostEdit from "../components/PostEdit";
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../css/main.css';
@@ -103,7 +105,23 @@ async function deletePost(post_id, individual, sub, hidePost){
 
 
 
+function ScreenTogglePostEdit({ children, eventKey, post_id }){
+	const { activeEventKey } = useContext(AccordionContext);
+	const switchScreen = useAccordionButton(eventKey, null);
+	
+	return(<>
 
+		<Dropdown.Item 
+			size="sm"
+			key={"edit_"+post_id}
+			onClick={switchScreen}
+			id={"open_accord_edit_post_"+post_id}
+		>
+			{(eventKey===activeEventKey)?"✏️Deixa d'editar":"✏️Edita"}
+		</Dropdown.Item>
+
+	</>);
+}
 
 
 
@@ -153,6 +171,8 @@ class InitialScreen extends React.Component {
 	constructor(props) {
 		super(props);
 		this.showPost = true;
+		this.postedit_ref = React.createRef();
+		this.edited = props.post_info.editat ? props.post_info.editat : false;
 	}
 
 
@@ -167,15 +187,23 @@ class InitialScreen extends React.Component {
 		
 		if (!this.showPost) return(<></>);
 
+		//this.edited=true;
+		let shadWid = "1px";
+		let ediCol = "rgba(255,255,0,1)";
 
 		let date = new Date(this.props.post_info.createdAt);
 		let file_list = this.props.post_info.fitxers ? this.props.post_info.fitxers : [];
 
 
+		this.postEdit = <PostEdit new_post={false} current_assignatura={this.current_assignatura} postedit_ref={this.postedit_ref} post_info={this.props.post_info} />;
+
 
 		return(
 			<>
-			<div className={"post mx-auto"+(this.props.individualView?" mb-0 individual":" mb-4")}>
+			<div className={"mx-auto"+(this.props.individualView?" mb-0 individual":" mb-5")} >
+			<Accordion defaultActiveKey={""}>
+
+			<div className={"post mx-auto"} >
 				
 				{/*<div className="d-flex px-2 justify-content-end">
 					{(Cookie.get("username")===this.props.post_info.userName)?				
@@ -198,7 +226,7 @@ class InitialScreen extends React.Component {
 				</div>*/}
 
 
-				<Card className={"mx-auto"+(this.props.individualView?" mb-0":" mb-4")} >
+				<Card className={"mx-auto mb-0"} >
 
 
 
@@ -292,17 +320,8 @@ class InitialScreen extends React.Component {
 							className="float-end d-inline"
 						>
 
-{/*
-							<Dropdown.Item 
-								size="sm"
-								key={"edit_"+this.props.post_info._id}
-								onClick={()=>{
-									console.log("EDITA EDITA EDITA");
-								}}
-							>
-								{"✏️Edita"}
-							</Dropdown.Item>
-*/}
+
+							<ScreenTogglePostEdit eventKey={"accord_edit_post_"+this.props.post_info._id} post_id={this.props.post_info._id} />
 
 
 							<Dropdown.Item 
@@ -366,15 +385,41 @@ class InitialScreen extends React.Component {
 
 						
 						<div className="mt-1 mb-2"><Link to={"/post/"+this.props.post_info._id} className="text-reset text-decoration-none">
-							<Card.Title className="d-inline">
+							<Card.Title className="d-inline" style={{whiteSpace:"pre-line"}}>
 								<b>{this.props.post_info.title}</b>
 							</Card.Title>
 						</Link>
 						</div>
 
 
-						<Card.Text>
-								{this.props.post_info.body}
+
+
+						<Card.Text style={{whiteSpace:"pre-line"}}>
+
+							<span style={
+									(this.edited ?
+										{
+											fontWeight:"bolder", 
+											//color:"white",
+											textShadow:(
+												"-"+shadWid+" -"+shadWid+" 0px "+ediCol+","+
+												" "+shadWid+" -"+shadWid+" 0px "+ediCol+","+
+												"-"+shadWid+"  "+shadWid+" 0px "+ediCol+","+
+												" "+shadWid+"  "+shadWid+" 0px "+ediCol
+											)
+										}
+										:
+										{}
+									)
+								}>
+								{this.edited ?
+									<>{"<contingut editat>"}<br/></>
+								:""}
+							</span>
+							{this.props.post_info.body}
+
+
+
 						</Card.Text>
 
 
@@ -426,6 +471,19 @@ class InitialScreen extends React.Component {
 
 
 
+
+
+
+
+
+
+
+
+
+
+			</div>
+				{this.postEdit}
+				</Accordion>
 			</div>
 			</>
 		);

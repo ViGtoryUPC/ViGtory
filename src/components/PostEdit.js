@@ -5,7 +5,7 @@ import {API_address} from '../libraries/API_address';
 import { Routes, Route, Link, useNavigate } from "react-router-dom";
 
 import { Accordion, Button, Form, FloatingLabel, DropdownButton, InputGroup, useAccordionButton, AccordionContext } from 'react-bootstrap';
-import { Card, OverlayTrigger, Tooltip, Dropdown, Popover } from 'react-bootstrap';
+import { Card, OverlayTrigger, Tooltip, Dropdown, Popover, ListGroup } from 'react-bootstrap';
 
 
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -106,7 +106,7 @@ async function uploadOrDeleteFile(upTdelF, file, post_id, i, uploaded_ready, che
 
 
 
-async function createOrUpdatePostToAPI(createTupdateF, text_data, route, files_to_add, files_to_delete/*, navigate*/){
+async function createOrUpdatePostToAPI(createTupdateF, text_data, route, files_to_add, files_to_delete, current_post_id){
 	//console.log(event.currentTarget.action);
 	//event.currentTarget.submit();
 		//event.currentTarget.action = API_address + "/aportacio/" + route;
@@ -162,7 +162,7 @@ async function createOrUpdatePostToAPI(createTupdateF, text_data, route, files_t
 
 	promise = await fetch(
 		route, {
-			method: "POST",
+			method: createTupdateF?"POST":"PUT",
 			mode: 'cors',
 			body: data_to_send,
 			headers: headers,
@@ -209,7 +209,8 @@ async function createOrUpdatePostToAPI(createTupdateF, text_data, route, files_t
 			(createTupdateF ? 
 				"/?sub="+data_to_send.get("sigles_ud") //Pàgina 1 de l'assignatura
 			: 
-				"/post/"+data["IdAportacio"] //Pàgina individual de la publicació
+				//"/post/"+data["IdAportacio"] //Pàgina individual de la publicació
+				"/post/"+current_post_id
 			);
 
 			var checkFinish = () => {check_if_finished(uploaded_ready, deleted_ready, callback_url);};
@@ -265,6 +266,190 @@ function check_if_finished_deleting(uploaded_ready, deleted_ready, callback_url,
 	
 	continue_to_upload_files();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class DeleteFitxersInput extends React.Component {
+
+	constructor(props) {
+		super(props);
+		this.state = {
+			valid: true,
+			err_msg: ""
+		};
+		this.valid = true;
+		this.file_list = this.props.file_list.map(v=>{
+			return {
+					filename: v,
+					deletion_flag: false
+				}
+		});
+		this.selecciona_buttn = true;
+	}
+
+
+	/*updateDeleteList(event){
+		let file_list = [];
+		let max_size_MB = 200;
+		let current_size_MB = 0;
+		//let max_file_count = 10;
+
+		let files = event.target.files;
+		
+
+		for (let i=0; i<files.length; i++){
+			let file_size_MB = files[i].size / (1024*1024);
+
+			if ( (current_size_MB + file_size_MB) > max_size_MB){
+				this.setState({
+					valid: false,
+					err_msg: ("Els fitxers afegits superen la mida total màxima permesa de "+max_size_MB+" MB.")
+				});
+				this.valid = false;
+				return;
+			}
+			else{
+				this.valid = true;
+				current_size_MB += file_size_MB;
+				file_list.push(files[i]);
+				//console.log(files[i]);
+			}
+
+		}
+		this.setState({
+			valid: true,
+			err_msg: ""
+		});
+		this.valid = true;
+
+
+		this.delete_list = file_list;
+		return;
+	}*/
+
+
+
+	render(){
+		
+		return(
+			<>
+				<Form.Label
+					className="mt-3 mb-1"
+					size="sm"
+				>{"Selecciona fitxers a eliminar de l'aportació:"}</Form.Label>
+
+				
+				<div className="fitxersDeleteList mb-0 px-3 mt-2 text-end">
+					<Button className="fitxersDeleteAll mb-0 px-2 pt-1 pb-0"
+						size="sm"
+						onClick={()=>{
+							for (let i=0; i<this.file_list.length; i++){
+								this.file_list[i].deletion_flag = this.selecciona_buttn;
+							}
+							this.selecciona_buttn = !this.selecciona_buttn;
+							this.forceUpdate();
+						}}
+					>
+						{this.selecciona_buttn ? "Selecciona-ho tot":"Deselecciona-ho tot"}
+					</Button>
+				</div>
+				<ListGroup className="fitxersDeleteList">
+					
+					{this.file_list.map((file) => {return (
+						<ListGroup.Item 
+							className={"pe-2 py-1"+(file.deletion_flag?" flagged":"")}
+							
+							onClick={()=>{
+								file.deletion_flag = !file.deletion_flag;
+
+								let flagged_count = 0;
+								for (let i=0; i<this.file_list.length; i++){
+									flagged_count += this.file_list[i].deletion_flag ? 1:0;
+								}
+								this.selecciona_buttn = !(flagged_count>=this.file_list.length/2)
+
+								this.forceUpdate();
+							}}
+						>
+							<span className="text-decoration-none d-flex align-items-center justify-content-between">
+								<span className="text-break me-2">
+								{file.filename}
+								</span>
+								<span 
+									className="individualDelete px-2" 
+									style={{whiteSpace:"nowrap"}}
+								>
+								<p className="text-end mb-1">
+									{file.deletion_flag ? "S'eliminarà":"No s'eliminarà"}
+									&nbsp;
+									<h5 className="d-inline my-0">
+									{file.deletion_flag ? "☒":"☐"}
+									</h5>
+								</p>
+								</span>
+								
+							</span>
+							
+						</ListGroup.Item>
+					);})}
+					
+
+				</ListGroup>
+
+
+
+
+
+
+
+			</>
+
+		);
+	};
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -428,7 +613,19 @@ class SubjectInput extends React.Component {
 			this.assignatura_search = assignatura_search;
 		}*/
 
-		let assignatures = this.alphabetize(this.props.subjectList);
+		let assignatures = [];
+
+		if (this.props.new_post){
+			assignatures = this.alphabetize(this.props.subjectList);
+		}
+		else{ 
+			//assignatures = [ this.props.subjectList.find(e=>(e.sigles_ud)==(this.props.post_info.sigles_ud)) ];
+			assignatures = this.props.subjectList.filter(e=>{return (e.sigles_ud)==(this.props.post_info.sigles_ud)})
+		}
+		//console.log(assignatures);
+		//console.log(this.props.subjectList.find(e=>(e.sigles_ud)==(this.props.post_info.sigles_ud)));
+
+
 		//console.log(assignatures);
 		//this.current_assignatura = (this.current_assignatura) ? (this.current_assignatura) : (params.get("sub") ? params.get("sub") : ((assignatures.length!==0) ? assignatures[0].sigles_ud : ""));
 
@@ -436,7 +633,11 @@ class SubjectInput extends React.Component {
 			this.current_assignatura : assignatura_search;*/
 
 		//this.current_assignatura = ( this.current_assignatura ? this.current_assignatura : ((assignatures.length!==0) ? assignatures[0].sigles_ud : "") );
-		this.current_assignatura = ( this.current_assignatura ? this.current_assignatura : (this.props.current_assignatura ? this.props.current_assignatura : ((assignatures.length!==0) ? assignatures[0].sigles_ud : "")) );
+		this.current_assignatura = this.props.new_post ? 
+			( this.current_assignatura ? this.current_assignatura : (this.props.current_assignatura ? this.props.current_assignatura : ((assignatures.length!==0) ? assignatures[0].sigles_ud : "")) )
+			:
+			this.props.post_info.sigles_ud
+		;
 
 		//console.log(this.current_assignatura);
 		
@@ -452,7 +653,7 @@ class SubjectInput extends React.Component {
 			</InputGroup.Text>
 
 			<DropdownButton
-				disabled={false}
+				disabled={!this.props.new_post}
 				className="flex-fill"
 				title={this.current_assignatura?this.current_assignatura:(this.hasBeenUsed?"General":"Assignatura")}
 				onSelect={(e)=>{this.updateSelected(e, true)}}
@@ -502,7 +703,7 @@ class TextAreaInput extends React.Component {
 			valid: true,
 			err_msg: ""
 		};
-		this.content_txt = "";
+		this.content_txt = this.props.new_post ? "":this.props.post_text;
 		this.valid = true;
 		this.titleTbodyF = props.titleTbodyF;
 	}
@@ -545,12 +746,13 @@ class TextAreaInput extends React.Component {
 					as="textarea" 
 					name={this.titleTbodyF ? "titol" : "body"} 
 					placeholder={this.titleTbodyF ? "Un títol interessant i/o descriptiu" : "La meva aportació a ViGtory és..."} 
-					defaultValue=""
+					defaultValue={this.props.new_post ? "":this.props.post_text}
 					onChange={(e) => {this.content_txt=e.currentTarget.value; this.validate_content_clientside(true); this.props.global_validity_action(true);}}
 					required 
 					rows={this.titleTbodyF ? "2" : "7"} 
 					style={this.titleTbodyF ? {fontWeight: 'bold'} : {}}
 					isInvalid={!this.state.valid}
+					disabled={this.titleTbodyF && !this.props.new_post}
 				/>
 				<Form.Control.Feedback type="invalid">
 					{this.state.err_msg}
@@ -638,6 +840,7 @@ class InitialScreen extends React.Component {
 		this.ref_list = [this.new_title_ref, this.new_body_ref];
 
 		this.fitxersInput_ref = React.createRef();
+		this.delFitxersInput_ref = React.createRef();
 	}
 
 
@@ -678,7 +881,7 @@ class InitialScreen extends React.Component {
 	getCurrentEditedData(){
 		let data = {};
 
-		if (this.subjectInput_ref.current && this.subjectInput_ref.current.current_assignatura)
+		if ((!this.props.new_post) && this.subjectInput_ref.current && this.subjectInput_ref.current.current_assignatura)
 			data["sigles_ud"] = this.subjectInput_ref.current.current_assignatura;
 
 		//if (this.new_title_ref.current && this.new_title_ref.current.content_txt)
@@ -686,10 +889,10 @@ class InitialScreen extends React.Component {
 		//if (this.new_body_ref.current && this.new_body_ref.current.content_txt)
 		//	data["body"] = this.new_body_ref.current.content_txt;
 
-		if (this.new_title_ref.current)
+		if ((!this.props.new_post) && this.new_title_ref.current)
 			data["titol"] = this.new_title_ref.current.content_txt ? this.new_title_ref.current.content_txt : "";
 		if (this.new_body_ref.current)
-			data["body"] = this.new_body_ref.current.content_txt ? this.new_body_ref.current.content_txt : "";
+			data[this.props.new_post?"body":"newBody"] = this.new_body_ref.current.content_txt ? this.new_body_ref.current.content_txt : "";
 		
 		return data;
 	}
@@ -709,15 +912,23 @@ class InitialScreen extends React.Component {
 		//console.log("fitxersInput_ref: "+this.fitxersInput_ref.current);
 		//console.log("fitxersInput_ref.file_list: "+this.fitxersInput_ref.current.file_list);
 		let files_to_add = (this.fitxersInput_ref.current) ? (this.fitxersInput_ref.current.file_list?this.fitxersInput_ref.current.file_list:[]) : ([]);
+
 		let files_to_delete = [];
+		if (this.delFitxersInput_ref.current && this.fitxersInput_ref.current.file_list){
+			for (let i=0; i<this.fitxersInput_ref.current.file_list.length; i++){
+				if (this.fitxersInput_ref.current.file_list[i].deletion_flag){
+					files_to_delete.push(this.fitxersInput_ref.current.file_list[i].filename);
+				}
+			}
+		}
 
 		createOrUpdatePostToAPI(
 			this.props.new_post,
 			this.getCurrentEditedData(),
-			(API_address + "/aportacio/" + "newAportacio"),
+			(API_address + "/aportacio/" + this.props.new_post?"newAportacio":"editAportacio"),
 			files_to_add,
-			files_to_delete//,
-			//this.props.navigate
+			files_to_delete,
+			(this.props.new_post ? this.props.post_info._id : null)
 		);
 
 	}
@@ -727,15 +938,21 @@ class InitialScreen extends React.Component {
 
 	render(){
 
-		this.new_title = <TextAreaInput ref={this.new_title_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} titleTbodyF={true} />
+		this.new_title = <TextAreaInput ref={this.new_title_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} titleTbodyF={true} new_post={this.props.new_post} post_text={this.props.post_info?this.props.post_info.title:""} />
 
-		this.new_body = <TextAreaInput ref={this.new_body_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} titleTbodyF={false} />
+		this.new_body = <TextAreaInput ref={this.new_body_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} titleTbodyF={false} new_post={this.props.new_post} post_text={this.props.post_info?this.props.post_info.body:""} />
 
 
-		this.subjectInput = <SubjectInput subjectList={this.subjectList} current_assignatura={this.props.current_assignatura} ref={this.subjectInput_ref} />;
+		this.subjectInput = <SubjectInput subjectList={this.subjectList} current_assignatura={this.props.current_assignatura} ref={this.subjectInput_ref} new_post={this.props.new_post} post_info={this.props.post_info} />;
 
-		this.fitxersInput = <FitxersInput ref={this.fitxersInput_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)}/>;
+		this.fitxersInput = <FitxersInput ref={this.fitxersInput_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} new_post={this.props.new_post} post_info={this.props.post_info} />;
 
+		
+		if (!this.props.new_post){
+			this.file_list = this.props.post_info.fitxers ? this.props.post_info.fitxers : [];
+
+			this.delFitxersInput = <DeleteFitxersInput ref={this.delFitxersInput_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} file_list={this.file_list} />;
+		}
 
 		//<Card.Title>Card Title</Card.Title>
 		//<Card.Subtitle className="mb-2 text-muted">Card Subtitle</Card.Subtitle>
@@ -776,14 +993,16 @@ class InitialScreen extends React.Component {
 
 
 
+		//if (!this.props.new_post)
+		//console.log("accord_edit_post_"+this.props.post_info._id);
 
 
 
-		return(
-			<>
 
-			<Accordion className="mb-4" defaultActiveKey={(this.props.new_post ? "" : "accord_post_edit")}>
 
+
+
+		let contents = <>
 
 				{this.props.new_post ? 
 				<p className="text-center" style={{marginBottom: "-1.25rem", zIndex: "6", position: "relative"}} >
@@ -792,7 +1011,7 @@ class InitialScreen extends React.Component {
 				:""
 				}
 
-				<Accordion.Collapse eventKey="accord_post_edit" style={{zIndex: "5", position: "relative"}} >
+				<Accordion.Collapse eventKey={((!this.props.new_post) ? ("accord_edit_post_"+this.props.post_info._id) : "accord_post_edit")} style={{zIndex: "5", position: "relative"}} >
 				<div>
 
 
@@ -804,6 +1023,18 @@ class InitialScreen extends React.Component {
 					
 						<Form noValidate method="post" action="http://httpbin.org/post" onSubmit={(e) => this.submitButtonAction(e)} >
 					
+							{this.props.new_post ?"":
+							<span 
+								className="float-end minimize_indv_post_edit" 
+								onClick={()=>{
+									
+									window.document.getElementById("open_accord_edit_post_"+this.props.post_info._id).click()
+								}}
+							>
+							▲
+							</span>
+							}
+
 							<div className="mt-0 mb-3">
 								<Card.Title className="d-inline">
 									{this.props.new_post ? ""/*"Nova aportació:"*/ : "Modifica la teva aportació:"}
@@ -816,9 +1047,14 @@ class InitialScreen extends React.Component {
 							{this.new_title}
 							{this.new_body}
 							{this.fitxersInput}
-								
+							{((!this.props.new_post)&&(this.file_list.length>0))?
+								this.delFitxersInput
+							:
+								<></>}
 
-							<p className="text-center mb-0" ><Button type="submit" className="mt-4" disabled={!this.state.allValid}>Publica aportació</Button></p>
+							<p className="text-center mb-0" ><Button type="submit" className="mt-4" disabled={!this.state.allValid}>
+							{this.props.new_post ? "Publica":"Modifica"} aportació
+							</Button></p>
 
 
 
@@ -835,7 +1071,31 @@ class InitialScreen extends React.Component {
 
 				</div>
 				</Accordion.Collapse>
+
+		</>;
+
+
+
+
+
+
+
+
+
+
+
+
+
+		return(
+			<>
+
+			{this.props.new_post ? 
+			<Accordion className="mb-4" defaultActiveKey={""}>
+				{contents}
 			</Accordion>
+			:
+			<>{contents}</>
+			}
 
 			</>
 		);

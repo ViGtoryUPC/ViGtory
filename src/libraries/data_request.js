@@ -237,6 +237,7 @@ const getValidationRegexAndErrorMessages = ()=>{
 			{"/(?=.*[0-9])/" : "La teva contrasenya ha de contenir almenys 1 nombre (0-9)."}
 		],
 		"mail" : [
+			//{"/\\s/" : "Una adreça electrònica no hauria de contenir espais (' ')."},
 			{"/^.+@.+\\..+$/" : "És necessària una adreça electrònica vàlida.\nPer exemple: usuari@domini.xyz"}
 		]
 

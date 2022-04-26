@@ -476,6 +476,7 @@ class InitialScreen extends React.Component {
 function Home(props){
 	document.title = "ViGtory! Pàgina principal";
 
+	//console.log(window.location.href);
 
 	const location =  useLocation();
 	const params =  useParams();
@@ -513,7 +514,7 @@ function Home(props){
 			screen_ref.current.updatePageContent(data);//Algo se rompe al usar esto; puede que tenga que ver con las peticiones recursivas //SE HA SOLUCIONADO AÑADIENDO <React.StrictMode> EN index.js???????? O puede que no...
 		});
 
-	}, [window.location.search]); //Seguramente haya alguna alternativa mejor, pero por el momento me quedo con esta (window.location.search) (para que se actualice el objeto que contiene la página al cargar nuevas publicaciones)
+	}, [window.location.href]);//[window.location.search]); //Seguramente haya alguna alternativa mejor, pero por el momento me quedo con esta (window.location.search) (para que se actualice el objeto que contiene la página al cargar nuevas publicaciones)
 
 
 

@@ -258,12 +258,12 @@ class InitialScreen extends React.Component {
 								(file_list.length > 0) ?
 						
 								<>
-								<div className="fitxersDownloadList mb-0 px-3 mt-2">
+								<div className="fitxersDownloadList mb-0 px-3 mt-4">
 								<p className="fitxersDownloadAmount mb-0 px-3 pt-1">
 									{file_list.length}{" Fitxer"}{file_list.length==1 ? "":"s"}
 								</p>
 								</div>
-								<ListGroup className="fitxersDownloadList">
+								<ListGroup className="fitxersDownloadList mb-4">
 									
 									{file_list.map((filename, i, namelist) => {return (
 										<ListGroup.Item className="pe-2">
