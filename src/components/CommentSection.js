@@ -498,15 +498,15 @@ class CommentEdit extends React.Component{
 		return(<>
 
 			<Accordion.Collapse eventKey={(
-				this.props.newTeditF ?
+					(!this.props.parentTreplyF) ? 
 					(
-						this.props.parentTreplyF ? 
-							("accord_new_comment_"+this.props.post_id) 
-						: 
+						this.props.newTeditF ?
 							("accord_new_reply_"+this.props.comm_id)
+						: 
+							("accord_edit_comm_"+this.props.comm_id)
 					)
 					:
-					("accord_edit_comm_"+this.props.comm_id)
+					("accord_new_comment_"+this.props.post_id) 
 						
 				)} style={{zIndex: "5", position: "relative"}}><div>
 				{/*
@@ -623,6 +623,7 @@ class IndividualComment extends React.Component {
 		super(props);
 		this.depth = props.comm_info.depth ? props.comm_info.depth : 0;
 		this.showComment = true;
+		this.body = props.comm_info.body ? props.comm_info.body : "";
 		this.deleted = props.comm_info.esborrat ? props.comm_info.esborrat : false;
 		this.edited = props.comm_info.editat ? props.comm_info.editat : false;
 	}
@@ -632,6 +633,11 @@ class IndividualComment extends React.Component {
 	hideComment(){
 		//this.showComment = false;
 		this.deleted = true;
+		this.forceUpdate();
+	}
+	markAsEdited(){
+		this.edited = true;
+
 		this.forceUpdate();
 	}
 
@@ -656,7 +662,12 @@ class IndividualComment extends React.Component {
 
 				{Array.apply(null, Array(this.depth)).map(()=>{
 					return(
-						<div className="d-inline flex-grow ms-2" style={{backgroundColor:"rgba(0,127,191,0.4)", color:"rgba(0,0,0,0)"}} >{"."}</div>
+						<div className="d-inline flex-grow ms-2" style={{
+							//backgroundColor:"rgba(0,127,191,0.4)", 
+							backgroundColor:"rgba(146,200,227,1)", 
+							boxShadow: "0.08rem 0 0.05rem rgba(0,0,0,0.3)",
+							color:"rgba(0,0,0,0)"
+							}} >{"."}</div>
 					);
 				})}
 				
@@ -667,8 +678,10 @@ class IndividualComment extends React.Component {
 					}
 
 					<div className={"mx-auto mb-0 p-1"} style={{
-						backgroundColor:"rgba(0,127,191,0.2)", 
+						//backgroundColor:"rgba(0,127,191,0.15)", 
 						//backgroundColor:"rgba(229,242,248,1)", 
+						backgroundColor:"rgba(209,232,242,1)", 
+						boxShadow: "0.08rem 0.1rem 0.1rem rgba(0,0,0,0.5)",
 						borderRadius:"0.5rem"}} >
 
 						<div className="pb-0" >
@@ -753,50 +766,57 @@ class IndividualComment extends React.Component {
 
 							<div className="ms-2">
 
-							<Card.Text className="mb-0 mb-1" style={
-								this.deleted
-										?
-										{
-											fontWeight:"bolder", 
-											//textStroke: "5px red",
-											//textShadow:"0 0 2px rgba(255,0,0,1)"
-											color:"white",
-											textShadow:(
-												"-"+shadWid+" -"+shadWid+" 0px "+delCol+","+
-												" "+shadWid+" -"+shadWid+" 0px "+delCol+","+
-												"-"+shadWid+"  "+shadWid+" 0px "+delCol+","+
-												" "+shadWid+"  "+shadWid+" 0px "+delCol
-											)
-										}
-										:
-										(this.edited ?
+							<Card.Text className="mb-0 mb-1">
+								<span style={
+									this.deleted
+											?
 											{
 												fontWeight:"bolder", 
-												//textStroke: "5px yellow",
-												//textShadow:"0 0 2px rgba(255,255,0,1)"
-												//color:"white",
+												//textStroke: "5px red",
+												//textShadow:"0 0 2px rgba(255,0,0,1)"
+												color:"white",
 												textShadow:(
-													"-"+shadWid+" -"+shadWid+" 0px "+ediCol+","+
-													" "+shadWid+" -"+shadWid+" 0px "+ediCol+","+
-													"-"+shadWid+"  "+shadWid+" 0px "+ediCol+","+
-													" "+shadWid+"  "+shadWid+" 0px "+ediCol
+													"-"+shadWid+" -"+shadWid+" 0px "+delCol+","+
+													" "+shadWid+" -"+shadWid+" 0px "+delCol+","+
+													"-"+shadWid+"  "+shadWid+" 0px "+delCol+","+
+													" "+shadWid+"  "+shadWid+" 0px "+delCol
 												)
 											}
 											:
-											{}
-										)
-								}>
-									{
-										this.deleted
-										?
-										"<comentari esborrat>"
-										:
-										(this.edited ?
-											"<comentari editat>"
+											(this.edited ?
+												{
+													fontWeight:"bolder", 
+													//textStroke: "5px yellow",
+													//textShadow:"0 0 2px rgba(255,255,0,1)"
+													//color:"white",
+													textShadow:(
+														"-"+shadWid+" -"+shadWid+" 0px "+ediCol+","+
+														" "+shadWid+" -"+shadWid+" 0px "+ediCol+","+
+														"-"+shadWid+"  "+shadWid+" 0px "+ediCol+","+
+														" "+shadWid+"  "+shadWid+" 0px "+ediCol
+													)
+												}
+												:
+												{}
+											)
+									}>
+										{
+											this.deleted
+											?
+											"<comentari esborrat>"
 											:
-											this.props.comm_info.body
-										)
-									}
+											(this.edited ?
+												"<comentari editat>"
+												:
+												""
+											)
+										}
+								</span>
+								{this.deleted ? "" : 
+									<>{this.edited?<br/>:""}
+									{this.body}
+									</>
+								}
 							</Card.Text>
 
 
