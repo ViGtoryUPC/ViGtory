@@ -195,7 +195,7 @@ class InitialScreen extends React.Component {
 		let file_list = this.props.post_info.fitxers ? this.props.post_info.fitxers : [];
 
 
-		this.postEdit = <PostEdit new_post={false} current_assignatura={this.current_assignatura} postedit_ref={this.postedit_ref} post_info={this.props.post_info} />;
+		this.postEdit = <PostEdit new_post={false} current_assignatura={this.current_assignatura} postedit_ref={this.postedit_ref} post_info={this.props.post_info} isStudent={this.props.isStudent} />;
 
 
 		return(
@@ -504,7 +504,7 @@ function PostViGtory(props){
 	}
 
 	return(
-		<InitialScreen post_info={props.post_info} individualView={props.individualView} navigate={navigateTo} />
+		<InitialScreen post_info={props.post_info} individualView={props.individualView} navigate={navigateTo} isStudent={props.isStudent} />
 	)
 }
 export default PostViGtory;

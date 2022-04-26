@@ -18,6 +18,7 @@ import '../css/IndividualPostView.css';
 
 import { Cookie } from '../libraries/cookie';
 import {BaseName} from "../libraries/basename";
+import {getUserData} from '../libraries/data_request';
 
 //IMPORTANTE PARA QUE NO SE VEA MAL AL ABRIR EL TECLADO EN MÓVIL
 //https://stackoverflow.com/questions/32963400/android-keyboard-shrinking-the-viewport-and-elements-using-unit-vh-in-css
@@ -188,6 +189,8 @@ class InitialScreen extends React.Component {
 	constructor(props) {
 		super(props);
 		this.params = new URLSearchParams();
+
+		this.isStudent = false;
 	}
 
 
@@ -246,7 +249,7 @@ class InitialScreen extends React.Component {
 
 						return (
 						<>
-							<PostViGtory key={post_info._id} post_info={post_info} individualView={true} ></PostViGtory>
+							<PostViGtory key={post_info._id} post_info={post_info} individualView={true} isStudent={this.isStudent} ></PostViGtory>
 
 
 
@@ -364,12 +367,15 @@ function IndividualPostView(props){
 		}
 
 
+		getUserData().then((UserData) => {
+				screen_ref.current.isStudent = UserData.emailStudentConfirmed;
 
-		getPostData(params.id).then((data) => {
-			//console.log(data);
-			//console.log("screen_ref.current: "+screen_ref.current)
-			//if (screen_ref.current)
-			screen_ref.current.updatePageContent(data);
+			getPostData(params.id).then((data) => {
+				//console.log(data);
+				//console.log("screen_ref.current: "+screen_ref.current)
+				//if (screen_ref.current)
+				screen_ref.current.updatePageContent(data);
+			});
 		});
 
 	}, []);

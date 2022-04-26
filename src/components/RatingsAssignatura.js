@@ -269,7 +269,7 @@ class InitialScreen extends React.Component {
 		};
 		
 		this.hasVoted = false;
-		this.isStudent = true;
+		this.isStudent = this.props.isStudent;
 	}
 
 
@@ -284,7 +284,7 @@ class InitialScreen extends React.Component {
 	load_votes(){
 
 		getVots(this.props.sub).then(data=>{
-			console.log(data);
+			//console.log(data);
 			//if (data.votUsuari && data.votUsuari!=[]){ //NO QUIERE FUNCIONAR ASÍ!!!
 				//this.hasVoted = true;
 				//this.hasVoted = data.votUsuari.votDificultat ? true : false;
@@ -517,7 +517,7 @@ function RatingsAssignatura(props){
 
 
 	return(
-		<InitialScreen sub={props.sub} ref={ratingAssig_ref} />
+		<InitialScreen sub={props.sub} ref={ratingAssig_ref} isStudent={props.isStudent} />
 	)
 }
 export default RatingsAssignatura;

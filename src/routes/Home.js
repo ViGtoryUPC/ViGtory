@@ -24,6 +24,7 @@ import '../css/Home.css';
 
 import { Cookie } from '../libraries/cookie';
 import {BaseName} from "../libraries/basename";
+import {getUserData} from '../libraries/data_request';
 
 //IMPORTANTE PARA QUE NO SE VEA MAL AL ABRIR EL TECLADO EN MÓVIL
 //https://stackoverflow.com/questions/32963400/android-keyboard-shrinking-the-viewport-and-elements-using-unit-vh-in-css
@@ -235,6 +236,8 @@ class InitialScreen extends React.Component {
 		this.criteri = 0;
 
 		this.params = new URLSearchParams();
+
+		this.isStudent = false;
 	}
 
 	/*
@@ -388,7 +391,7 @@ class InitialScreen extends React.Component {
 
 		console.log(final_posts);*/
 
-		this.postEdit = <PostEdit new_post={true} current_assignatura={this.current_assignatura} postedit_ref={this.postedit_ref} />;
+		this.postEdit = <PostEdit new_post={true} current_assignatura={this.current_assignatura} postedit_ref={this.postedit_ref} isStudent={this.isStudent} />;
 
 		this.ViGtSearch = <ViGtSearch current_assignatura={this.current_assignatura} current_search={this.current_search} search_ref={this.search_ref} current_limit={this.limit} />
 
@@ -425,7 +428,7 @@ class InitialScreen extends React.Component {
 						</Link></b>
 						{":"}
 						</h2>
-						<RatingsAssignatura sub={this.current_assignatura} key={"VOTE_"+this.current_assignatura} />
+						<RatingsAssignatura sub={this.current_assignatura} key={"VOTE_"+this.current_assignatura} isStudent={this.isStudent} />
 					</>
 					:
 					""
@@ -443,7 +446,7 @@ class InitialScreen extends React.Component {
 				{ (posts.length>0) ?
 					posts.map((post_info, i) => { 
 						return (
-							<PostViGtory key={post_info._id} post_info={post_info} individualView={false} ></PostViGtory>
+							<PostViGtory key={post_info._id} post_info={post_info} individualView={false} isStudent={this.isStudent} ></PostViGtory>
 						);
 					} )
 
@@ -500,18 +503,23 @@ function Home(props){
 		}
 
 
-		let data = getPostsTest(0, 0);
+		//let data = getPostsTest(0, 0);
 		//let data = getPostsTest(0, 10);
 		//screen_ref.current.updatePageContent(data);
 
 
-		let search_fields_data = screen_ref.current.getSearchFieldsData();
-		//console.log(search_fields_data);
-		getPosts(search_fields_data).then((data) => {
-			//console.log(data);
-			//console.log("screen_ref.current: "+screen_ref.current)
-			//if (screen_ref.current)
-			screen_ref.current.updatePageContent(data);//Algo se rompe al usar esto; puede que tenga que ver con las peticiones recursivas //SE HA SOLUCIONADO AÑADIENDO <React.StrictMode> EN index.js???????? O puede que no...
+		
+		getUserData().then((UserData) => {
+			screen_ref.current.isStudent = UserData.emailStudentConfirmed;
+			
+			let search_fields_data = screen_ref.current.getSearchFieldsData();
+			//console.log(search_fields_data);
+			getPosts(search_fields_data).then((data) => {
+				//console.log(data);
+				//console.log("screen_ref.current: "+screen_ref.current)
+				//if (screen_ref.current)
+				screen_ref.current.updatePageContent(data);//Algo se rompe al usar esto; puede que tenga que ver con las peticiones recursivas //SE HA SOLUCIONADO AÑADIENDO <React.StrictMode> EN index.js???????? O puede que no...
+			});
 		});
 
 	}, [window.location.href]);//[window.location.search]); //Seguramente haya alguna alternativa mejor, pero por el momento me quedo con esta (window.location.search) (para que se actualice el objeto que contiene la página al cargar nuevas publicaciones)

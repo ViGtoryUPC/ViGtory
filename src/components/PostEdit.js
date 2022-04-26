@@ -477,6 +477,9 @@ class FitxersInput extends React.Component {
 
 	updateFileList(event){
 		let file_list = [];
+
+		if(!this.props.isStudent) return;
+
 		let max_size_MB = 200;
 		let current_size_MB = 0;
 		//let max_file_count = 10;
@@ -537,13 +540,14 @@ class FitxersInput extends React.Component {
 					<Form.Label
 						className="mb-1"
 					size="sm"
-					>{"Afegeix fitxers a l'aportació:"}</Form.Label>
+					>{this.props.isStudent?"Afegeix fitxers a l'aportació:":"Només els usuaris verificats com a estudiants poden afegir fitxers a les seves aportacions."}</Form.Label>
 					<Form.Control 
 					size="sm"
 						type="file"
 						onChange={(e)=>{this.updateFileList(e); this.props.global_validity_action(true);}} 
 						multiple 
 						isInvalid={!this.state.valid}
+						disabled={!this.props.isStudent}
 					/>
 				<Form.Control.Feedback type="invalid">
 					{this.state.err_msg}
@@ -948,11 +952,11 @@ class InitialScreen extends React.Component {
 
 		this.subjectInput = <SubjectInput subjectList={this.subjectList} current_assignatura={this.props.current_assignatura} ref={this.subjectInput_ref} new_post={this.props.new_post} post_info={this.props.post_info} />;
 
-		this.fitxersInput = <FitxersInput ref={this.fitxersInput_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} new_post={this.props.new_post} post_info={this.props.post_info} />;
+		this.fitxersInput = <FitxersInput ref={this.fitxersInput_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} new_post={this.props.new_post} post_info={this.props.post_info} isStudent={this.props.isStudent} />;
 
 		
 		if (!this.props.new_post){
-			this.file_list = this.props.post_info.fitxers ? this.props.post_info.fitxers : [];
+			this.file_list = (this.props.post_info.fitxers && this.props.isStudent) ? this.props.post_info.fitxers : [];
 
 			this.delFitxersInput = <DeleteFitxersInput ref={this.delFitxersInput_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} file_list={this.file_list} />;
 		}
@@ -1123,7 +1127,7 @@ function PostEdit(props){
 	//let screen_ref = React.createRef();
 	//let screen = <InitialScreen post_info={props.post_info} new_post={props.new_post} ref={screen_ref} current_assignatura={props.current_assignatura} />
 	let screen_ref = props.postedit_ref ? props.postedit_ref : React.createRef();
-	let screen = <InitialScreen post_info={props.post_info} new_post={props.new_post} ref={screen_ref} current_assignatura={props.current_assignatura} navigate={navigateTo} />
+	let screen = <InitialScreen post_info={props.post_info} new_post={props.new_post} ref={screen_ref} current_assignatura={props.current_assignatura} navigate={navigateTo} isStudent={props.isStudent} />
 
 
 
