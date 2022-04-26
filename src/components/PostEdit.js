@@ -81,7 +81,7 @@ async function uploadOrDeleteFile(upTdelF, file, post_id, i, uploaded_ready, che
 	)
 	.then(
 		data => {
-			//console.log(data);
+			console.log(data);
 
 			if (data === undefined) return;
 			
@@ -125,6 +125,7 @@ async function createOrUpdatePostToAPI(createTupdateF, text_data, route, files_t
 		data_to_send.append(key, text_data[key]);
 	}
 	//console.log(data.toString());
+	if (!createTupdateF){data_to_send.append("aportacioId", current_post_id);}
 
 
 
@@ -220,7 +221,7 @@ async function createOrUpdatePostToAPI(createTupdateF, text_data, route, files_t
 				//AÑADIMOS LOS ARCHIVOS UNO A UNO, CADA UNO CON SU PROPIA PETICIÓN
 				for (let i = 0; i < files_to_add.length; i++) {
 					//console.log(data["IdAportacio"]);
-					uploadOrDeleteFile(true, files_to_add[i], data["IdAportacio"], i, uploaded_ready, checkFinish);
+					uploadOrDeleteFile(true, files_to_add[i], createTupdateF?data["IdAportacio"]:current_post_id, i, uploaded_ready, checkFinish);
 				}
 			}
 			if (files_to_delete.length == 0){uploadFiles();}
@@ -229,8 +230,8 @@ async function createOrUpdatePostToAPI(createTupdateF, text_data, route, files_t
 
 				//ELIMINAMOS LOS ARCHIVOS UNO A UNO, CADA UNO CON SU PROPIA PETICIÓN (se hace lo primero, por si acaso alguien pretende subir un fichero con el mismo nombre que uno que se va a eliminar)
 				for (let i = 0; i < files_to_delete.length; i++) {
-					console.log(data["IdAportacio"]);
-					uploadOrDeleteFile(false, files_to_delete[i], data["IdAportacio"], i, deleted_ready, checkFinishDel);
+					//console.log(createTupdateF?data["IdAportacio"]:current_post_id);
+					uploadOrDeleteFile(false, files_to_delete[i], createTupdateF?data["IdAportacio"]:current_post_id, i, deleted_ready, checkFinishDel);
 				}
 			}
 
@@ -241,7 +242,7 @@ async function createOrUpdatePostToAPI(createTupdateF, text_data, route, files_t
 
 function check_if_finished(uploaded_ready, deleted_ready, callback_url){
 
-	console.log(uploaded_ready);
+	//console.log(uploaded_ready);
 	for (let i = 0; i < deleted_ready.length; i++) {
 		if (!deleted_ready[i]) return;
 	}
@@ -253,13 +254,14 @@ function check_if_finished(uploaded_ready, deleted_ready, callback_url){
 	//navigate to callback_url //always ?sub=currentsub
 	//navigate(callback_url);
 	
+
 	window.location.href = callback_url;
 }
 
 
 function check_if_finished_deleting(uploaded_ready, deleted_ready, callback_url, continue_to_upload_files){
 
-	console.log(uploaded_ready);
+	//console.log(uploaded_ready);
 	for (let i = 0; i < deleted_ready.length; i++) {
 		if (!deleted_ready[i]) return;
 	}
@@ -881,7 +883,7 @@ class InitialScreen extends React.Component {
 	getCurrentEditedData(){
 		let data = {};
 
-		if ((!this.props.new_post) && this.subjectInput_ref.current && this.subjectInput_ref.current.current_assignatura)
+		if ((this.props.new_post) && this.subjectInput_ref.current && this.subjectInput_ref.current.current_assignatura)
 			data["sigles_ud"] = this.subjectInput_ref.current.current_assignatura;
 
 		//if (this.new_title_ref.current && this.new_title_ref.current.content_txt)
@@ -889,7 +891,7 @@ class InitialScreen extends React.Component {
 		//if (this.new_body_ref.current && this.new_body_ref.current.content_txt)
 		//	data["body"] = this.new_body_ref.current.content_txt;
 
-		if ((!this.props.new_post) && this.new_title_ref.current)
+		if ((this.props.new_post) && this.new_title_ref.current)
 			data["titol"] = this.new_title_ref.current.content_txt ? this.new_title_ref.current.content_txt : "";
 		if (this.new_body_ref.current)
 			data[this.props.new_post?"body":"newBody"] = this.new_body_ref.current.content_txt ? this.new_body_ref.current.content_txt : "";
@@ -915,20 +917,21 @@ class InitialScreen extends React.Component {
 
 		let files_to_delete = [];
 		if (this.delFitxersInput_ref.current && this.fitxersInput_ref.current.file_list){
-			for (let i=0; i<this.fitxersInput_ref.current.file_list.length; i++){
-				if (this.fitxersInput_ref.current.file_list[i].deletion_flag){
-					files_to_delete.push(this.fitxersInput_ref.current.file_list[i].filename);
+			for (let i=0; i<this.delFitxersInput_ref.current.file_list.length; i++){
+				if (this.delFitxersInput_ref.current.file_list[i].deletion_flag){
+					files_to_delete.push(this.delFitxersInput_ref.current.file_list[i].filename);
 				}
 			}
 		}
+		console.log(files_to_delete);
 
 		createOrUpdatePostToAPI(
 			this.props.new_post,
 			this.getCurrentEditedData(),
-			(API_address + "/aportacio/" + this.props.new_post?"newAportacio":"editAportacio"),
+			(API_address + "/aportacio/" + (this.props.new_post?"newAportacio":"editAportacio")),
 			files_to_add,
 			files_to_delete,
-			(this.props.new_post ? this.props.post_info._id : null)
+			(this.props.new_post ? null : this.props.post_info._id)
 		);
 
 	}
