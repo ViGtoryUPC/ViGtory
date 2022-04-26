@@ -427,19 +427,20 @@ class InitialScreen extends React.Component {
 							<Card.Body className="py-1 px-1">
 
 
-								{(this.isStudent) ?
+								{
 									<p className="text-center mb-2 mt-2">
-										{this.hasVoted ? 
+										{(this.isStudent) ?
+										this.hasVoted ? 
 											"Ja has votat aquí, però pots canviar el teu vot!"
 										: 
 										<>
 											{"Encara no has votat a "+this.props.sub+"..."}
 											<br/>
 											{"Vota ara!"}
-										</>
+										</>:"Per a poder votar aquí, cal que el teu usuari sigui verificat com a estudiant."
 										}
 									</p>
-								:""}
+								}
 
 								<p className="text-center mb-4 mt-3">
 									{this.allVotes.vots ? 

@@ -44,10 +44,10 @@ viewport.setAttribute("content", viewport.content + ", height=" + window.innerHe
 
 
 
-async function submitUpdateDataToAPI(event, route, navigate){
+async function submitUpdateDataToAPI(event, route, navigate, method){
 	//console.log(event.currentTarget.action);
 	//event.currentTarget.submit();
-	event.currentTarget.action = API_address + "/user/" + route;
+	event.currentTarget.action = API_address + route;
 	//event.currentTarget.action = "http://nekoworld.dynu.net" + "/user/" + route;
 	//console.log(event.currentTarget.action);
 	//event.currentTarget.submit();
@@ -84,7 +84,7 @@ async function submitUpdateDataToAPI(event, route, navigate){
 
 	promise = await fetch(
 		event.currentTarget.action, {
-			method: "POST",
+			method: method,
 			mode: 'cors',
 			body: data,
 			headers: headers,
@@ -98,6 +98,7 @@ async function submitUpdateDataToAPI(event, route, navigate){
 				response = resp.json();
 				
 				//window.alert("Operació realitzada correctament. Es tornarà a carregar la pantalla actual.");
+				if((route.toLowerCase()).includes("correu"))
 				window.alert("Operació realitzada correctament."
 				
 				+ ( (route.toLowerCase()).includes("correu") ? "\n\nPer a terminar de fer efectiva l'operació, caldrà que utilitzis l'enllaç que trobaràs al missatge que hem enviat a la teva nova adreça de correu electrònic." : "")
@@ -105,6 +106,7 @@ async function submitUpdateDataToAPI(event, route, navigate){
 				
 				//Si todo va bien, podríamos hasta volver a cargar la página para mostrar los nuevos datos!
 				//location.reload();
+				window.location.reload();
 			}
 			/*else{
 				window.alert(resp.statusText);
@@ -120,6 +122,8 @@ async function submitUpdateDataToAPI(event, route, navigate){
 	)
 	.then(
 		data => {
+			console.log(data);
+
 			if (data === undefined) return;
 
 			if (!resp_ok){
@@ -581,9 +585,9 @@ function changeURLandTitle(url/*, title*/){
 		case "degree":
 			text = "Canvia el teu grau d'estudis d'interès";
 			break;
-		/*case "delete_account":
-			text = "Elimina el teu compte";
-			break;*/
+		case "delete_all_aportacions":
+			text = "Elimina totes les teves aportacions";
+			break;
 	}
 	document.title = "ViGtory! "+text;
 
@@ -643,7 +647,7 @@ class UsernameForm extends React.Component {
 			alert("Tots els camps han de ser omplerts correctament.");
 			return; //Para evitar que la gente trastee con el HTML
 		}
-		//submitUpdateDataToAPI(event, "signUp", this.props.navigate);
+		//submitUpdateDataToAPI(event, "signUp", this.props.navigate, "PUT");
 
 	}
 
@@ -733,7 +737,7 @@ class PasswordForm extends React.Component {
 			alert("Tots els camps han de ser omplerts correctament.");
 			return; //Para evitar que la gente trastee con el HTML
 		}
-		submitUpdateDataToAPI(event, "modificarContrasenya", this.props.navigate);
+		submitUpdateDataToAPI(event, "/user/modificarContrasenya", this.props.navigate, "PUT");
 
 	}
 
@@ -878,11 +882,18 @@ class MailForm extends React.Component {
 			return; //Para evitar que la gente trastee con el HTML
 		}
 		submitUpdateDataToAPI(event, 
-			(this.props.mail_student ?
+			"/user/"+(this.props.mail_student ?
 				(this.confirmed ? "" : "afegirSegonCorreu")
 				:
 				(this.confirmed ? "modificarCorreu" : "afegirSegonCorreu")
-			), this.props.navigate);
+			), this.props.navigate,
+			(this.props.mail_student ?
+				(this.confirmed ? "" : "POST")
+				:
+				(this.confirmed ? "PUT" : "POST")
+			)
+
+			);
 
 	}
 
@@ -894,7 +905,7 @@ class MailForm extends React.Component {
 	render(){
 		this.initialize();
 
-		console.log(this.props.defaultValue);
+		//console.log(this.props.defaultValue);
 
 		return(
 			<Form noValidate method="post" action="http://httpbin.org/post" onSubmit={(e) => this.submitButtonAction(e)} >
@@ -939,7 +950,7 @@ class DegreeForm extends React.Component {
 		//console.log("TOT CORRECTE!");
 		//console.log(new FormData(event.currentTarget));
 
-		submitUpdateDataToAPI(event, "modificarGrau", this.props.navigate);
+		submitUpdateDataToAPI(event, "/user/modificarGrau", this.props.navigate, "PUT");
 
 	}
 
@@ -978,8 +989,8 @@ class DegreeForm extends React.Component {
 
 
 
-/*
-class DeleteAccountForm extends React.Component {
+
+class DeleteAllAportacionsForm extends React.Component {
 
 	constructor(props) {
 		super(props);
@@ -988,29 +999,41 @@ class DeleteAccountForm extends React.Component {
 
 	submitButtonAction(event){
 		event.preventDefault();
-		if (window.confirm("Realment vols eliminar el teu compte de ViGtory?\n\nPrem \"Acceptar\" per a procedir a l'eliminació definitiva del teu compte:")){
-			//submitDataToAPI(event, "signUp", this.props.navigate);
+		if (window.confirm("Realment vols eliminar totes les publicacions creades pel teu compte de ViGtory?\n\nPrem \"Acceptar\" per a procedir a l'eliminació definitiva de les aportacions:")){
+			submitUpdateDataToAPI(event, "/aportacio/deleteAllAportacionsForUser", this.props.navigate, "DELETE");
 		}
 
 	}
 
 	render(){
+		//let shadWid = "1px";
+		//let delCol = "rgba(255,127,0,0.0)";
 
 		return(
 			<Form noValidate method="post" action="http://httpbin.org/post" onSubmit={(e) => this.submitButtonAction(e)} >
-				<h3>⚠ Elimina el teu compte:</h3>
+				<h3 style={{
+					color:"rgba(255,0,0,1)"/*,
+					textShadow:(
+						"-"+shadWid+" -"+shadWid+" 0px "+delCol+","+
+						" "+shadWid+" -"+shadWid+" 0px "+delCol+","+
+						"-"+shadWid+"  "+shadWid+" 0px "+delCol+","+
+						" "+shadWid+"  "+shadWid+" 0px "+delCol
+					)*/
+				}}>
+					⚠ Elimina totes les teves aportacions:
+				</h3>
 				<br/>
 				<p>
-					Eliminar el teu compte suposarà l'eliminació del contingut de totes les teves publicacions i comentaris, així com el teu perfil i els fitxers que hagis pujat a ViGtory.
+					Continuar amb aquesta acció suposarà l'eliminació del contingut de totes les teves publicacions, així com tots els fitxers que hagis pujat a ViGtory.
 					<br/><br/>
-					Si prems el botó que hi ha a continuació, se't demanarà una confirmació per fer segur que realment vols eliminar el teu compte de ViGtory:
+					Si prems el botó que hi ha a continuació, se't demanarà una confirmació per fer segur que realment vols procedir amb l'eliminació de totes les teves aportacions a ViGtory:
 				</p>
-				<p className="text-center" ><Button type="submit" className="mt-3 mb-2" variant="danger" >⚠️ Eliminar compte ⚠️</Button></p>
+				<p className="text-center" ><Button type="submit" className="mt-3 mb-2" variant="danger" >⚠️ Eliminar aportacions ⚠️</Button></p>
 			</Form>
 		);
 	};
 }
-*/
+
 
 
 
@@ -1089,7 +1112,7 @@ class SettingsNav extends React.Component {
 
 				<ScreenToggle eventKey="accord_username" updateSettingsNav={(newKey) => this.updateSettingsNav(newKey)} >Nom d'usuari</ScreenToggle>
 
-				<ScreenToggle eventKey="accord_delete_account" updateSettingsNav={(newKey) => this.updateSettingsNav(newKey)} >Eliminar compte</ScreenToggle>
+				
 
 			*/
 
@@ -1120,7 +1143,7 @@ class SettingsNav extends React.Component {
 
 				<ScreenToggle eventKey="accord_degree" updateSettingsNav={(newKey) => this.updateSettingsNav(newKey)} >Grau d'estudis d'interès</ScreenToggle>
 
-				
+				<ScreenToggle eventKey="accord_delete_all_aportacions" updateSettingsNav={(newKey) => this.updateSettingsNav(newKey)} >Netejar compte</ScreenToggle>
 
 
 
@@ -1189,7 +1212,7 @@ class InitialScreen extends React.Component {
 
 	
 	render(){
-		console.log(this.userData)
+		//console.log(this.userData)
 		
 		let validation_rgx_msg = getValidationRegexAndErrorMessages();
 		//let degreeList = this.getDegreeList();
@@ -1212,13 +1235,7 @@ class InitialScreen extends React.Component {
 
 
 
-					<Accordion.Collapse eventKey="accord_delete_account" >
-						<div>
-							<div className="content_wrapper">
-							<DeleteAccountForm navigate={this.props.navigate} />
-							</div>
-						</div>
-					</Accordion.Collapse>
+					
 
 		*/
 
@@ -1275,6 +1292,13 @@ class InitialScreen extends React.Component {
 						</div>
 					</Accordion.Collapse>
 
+					<Accordion.Collapse eventKey="accord_delete_all_aportacions" >
+						<div>
+							<div className="content_wrapper">
+							<DeleteAllAportacionsForm navigate={this.props.navigate} />
+							</div>
+						</div>
+					</Accordion.Collapse>
 					
 
 				</div>

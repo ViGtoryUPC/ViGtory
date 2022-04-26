@@ -636,9 +636,11 @@ class IndividualComment extends React.Component {
 		super(props);
 		this.depth = props.comm_info.depth ? props.comm_info.depth : 0;
 		this.showComment = true;
+
 		this.body = props.comm_info.body ? props.comm_info.body : "";
 		this.deleted = props.comm_info.esborrat ? props.comm_info.esborrat : false;
 		this.edited = props.comm_info.editat ? props.comm_info.editat : false;
+		this.edited_now = false;
 	}
 
 
@@ -650,6 +652,7 @@ class IndividualComment extends React.Component {
 	}
 	markAsEdited(new_body){
 		this.edited = true;
+		this.edited_now = true;
 		this.body = new_body;
 		//useAccordionButton("accord_edit_comm_"+this.props.comm_info._id, null);
 		window.document.getElementById("open_accord_edit_comm_"+this.props.comm_info._id).click()
@@ -659,6 +662,11 @@ class IndividualComment extends React.Component {
 
 
 	render(){
+		this.body = this.edited_now ? this.body : (this.props.comm_info.body ? this.props.comm_info.body : "");
+		this.deleted = this.props.comm_info.esborrat ? this.props.comm_info.esborrat : false;
+		this.edited = this.edited_now ? this.edited_now : (this.props.comm_info.editat ? this.props.comm_info.editat : false);
+
+
 		let shadWid = "1px";
 		let delCol = "rgba(255,0,0,1)";
 		let ediCol = "rgba(255,255,0,1)";

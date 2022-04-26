@@ -118,6 +118,7 @@ class OrdreDropdown extends React.Component {
 		this.current_ordre = parseInt(selected["ordre"]);
 		this.current_criteri = parseInt(selected["criteri"]);
 		this.forceUpdate();
+		//this.props.executeSearch();
 	}
 
 	ordreJSON(ordre, criteri){
@@ -222,6 +223,7 @@ class LimitDropdown extends React.Component {
 		this.props.update_limit(selected);
 		this.current_limit = selected;
 		this.forceUpdate();
+		//this.props.executeSearch();
 	}
 
 
@@ -236,7 +238,7 @@ class LimitDropdown extends React.Component {
 				variant={"outline-primary"}
 				size="sm"
 				title={this.current_limit+" Publicacio"+(this.current_limit==1 ? "":"ns")+"/Pàg."}
-				onSelect={(e)=>{this.updateSelected(e)}}
+				onSelect={(e)=>{this.updateSelected(e);}}
 			>
 				
 				{ this.validValues.map((v, k) => { 
@@ -311,7 +313,9 @@ class AssignaturesDropdown extends React.Component {
 		this.hasBeenUsed = true;
 		this.props.update_assignatura(selected);
 		this.current_assignatura = selected;
-		this.forceUpdate();
+		//this.forceUpdate();
+
+		this.props.executeSearch();
 	}
 
 
@@ -506,7 +510,7 @@ class InitialScreen extends React.Component {
 
 				
 
-				<AssignaturesDropdown current_assignatura={this.props.current_assignatura} subjectList={this.subjectList} update_assignatura={(e) => {this.update_assignatura(e);}} />
+				<AssignaturesDropdown current_assignatura={this.props.current_assignatura} subjectList={this.subjectList} update_assignatura={(e) => {this.update_assignatura(e);}} executeSearch={()=>{this.executeSearch()}} />
 
 
 
@@ -553,9 +557,9 @@ class InitialScreen extends React.Component {
 				size="md"
 			>
 			
-				<LimitDropdown current_limit={this.props.current_limit} update_limit={(sel) => {this.update_limit(sel);}} ref={this.limitDrop_ref} />
+				<LimitDropdown current_limit={this.props.current_limit} update_limit={(sel) => {this.update_limit(sel);}} ref={this.limitDrop_ref} executeSearch={()=>{this.executeSearch()}} />
 
-				<OrdreDropdown current_ordre={this.props.current_ordre} current_criteri={this.props.current_criteri} update_ordre={(sel_o, sel_c) => {this.update_ordre(sel_o, sel_c);}} ref={this.ordcriDrop_ref} />
+				<OrdreDropdown current_ordre={this.props.current_ordre} current_criteri={this.props.current_criteri} update_ordre={(sel_o, sel_c) => {this.update_ordre(sel_o, sel_c);}} ref={this.ordcriDrop_ref} executeSearch={()=>{this.executeSearch()}} />
 
 			</InputGroup>
 
