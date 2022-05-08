@@ -1314,6 +1314,15 @@ class InitialScreen extends React.Component {
 
 
 function ProfileSettings(props){
+	//ESTE TROZO DE CÓDIGO EXPULSA AL USUARIO SI INTENTA CARGAR UNA PÁGINA SIN ESTAR LOGUEADO
+	if (!Cookie.get("jwt")){
+		window.location.href = 
+			window.location.protocol+"//"+window.location.host+
+			(BaseName==="/"?"":BaseName) + "/signin";
+	}
+
+
+	
 	//document.title = "ViGtory! Configura el teu perfil";
 
 
@@ -1345,10 +1354,6 @@ function ProfileSettings(props){
 	//let updateData = (data)=>{userData = data;}
 
 	useEffect(() => {
-		//ESTE TROZO DE CÓDIGO EXPULSA AL USUARIO SI INTENTA CARGAR UNA PÁGINA SIN ESTAR LOGUEADO
-		if (!Cookie.get("jwt")){
-			navigateTo("/signin");
-		}
 
 		/*getDegreeList().then((data) => {
 			screen_ref.current.updateDegreeData(data);

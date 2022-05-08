@@ -342,6 +342,15 @@ class InitialScreen extends React.Component {
 
 
 function IndividualPostView(props){
+	//ESTE TROZO DE CÓDIGO EXPULSA AL USUARIO SI INTENTA CARGAR UNA PÁGINA SIN ESTAR LOGUEADO
+	if (!Cookie.get("jwt")){
+		window.location.href = 
+			window.location.protocol+"//"+window.location.host+
+			(BaseName==="/"?"":BaseName) + "/signin";
+	}
+
+
+	
 	document.title = "ViGtory! Aportació";
 
 
@@ -356,15 +365,11 @@ function IndividualPostView(props){
 	let screen = <InitialScreen currentSection={props.currentSection} ref={screen_ref} location={location} useParams={params} />
 
 
-	//ESTE TROZO DE CÓDIGO EXPULSA AL USUARIO SI INTENTA CARGAR UNA PÁGINA SIN ESTAR LOGUEADO
 	let navigate = useNavigate();
 	function navigateTo(page) {
 		navigate(page);
 	}
 	useEffect(() => {
-		if (!Cookie.get("jwt")){
-			navigateTo("/signin");
-		}
 
 
 		getUserData().then((UserData) => {

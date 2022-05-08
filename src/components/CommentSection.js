@@ -15,6 +15,7 @@ import '../css/CommentSection.css';
 
 import {Cookie} from '../libraries/cookie';
 import {BaseName} from "../libraries/basename";
+import {getUserData} from '../libraries/data_request';
 
 
 
@@ -375,13 +376,27 @@ class TextAreaInput extends React.Component {
 	}
 
 
+/*
+	{this.props.isStudent?<></>:
+		<Form.Label
+			className="mb-3"
+			size="sm"
+			style={{color:"rgba(255,0,0,0.8)"}}
+		>
+			{"Només els usuaris verificats com a estudiants poden crear i publicar comentaris."}
+		</Form.Label>
+	}
+*/
+
 	render(){
 
 		return(
 
 			<>
 				<Form.Control
-					readOnly={false}
+					readOnly={(!this.props.isStudent)
+					//false
+					}
 					type="text" 
 					as="textarea" 
 					name="body"
@@ -389,9 +404,14 @@ class TextAreaInput extends React.Component {
 					onChange={(e) => {this.content_txt=e.currentTarget.value; this.validate_content_clientside(); this.props.global_validity_action();}}
 					required 
 					rows={this.props.parentTreplyF ? "5" : "3"}
-					isInvalid={!this.state.valid}
+					size="sm"
+					isInvalid={(!this.props.isStudent) || (!this.state.valid)}
 					style={{zIndex:"0", position:"relative"}}
-					defaultValue={(this.props.newTeditF ? "":this.props.body)}
+					defaultValue={!this.props.isStudent?
+						"Només els usuaris verificats com a estudiants poden crear i publicar comentaris."
+					:
+						(this.props.newTeditF ? "":this.props.body)
+					}
 				/>
 
 
@@ -533,7 +553,8 @@ class CommentEdit extends React.Component{
 				<Form noValidate method="post" action="http://httpbin.org/post" onSubmit={(e) => this.submitButtonAction(e)} >
 
 				<div id={this.props.parentTreplyF ? "comm_"+this.props.post_id : "reply_"+this.props.comm_id} className={"my-0 mx-1"} style={{maxWidth:"100%"}}>
-					<TextAreaInput newTeditF={this.props.newTeditF} ref={this.new_body_ref} global_validity_action={() => this.checkLocalValidity()} parentTreplyF={this.props.parentTreplyF} body={this.props.body} />
+
+					<TextAreaInput newTeditF={this.props.newTeditF} ref={this.new_body_ref} global_validity_action={() => this.checkLocalValidity()} parentTreplyF={this.props.parentTreplyF} body={this.props.body} isStudent={this.props.isStudent} />
 					
 
 				</div>
@@ -885,8 +906,8 @@ class IndividualComment extends React.Component {
 			</div>
 			
 
-			<CommentEdit newTeditF={false} comm_id={this.props.comm_info._id} post_id={this.props.post_id} parentTreplyF={false} depth={this.depth+1} body={this.body} postEditAct={(n_b)=>{this.markAsEdited(n_b)}} />
-			<CommentEdit newTeditF={true} comm_id={this.props.comm_info._id} post_id={this.props.post_id} parentTreplyF={false} depth={this.depth+1} />
+			<CommentEdit newTeditF={false} comm_id={this.props.comm_info._id} post_id={this.props.post_id} parentTreplyF={false} depth={this.depth+1} body={this.body} postEditAct={(n_b)=>{this.markAsEdited(n_b)}} isStudent={this.props.isStudent} />
+			<CommentEdit newTeditF={true} comm_id={this.props.comm_info._id} post_id={this.props.post_id} parentTreplyF={false} depth={this.depth+1} isStudent={this.props.isStudent} />
 
 			</Accordion>
 
@@ -924,6 +945,7 @@ class InitialScreen extends React.Component {
 		//this.current_criteri = props.current_criteri;
 		this.ordcriDrop_ref = React.createRef();
 
+		this.isStudent = false;
 	}
 
 
@@ -983,7 +1005,7 @@ class InitialScreen extends React.Component {
 					//<br/><br/>
 			return (
 				<>
-					<IndividualComment comm_info={comment} post_id={this.props.post_id} />
+					<IndividualComment comm_info={comment} post_id={this.props.post_id} isStudent={this.isStudent} />
 					{this.renderLinearizedTree(comment)}
 				</>
 			);
@@ -1072,7 +1094,7 @@ class InitialScreen extends React.Component {
 								<p className="text-center" style={{marginBottom: "-0.5rem", zIndex: "6", position: "relative"}} >
 									<ScreenToggleNewCommEdit eventKey={"accord_new_comment_"+this.props.post_id} parentTreplyF={true}/>
 								</p>
-								<CommentEdit newTeditF={true} comm_id={null} post_id={this.props.post_id} parentTreplyF={true}/>
+								<CommentEdit newTeditF={true} comm_id={null} post_id={this.props.post_id} parentTreplyF={true} isStudent={this.isStudent} />
 							</Accordion>
 
 							{this.renderLinearizedTree(this.comment_tree)}
@@ -1093,7 +1115,7 @@ class InitialScreen extends React.Component {
 								<p className="text-center" style={{marginBottom: "-0.5rem", zIndex: "6", position: "relative"}} >
 									<ScreenToggleNewCommEdit eventKey={"accord_new_comment_"+this.props.post_id} parentTreplyF={true}/>
 								</p>
-								<CommentEdit newTeditF={true} comm_id={null} post_id={this.props.post_id} parentTreplyF={true}/>
+								<CommentEdit newTeditF={true} comm_id={null} post_id={this.props.post_id} parentTreplyF={true} isStudent={this.isStudent} />
 							</Accordion>
 							<br/>
 
@@ -1143,7 +1165,12 @@ function CommentSection(props){
 
 	let commentSection_ref = React.createRef();
 	useEffect(() => {
-		commentSection_ref.current.reoder_comments();
+		getUserData().then((UserData) => {
+			commentSection_ref.current.isStudent = UserData.emailStudentConfirmed;
+
+			commentSection_ref.current.reoder_comments();
+
+		});
 	}, []);
 
 

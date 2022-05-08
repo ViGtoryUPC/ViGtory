@@ -13,6 +13,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import '../css/main.css';
 
 import { Cookie } from '../libraries/cookie';
+import {BaseName} from "../libraries/basename";
 
 //IMPORTANTE PARA QUE NO SE VEA MAL AL ABRIR EL TECLADO EN MÓVIL
 //https://stackoverflow.com/questions/32963400/android-keyboard-shrinking-the-viewport-and-elements-using-unit-vh-in-css
@@ -36,6 +37,7 @@ class InitialScreen extends React.Component {
 		return(
 			<>
 				<NavBar currentSection={this.props.currentSection} />
+				<br/><br/><br/><br/>
 
 
 			</>
@@ -47,18 +49,27 @@ class InitialScreen extends React.Component {
 
 
 function GradeCalc(props){
+	//ESTE TROZO DE CÓDIGO EXPULSA AL USUARIO SI INTENTA CARGAR UNA PÁGINA SIN ESTAR LOGUEADO
+	if (!Cookie.get("jwt")){
+		window.location.href = 
+			window.location.protocol+"//"+window.location.host+
+			(BaseName==="/"?"":BaseName) + "/signin";
+	}
+
+
+
 	document.title = "ViGtory! Calculadora de notes";
 
 
-	//ESTE TROZO DE CÓDIGO EXPULSA AL USUARIO SI INTENTA CARGAR UNA PÁGINA SIN ESTAR LOGUEADO
 	let navigate = useNavigate();
 	function navigateTo(page) {
 		navigate(page);
 	}
 	useEffect(() => {
-		if (!Cookie.get("jwt")){
-			navigateTo("/signin");
-		}
+
+
+
+
 	  }, []);
 
 

@@ -15,6 +15,7 @@ import '../css/nav_bar.css';
 
 import { Cookie } from '../libraries/cookie';
 import { getUserData } from '../libraries/data_request';
+import { BaseName } from '../libraries/basename';
 
 import logo_ViGtory from '../assets/images/ViGtory_logo.png';
 import profile_img from '../assets/images/Profile.png';
@@ -62,7 +63,12 @@ class InitialScreen extends React.Component {
 			<>
 			<Navbar className="global_navbar" bg="light" expand="md" fixed="top">
 				<Container fluid>
-					<Navbar.Brand onClick={()=>{this.props.navigate("/")}}>
+					<Navbar.Brand onClick={()=>{
+						//this.props.navigate("/") //Con la nueva implementación de Home va mal xd
+						window.location.href = 
+							window.location.protocol+"//"+window.location.host+
+							(BaseName==="/"?"":BaseName);
+						}}>
 						<img id="navbar_title_image" src={logo_ViGtory} className="mx-auto d-block" alt="ViGtory!" />
 					</Navbar.Brand>
 					<Navbar.Toggle aria-controls="navbarScroll" />

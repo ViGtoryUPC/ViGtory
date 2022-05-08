@@ -477,14 +477,25 @@ class InitialScreen extends React.Component {
 
 
 function Home(props){
+	//ESTE TROZO DE CÓDIGO EXPULSA AL USUARIO SI INTENTA CARGAR UNA PÁGINA SIN ESTAR LOGUEADO
+	if (!Cookie.get("jwt")){
+		window.location.href = 
+			window.location.protocol+"//"+window.location.host+
+			(BaseName==="/"?"":BaseName) + "/signin";
+	}
+
+
+
+
 	document.title = "ViGtory! Pàgina principal";
 
 	//console.log(window.location.href);
 
-	const location =  useLocation();
-	const params =  useParams();
+	const location = useLocation();
+	const params = useParams();
 	//let loc = location.pathname;
 	//console.log("USERNAME: " + useParams().username); //nombre o undefined
+
 
 
 	//let screen_ref = React.createRef();
@@ -492,15 +503,14 @@ function Home(props){
 	let screen = <InitialScreen currentSection={props.currentSection} ref={screen_ref} location={location} useParams={params} />
 
 
-	//ESTE TROZO DE CÓDIGO EXPULSA AL USUARIO SI INTENTA CARGAR UNA PÁGINA SIN ESTAR LOGUEADO
+
 	let navigate = useNavigate();
 	function navigateTo(page) {
 		navigate(page);
 	}
+	
+	
 	useEffect(() => {
-		if (!Cookie.get("jwt")){
-			navigateTo("/signin");
-		}
 
 
 		//let data = getPostsTest(0, 0);

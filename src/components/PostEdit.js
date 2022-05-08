@@ -23,7 +23,7 @@ import {getSubjectList} from '../libraries/data_request';
 
 
 
-async function uploadOrDeleteFile(upTdelF, file, post_id, i, uploaded_ready, checkFinish){
+async function uploadOrDeleteFile(upTdelF, file, post_id, i, file_action_ready, checkFinish){
 
 	//console.log("post_id in uploadFile: "+post_id);
 
@@ -32,7 +32,7 @@ async function uploadOrDeleteFile(upTdelF, file, post_id, i, uploaded_ready, che
 	const data = upTdelF ? (new FormData()) : (new URLSearchParams());
 	data.append('aportacioId', post_id);
 	if (upTdelF){data.append('file', file, file["name"]);}
-	else{data.append('file', file);}
+	else{data.append('nomFitxer', file);}
 
 
 
@@ -92,7 +92,7 @@ async function uploadOrDeleteFile(upTdelF, file, post_id, i, uploaded_ready, che
 
 
 
-			uploaded_ready[i] = true;
+			file_action_ready[i] = true;
 			checkFinish();
 		}
 	);
@@ -398,10 +398,12 @@ class DeleteFitxersInput extends React.Component {
 									style={{whiteSpace:"nowrap"}}
 								>
 								<p className="text-end mb-1">
-									{file.deletion_flag ? "S'eliminarà":"No s'eliminarà"}
-									&nbsp;
-									<h5 className="d-inline my-0">
-									{file.deletion_flag ? "☒":"☐"}
+									<span>
+										{file.deletion_flag ? "S'eliminarà":"No s'eliminarà"}
+										&nbsp;
+									</span>
+									<h5 className="d-inline">
+										{file.deletion_flag ? "☒":"☐"}
 									</h5>
 								</p>
 								</span>
@@ -540,7 +542,10 @@ class FitxersInput extends React.Component {
 					<Form.Label
 						className="mb-1"
 					size="sm"
-					>{this.props.isStudent?"Afegeix fitxers a l'aportació:":"Només els usuaris verificats com a estudiants poden afegir fitxers a les seves aportacions."}</Form.Label>
+					>{//this.props.isStudent?
+					"Afegeix fitxers a l'aportació:"
+					//:"Només els usuaris verificats com a estudiants poden afegir fitxers a les seves aportacions."
+					}</Form.Label>
 					<Form.Control 
 					size="sm"
 						type="file"
@@ -659,7 +664,7 @@ class SubjectInput extends React.Component {
 			</InputGroup.Text>
 
 			<DropdownButton
-				disabled={!this.props.new_post}
+				disabled={(!this.props.isStudent) || (!this.props.new_post)}
 				className="flex-fill"
 				title={this.current_assignatura?this.current_assignatura:(this.hasBeenUsed?"General":"Assignatura")}
 				onSelect={(e)=>{this.updateSelected(e, true)}}
@@ -758,7 +763,7 @@ class TextAreaInput extends React.Component {
 					rows={this.titleTbodyF ? "2" : "7"} 
 					style={this.titleTbodyF ? {fontWeight: 'bold'} : {}}
 					isInvalid={!this.state.valid}
-					disabled={this.titleTbodyF && !this.props.new_post}
+					disabled={(!this.props.isStudent) || (this.titleTbodyF && !this.props.new_post)}
 				/>
 				<Form.Control.Feedback type="invalid">
 					{this.state.err_msg}
@@ -945,18 +950,18 @@ class InitialScreen extends React.Component {
 
 	render(){
 
-		this.new_title = <TextAreaInput ref={this.new_title_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} titleTbodyF={true} new_post={this.props.new_post} post_text={this.props.post_info?this.props.post_info.title:""} />
+		this.new_title = <TextAreaInput ref={this.new_title_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} titleTbodyF={true} new_post={this.props.new_post} post_text={this.props.post_info?this.props.post_info.title:""} isStudent={this.props.isStudent} />
 
-		this.new_body = <TextAreaInput ref={this.new_body_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} titleTbodyF={false} new_post={this.props.new_post} post_text={this.props.post_info?this.props.post_info.body:""} />
+		this.new_body = <TextAreaInput ref={this.new_body_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} titleTbodyF={false} new_post={this.props.new_post} post_text={this.props.post_info?this.props.post_info.body:""} isStudent={this.props.isStudent} />
 
 
-		this.subjectInput = <SubjectInput subjectList={this.subjectList} current_assignatura={this.props.current_assignatura} ref={this.subjectInput_ref} new_post={this.props.new_post} post_info={this.props.post_info} />;
+		this.subjectInput = <SubjectInput subjectList={this.subjectList} current_assignatura={this.props.current_assignatura} ref={this.subjectInput_ref} new_post={this.props.new_post} post_info={this.props.post_info} isStudent={this.props.isStudent} />;
 
 		this.fitxersInput = <FitxersInput ref={this.fitxersInput_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} new_post={this.props.new_post} post_info={this.props.post_info} isStudent={this.props.isStudent} />;
 
 		
 		if (!this.props.new_post){
-			this.file_list = (this.props.post_info.fitxers && this.props.isStudent) ? this.props.post_info.fitxers : [];
+			this.file_list = (this.props.post_info.fitxers/* && this.props.isStudent*/) ? this.props.post_info.fitxers : [];
 
 			this.delFitxersInput = <DeleteFitxersInput ref={this.delFitxersInput_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} file_list={this.file_list} />;
 		}
@@ -1048,6 +1053,16 @@ class InitialScreen extends React.Component {
 								</Card.Title>
 							</div>
 
+
+							{this.props.isStudent?<></>:
+								<Form.Label
+									className="mb-3"
+									size="sm"
+									style={{color:"rgba(255,0,0,0.8)"}}
+								>
+									{"Només els usuaris verificats com a estudiants poden crear i publicar aportacions."}
+								</Form.Label>
+							}
 
 
 							{this.subjectInput}

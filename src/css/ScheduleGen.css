@@ -1,0 +1,159 @@
+/*:root {
+	--tooltip-color: rgba(0,127,191,1);
+}*/
+
+
+.post_edit{
+
+	overflow: visible;
+	--b_width: min(0.4vh, 0.8vw);
+	--b_color: rgba(0,127,191,0.5);
+	border-color: var(--b_color);
+	border-width: var(--b_width);
+
+}
+
+
+
+.assignatura_selector .dropdown-menu.show{
+	padding: 0;
+	overflow-y: scroll;
+}
+.assignatura_selector .dropdown-item{
+	white-space: normal;
+}
+.assignatura_selector .dropdown-item.current_assignatura{
+	color: rgb(240, 240, 240);
+	background-color: rgba(0,127,191,0.8);
+	/*background-image: linear-gradient(rgba(255,255,255,1), rgba(127,191,223,1));*/
+	background-size: cover;
+}
+.assignatura_selector .dropdown-item.current_assignatura:hover{
+	color: rgb(240, 240, 240);
+	background-color: rgba(0,127,191,1);
+}
+
+
+
+
+
+
+.minimize_indv_post_edit {
+	background-color: rgba(0,0,0,0) !important;
+	border-color: rgba(0,0,0,0) !important;
+	border-radius: 0.5rem;
+	padding: 0.5rem;
+	/*margin-left: 0.5rem;*/
+	margin-top: -0.75rem;
+	/*margin-right: -0.125rem;*/
+	margin-right: -0.75rem;
+}
+.minimize_indv_post_edit:hover {
+	cursor: pointer;
+   	background-color: rgba(0,0,0,0.1) !important;
+}
+
+
+
+
+
+
+
+
+
+.fitxersDeleteAll{
+	
+	color: white;
+	width: fit-content;
+	background-color: #0d6efd;
+	border-bottom-left-radius: 0 !important;
+	border-bottom-right-radius: 0 !important;
+	border-top-left-radius: 0.5rem !important;
+	border-top-right-radius: 0.5rem !important;
+}
+
+.individualDelete{
+	background-color: rgba(13,110,253, 0.15);
+	border-radius: 0.5rem;
+}
+.individualDelete:hover{
+	/*background-color: rgba(13,110,253, 0.25);
+	cursor: pointer;*/
+	/*color: #0d6efd;*/
+}
+
+.fitxersDeleteList{
+	margin: auto;
+}
+.fitxersDeleteList .list-group-item{
+	cursor: pointer;
+	border-color: #0d6efd;
+	border-width: 0.15rem;
+}
+.fitxersDeleteList .list-group-item:hover{
+	transition: 0.2s;
+	filter: brightness(0.98);
+	background-color: rgba(255,233,233,1);
+}
+.fitxersDeleteList .list-group-item.flagged{
+	background-color: rgba(255,233,233,1);
+	border-color: red;
+	border-width: 0.15rem;
+}
+.fitxersDeleteList .list-group-item.flagged:hover{
+	transition: 0.2s;
+	filter: brightness(0.98);
+	border-color: rgba(110, 110, 253, 1);
+	background-color: rgba(233,233,255,1);
+}
+.fitxersDeleteList button{
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* PANTALLA MÉS ALTA QUE BAIXA */
+@media screen and (orientation:portrait) {
+
+	.post_edit{
+		width: 92vw;
+	}
+	.assignatura_selector .dropdown-menu.show{
+		width: 75vw;
+		max-height: 60vh;
+	}
+	.fitxersDeleteList{
+		/*width: 90vw !important;*/
+	}
+
+}
+
+
+/* PANTALLA MÉS BAIXA QUE ALTA */
+@media screen and (orientation:landscape) {
+
+	.post_edit{
+		width: max(72vh, 305px);
+	}
+	.assignatura_selector .dropdown-menu.show{
+		width: max(73vh, 220px);
+		max-height: 70vh;
+	}
+	.fitxersDeleteList{
+		/*width: max(70vh, 300px) !important;*/
+	}
+
+}
