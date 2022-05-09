@@ -3,14 +3,8 @@
 }*/
 
 
-.post_edit{
-
+.schedule_gen{
 	overflow: visible;
-	--b_width: min(0.4vh, 0.8vw);
-	--b_color: rgba(0,127,191,0.5);
-	border-color: var(--b_color);
-	border-width: var(--b_width);
-
 }
 
 
@@ -38,20 +32,6 @@
 
 
 
-.minimize_indv_post_edit {
-	background-color: rgba(0,0,0,0) !important;
-	border-color: rgba(0,0,0,0) !important;
-	border-radius: 0.5rem;
-	padding: 0.5rem;
-	/*margin-left: 0.5rem;*/
-	margin-top: -0.75rem;
-	/*margin-right: -0.125rem;*/
-	margin-right: -0.75rem;
-}
-.minimize_indv_post_edit:hover {
-	cursor: pointer;
-   	background-color: rgba(0,0,0,0.1) !important;
-}
 
 
 
@@ -60,58 +40,70 @@
 
 
 
-
-.fitxersDeleteAll{
+.assigSelectAll{
 	
 	color: white;
-	width: fit-content;
+	/*width: fit-content;*/
 	background-color: #0d6efd;
-	border-bottom-left-radius: 0 !important;
+	/*border-bottom-left-radius: 0 !important;
 	border-bottom-right-radius: 0 !important;
 	border-top-left-radius: 0.5rem !important;
-	border-top-right-radius: 0.5rem !important;
+	border-top-right-radius: 0.5rem !important;*/
 }
 
-.individualDelete{
+.individualSelect{
 	background-color: rgba(13,110,253, 0.15);
 	border-radius: 0.5rem;
 }
-.individualDelete:hover{
+.individualSelect:hover{
 	/*background-color: rgba(13,110,253, 0.25);
 	cursor: pointer;*/
 	/*color: #0d6efd;*/
 }
 
-.fitxersDeleteList{
+
+
+
+.assigSelectList{
 	margin: auto;
 }
-.fitxersDeleteList .list-group-item{
+.assigSelectList .list-group-item{
 	cursor: pointer;
 	border-color: #0d6efd;
 	border-width: 0.15rem;
 }
-.fitxersDeleteList .list-group-item:hover{
+.assigSelectList .list-group-item:hover{
 	transition: 0.2s;
 	filter: brightness(0.98);
-	background-color: rgba(255,233,233,1);
-}
-.fitxersDeleteList .list-group-item.flagged{
-	background-color: rgba(255,233,233,1);
-	border-color: red;
-	border-width: 0.15rem;
-}
-.fitxersDeleteList .list-group-item.flagged:hover{
-	transition: 0.2s;
-	filter: brightness(0.98);
-	border-color: rgba(110, 110, 253, 1);
 	background-color: rgba(233,233,255,1);
 }
-.fitxersDeleteList button{
-	border-top-left-radius: 0;
-	border-top-right-radius: 0;
+.assigSelectList .list-group-item.flagged{
+	background-color: rgba(233,233,255,1);
+	border-width: 0.15rem;
+}
+.assigSelectList .list-group-item.flagged:hover{
+	transition: 0.2s;
+	filter: brightness(0.95);
 }
 
 
+.assigSelectList .list-group-item.assigSelectAll{
+	border-color: rgb(13, 110, 253);
+	border-width: 0.15rem;
+}
+.assigSelectList .list-group-item.assigSelectAll:hover{
+	background-color: rgb(6, 102, 220);
+	transition: 0.2s;
+	filter: brightness(0.98);
+}
+.assigSelectList .list-group-item.assigSelectAll.flagged{
+	background-color: rgb(6, 102, 220);
+	border-width: 0.15rem;
+}
+.assigSelectList .list-group-item.assigSelectAll.flagged:hover{
+	transition: 0.2s;
+	filter: brightness(0.95);
+}
 
 
 
@@ -128,6 +120,9 @@
 /* PANTALLA MÉS ALTA QUE BAIXA */
 @media screen and (orientation:portrait) {
 
+	.schedule_gen{
+		width: 93vw;
+	}
 	.post_edit{
 		width: 92vw;
 	}
@@ -135,7 +130,7 @@
 		width: 75vw;
 		max-height: 60vh;
 	}
-	.fitxersDeleteList{
+	.assigSelectList{
 		/*width: 90vw !important;*/
 	}
 
@@ -145,6 +140,9 @@
 /* PANTALLA MÉS BAIXA QUE ALTA */
 @media screen and (orientation:landscape) {
 
+	.schedule_gen{
+		width: max(82vh, 315px);
+	}
 	.post_edit{
 		width: max(72vh, 305px);
 	}
@@ -152,8 +150,9 @@
 		width: max(73vh, 220px);
 		max-height: 70vh;
 	}
-	.fitxersDeleteList{
+	.assigSelectList{
 		/*width: max(70vh, 300px) !important;*/
 	}
 
 }
+

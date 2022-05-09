@@ -36,7 +36,7 @@ class InitialScreen extends React.Component {
 
 	handleSelect(eventKey){
 		//alert(`selected ${eventKey}`);
-		console.log(`selected ${eventKey}`);
+		//console.log(`selected ${eventKey}`);
 		if (eventKey === "logout"){
 			//Borramos las cookies de sesión
 			Cookie.delete("jwt");
