@@ -109,8 +109,19 @@
 
 
 
-
-
+.paramSelectAll{
+	color: white;
+	background-color: #0d6efd;
+}
+.paramSelectList .list-group-item{
+	/*cursor: auto;*/
+	border-color: #0d6efd;
+	border-width: 0.15rem;
+}
+.paramSelectList .list-group-item.paramSelectAll{
+	border-color: rgb(13, 110, 253);
+	border-width: 0.15rem;
+}
 
 
 

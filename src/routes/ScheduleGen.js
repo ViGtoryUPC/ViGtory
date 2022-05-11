@@ -4,7 +4,7 @@ import {API_address} from '../libraries/API_address';
 //import ReactDOM from 'react-dom';
 import { Routes, Route, Link, useHistory, useNavigate } from "react-router-dom";
 
-import { Accordion, Button, Form, FloatingLabel, ListGroup } from 'react-bootstrap';
+import { Accordion, Button, Form, FloatingLabel, ListGroup, Card } from 'react-bootstrap';
 import { useAccordionButton } from 'react-bootstrap/AccordionButton';
 
 import NavBar from "../components/NavBar";
@@ -91,7 +91,59 @@ async function getHoraris(){
 
 
 
+class NumInput extends React.Component {
+	constructor(props){
+		super(props);
+		this.min = props.min ? props.min : 0;
+		this.max = props.max ? props.max : 0;
+		this.value = props.defaultVal ? props.defaultVal : 0;
+		this.onChangeFunc = props.onChangeFunc ? props.onChangeFunc : ()=>{};
 
+		this.changeValue(this.value, false);
+	}
+
+
+	changeValue(newValue, usedByUser){
+		if (newValue<this.min) newValue = this.min;
+		if (newValue>this.max) newValue = this.max;
+
+		//if ((newValue>=this.min) && (newValue<=this.max)){
+			this.value = newValue;
+			this.onChangeFunc(newValue, usedByUser);
+			this.forceUpdate();
+		//}
+	}
+
+
+	render(){
+
+		return(<>
+
+			<div className="d-inline-flex align-items-center">
+				<Button
+					size="sm"
+					onClick={()=>{this.changeValue(this.value-1, true)}}
+				>
+					<b>−</b>
+				</Button>
+
+				<span className="mx-2">
+					<h5 className="m-0 p-0"><b>{this.value}</b></h5>
+				</span>
+
+				<Button
+					size="sm"
+					onClick={()=>{this.changeValue(this.value+1, true)}}
+				>
+					<b>+</b>
+				</Button>
+			</div>
+
+
+
+		</>);
+	}
+}
 
 
 
@@ -113,16 +165,25 @@ class InitialScreen extends React.Component {
 		};
 
 		this.max_assignatures_select = 10;
+		this.min_assignatures_result = 1;
 		this.max_assignatures_result = 7;
+
+		this.min_horaris_result = 1;
+		this.max_horaris_result = 10;
+
 		this.horaris = [];
 		this.cursos = {};
 		this.assig_grups = {};
 
 		this.preferencies = {
+			max_assignatures_used_by_user: false,
+			max_assignatures: 1,
 			max_horaris: 5
 		}
 
 		this.discarded_overlap_count = 0;
+
+		this.combinacions_possibles = [];
 	}
 
 
@@ -131,8 +192,6 @@ class InitialScreen extends React.Component {
 		this.horaris = horaris;
 
 		this.initialitzaCursos(horaris);
-
-
 
 		//console.log(horaris);
 		this.forceUpdate();
@@ -350,25 +409,202 @@ class InitialScreen extends React.Component {
 
 
 
+
+
+	emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar_assigs_amb_conviccio){
+
+		//Comprobamos que el nuevo grupo que vamos a añadir sea compatible con todos los demás que habíamos añadido anteriormente
+		let compatibles = true;
+		if (nom_grup != null){
+			for (let i=0; (compatibles && (i<grups_assig_afegits.len)); i++){
+				compatibles = this.horarisSolapen(
+					this.assig_grups[sigles_ud].grups[nom_grup].fragments, //nou grup
+					this.assig_grups[grups_assig_afegits[i].sigles_ud].grups[grups_assig_afegits[i].nom_grup].fragments //grup(s) que ja haviem afegit
+					);
+			}
+		}
+		//Si el grupo resulta ser compatible (no se solapa), lo añadimos a la lista de esta rama de recursión, y continuamos
+		let new_grups_assig_afegits = [...grups_assig_afegits];
+		if (compatibles){
+			new_grups_assig_afegits.push({
+				sigles_ud: sigles_ud,
+				nom_grup: nom_grup
+			});
+		}
+		this.creaCombinacionsPossibles(new_grups_assig_afegits, comprovar_assigs_amb_conviccio);
+	}
+	
+
+	exploraGrups(sigles_ud, grups_assig_afegits, comprovar_assigs_amb_conviccio){
+		
+		let grups = this.assig_grups[sigles_ud].grups;
+		let i=0;
+		let T_find_preferent_F_no_hi_ha_preferent = true;
+		while (i < Object.keys(grups).length){
+			if (T_find_preferent_F_no_hi_ha_preferent){
+				//Si encontramos un grupo preferente (solo puede haber 1 como máximo), continuaremos a la siguiente capa de recursión usando solo ese
+				if (grups[Object.keys(grups)[i]].conviccio){
+
+					this.emmagatzemmaIPassaANextAssig(sigles_ud, Object.keys(grups)[i], grups_assig_afegits, comprovar_assigs_amb_conviccio);
+
+					i = Object.keys(grups).length; //Para salir del bucle
+				}
+				else{
+					if (i == (Object.keys(grups).length-1)){
+						T_find_preferent_F_no_hi_ha_preferent = false;
+						i = -1; //Para volver al principio del bucle
+					}
+				}
+			}
+			//Si no hay un grupo preferente, se continuará a la siguiente capa de recursión añadiendo cada grupo disponible a su propia rama (si es compatible con los que ya haya añadidos)
+			else{
+				this.emmagatzemmaIPassaANextAssig(sigles_ud, Object.keys(grups)[i], grups_assig_afegits, comprovar_assigs_amb_conviccio);
+			}
+			i++;
+		}
+		//Si la asignatura no es preferente, también se explorará un grupo null, para simbolizar la posibilidad de dejar sin añadir esta asignatura (pero de cara al código la añadimos así para que no vuelva a repetirse)
+		if (!this.assig_grups[sigles_ud].conviccio){
+			this.emmagatzemmaIPassaANextAssig(sigles_ud, null, grups_assig_afegits, comprovar_assigs_amb_conviccio);
+		}
+	}
+
+
+	creaCombinacionsPossibles(grups_assig_afegits, comprovar_assigs_amb_conviccio){
+		//grups_assig_afegits es una lista de objetos {sigles_ud, nom_grup}
+
+		//Descartamos las asignaturas añadidas con un grupo null que simboliza que no han sido añadidas
+		let assigs_amb_grup_no_null = grups_assig_afegits.filter(a_g => a_g.nom_grup != null);
+
+		//Si hemos llegado a la cantidad máxima (objetivo) de asignaturas que añadir
+		if(assigs_amb_grup_no_null.length == this.preferencies.max_assignatures){
+			//Acabamos la rama guardando antes el resultado
+			this.combinacions_possibles.push(assigs_amb_grup_no_null);
+			return;
+		}
+
+		//Si no hay más asignaturas posibles que añadir
+		if (grups_assig_afegits.length == this.pool_flagged.length){
+			//Acabamos la rama sin guardar el resultado (porque no son suficientes asignaturas)
+			return;
+		}
+
+
+		//Si la recursión no ha llegado a su fin, continuamos con el siguiente nivel, buscando la siguiente asignatura que añadir
+		if (comprovar_assigs_amb_conviccio){
+			let found_conviccio = false;
+			let i = 0;
+			while((!found_conviccio) && i<this.pool_flagged.length){
+				//Si encontramos en el pool de asignaturas una asignatura que tiene convicción y que no habíamos marcado previamente en esta rama de recursión, conservamos su índice para proceder a explorarla
+				if (this.assig_grups[this.pool_flagged[i].sigles_ud].conviccio && (!grups_assig_afegits.some(item => item.sigles_ud === this.pool_flagged[i].sigles_ud)) )
+					found_conviccio = true;
+
+				if(!found_conviccio) i++;
+			}
+			//Si no hemos encontrado ninguna nueva asignatura marcada con convicción, pasamos a recorrer las asignaturas que no la tienen en una nueva llamada a esta función
+			if(!found_conviccio) this.creaCombinacionsPossibles(grups_assig_afegits, false);
+
+			//Si sí que hemos encontrado una asignatura con convicción, pasamos a explorar sus grupos
+			else this.exploraGrups(this.pool_flagged[i].sigles_ud, grups_assig_afegits, comprovar_assigs_amb_conviccio);
+
+
+		}
+		else{
+			let found_new = false;
+			let i = 0;
+			while((!found_new) && i<this.pool_flagged.length){
+				if (!grups_assig_afegits.some(item => item.sigles_ud === this.pool_flagged[i].sigles_ud)){
+					this.exploraGrups(this.pool_flagged[i].sigles_ud, grups_assig_afegits, comprovar_assigs_amb_conviccio);
+					found_new = true;
+				}
+				i++;
+			}
+		}
+	}
+
+
+
+
+
+	generaPossiblesHoraris(){
+
+		this.combinacions_possibles = [];
+
+		this.creaCombinacionsPossibles([], true);
+
+		this.forceUpdate();
+	}
+
+
+
+
+
+
+
+
+
+
 	
 	render(){
 
 		let total_flagged_count = 0;
+		let total_conviccio_assig_count = 0;
 		this.pool_flagged = [];
 		for (let i=0; i<(Object.keys(this.cursos).length); i++){
 			for (let j=0; j<this.cursos[Object.keys(this.cursos)[i]].length; j++){
 				let assign = this.cursos[Object.keys(this.cursos)[i]][j];
 
 				total_flagged_count += assign.pool_flag ? 1:0;
+				if (this.assig_grups.hasOwnProperty(assign.sigles_ud))
+					total_conviccio_assig_count += this.assig_grups[assign.sigles_ud].conviccio ? 1:0;
 
 				if (assign.pool_flag)
 				this.pool_flagged.push({
 					sigles_ud: assign.sigles_ud,
 					nom: assign.nom
 				});
+
 			}
 		}
 		let rest_assig = this.max_assignatures_select-total_flagged_count;
+		//this.min_assignatures_result = total_conviccio_assig_count;
+
+
+
+		//Añadimos el campo key para que React re-renderice los props adecuadamente. Si no, no vuelve a llamar al constructor y se queda estancado con los valores por defecto.
+
+		let min = Math.max(this.min_assignatures_result, total_conviccio_assig_count);
+		let max = Math.min(this.max_assignatures_result, this.pool_flagged.length)
+		this.preferencies.max_assignatures = this.preferencies.max_assignatures_used_by_user ? Math.min(this.preferencies.max_assignatures, max) : max;
+		
+		let numInput_assigs = <NumInput 
+			key={"numInput_assigs_"+min+"_"+max}
+			min={min} 
+			max={max} 
+			defaultVal={this.preferencies.max_assignatures} 
+			onChangeFunc={(newVal, usedByUser)=>{
+				this.preferencies.max_assignatures = newVal; 
+				if (usedByUser){
+					this.preferencies.max_assignatures_used_by_user = true;
+					//console.log("CLICKED!!!");
+				}
+			}}
+		/>;
+		//console.log(this.preferencies.max_assignatures_used_by_user, this.preferencies.max_assignatures);
+
+		min = this.min_horaris_result;
+		max = this.max_horaris_result;
+		let numInput_resultats = <NumInput 
+			key={"numInput_resultats_"+min+"_"+max}
+			min={min} 
+			max={max} 
+			defaultVal={this.preferencies.max_horaris} 
+			onChangeFunc={(newVal, usedByUser)=>{
+				this.preferencies.max_horaris = newVal;
+				this.forceUpdate();
+			}}
+		/>;
+
+
 		
 
 		return(
@@ -513,7 +749,21 @@ class InitialScreen extends React.Component {
 					{this.pool_flagged.length ?<>
 						<br/><br/>
 						<p className="text-center" >
-							{"Marca quines assignatures i grups de la selecció que has fet tens per segur que vols cursar:"}
+							{"Marca quines assignatures "+
+
+							(
+								((this.max_assignatures_result-total_conviccio_assig_count)<=0)?"(no pots marcar cap més) ":("(fins a "+
+
+									(
+										((this.max_assignatures_result-total_conviccio_assig_count) < this.max_assignatures_result) ? 
+											((this.max_assignatures_result-total_conviccio_assig_count)+" més") 
+										: 
+											this.max_assignatures_result
+									)+") "
+
+								)
+							)
+							+"i grups de la selecció que has fet tens per segur que vols cursar:"}
 						</p>
 					</>:""}
 
@@ -532,6 +782,7 @@ class InitialScreen extends React.Component {
 									className={"ps-2 pe-2 py-1 assigSelectAll"+(assig_marcada?" flagged":"")}
 									
 									onClick={()=>{
+										if ( ((!assig_marcada) && total_conviccio_assig_count<this.max_assignatures_result) || assig_marcada)
 										this.assig_grups[assig.sigles_ud].conviccio = !assig_marcada;
 										this.forceUpdate();
 									}}
@@ -628,8 +879,70 @@ class InitialScreen extends React.Component {
 
 					{this.pool_flagged.length ?<>
 						<br/><br/>
+
+						<ListGroup className="paramSelectList">
+							<ListGroup.Item 
+									className={"ps-2 pe-2 py-1 paramSelectAll"}
+							>
+							<h3 className="mb-0"><b>{"Altres paràmetres"}</b></h3>
+							</ListGroup.Item>
+
+
+
+							<ListGroup.Item 
+								className={"pe-2 py-1"}
+								style={{borderTop:"0"}}
+							>
+								<p className="text-center mb-0">
+									Quantitat d'assignatures desitjada:
+									<br/>
+									{numInput_assigs}
+								</p>
+							</ListGroup.Item>
+
+
+
+							<ListGroup.Item 
+								className={"pe-2 py-1 no_hover"}
+								style={{borderTop:"0"}}
+							>
+								<p className="text-center mb-0">
+									Quantitat màxima de millors resultats a mostrar:
+									<br/>
+									{numInput_resultats}
+								</p>
+							</ListGroup.Item>
+
+
+
+
+
+
+
+
+
+
+
+
+						</ListGroup>
+
+
+
+
+
+
+
+
+
+
+
+						<br/><br/>
 						<p className="text-center">
-							<Button>Genera els {this.preferencies.max_horaris} millors horaris possibles</Button>
+							<Button
+								onClick={()=>{console.log("generating?")}}
+							>
+								<b>{"Genera el"+((this.preferencies.max_horaris==1)?" millor horari possible" : ("s "+this.preferencies.max_horaris+" millors horaris possibles") )}</b>
+							</Button>
 							<br/>
 							Si has escollit una gran quantitat d'assignatures, podria trigar...
 						</p>
