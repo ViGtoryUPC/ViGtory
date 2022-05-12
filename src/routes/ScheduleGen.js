@@ -116,27 +116,44 @@ class NumInput extends React.Component {
 
 
 	render(){
+		let mostra_limits = this.props.mostra_limits ? this.props.mostra_limits : false;
 
 		return(<>
 
 			<div className="d-inline-flex align-items-center">
+				{mostra_limits?
 				<Button
-					size="sm"
+					size="sm py-0 px-1 me-2"
+					onClick={()=>{this.changeValue(this.min, true)}}
+				>
+					<b>{this.min}◄</b>
+				</Button>
+				:""}
+				<Button
+					size="sm ms-2"
 					onClick={()=>{this.changeValue(this.value-1, true)}}
 				>
 					<b>−</b>
 				</Button>
 
-				<span className="mx-2">
-					<h5 className="m-0 p-0"><b>{this.value}</b></h5>
+				<span className="mx-3">
+					<h4 className="m-0 p-0"><b>{this.value}</b></h4>
 				</span>
 
 				<Button
-					size="sm"
+					size="sm me-2"
 					onClick={()=>{this.changeValue(this.value+1, true)}}
 				>
 					<b>+</b>
 				</Button>
+				{mostra_limits?
+				<Button
+					size="sm py-0 px-1 ms-2"
+					onClick={()=>{this.changeValue(this.max, true)}}
+				>
+					<b>►{this.max}</b>
+				</Button>
+				:""}
 			</div>
 
 
@@ -181,7 +198,13 @@ class InitialScreen extends React.Component {
 			max_horaris: 5
 		}
 
+		this.total_combinations_count = 0;
 		this.discarded_overlap_count = 0;
+		this.discarded_not_enough_assigns = 0;
+
+		this.combinacions_a_mostrar = [];
+		this.horaris_render = <></>;
+
 
 		this.combinacions_possibles = [];
 	}
@@ -359,6 +382,9 @@ class InitialScreen extends React.Component {
 		return (str.length==4?"0":"")+str;
 	}
 	horesSolapen(i1, f1, i2, f2){
+		//https://stackoverflow.com/questions/36011227/javascript-check-if-time-ranges-overlap
+		//https://stackoverflow.com/questions/325933/determine-whether-two-date-ranges-overlap
+
 		//return !((f1<=i2)||(f2<=i1));
 		return ((f1>i2)&&(i1<f2));
 	}
@@ -370,14 +396,19 @@ class InitialScreen extends React.Component {
 		//ordre==1 -> 1a o 2a setmanes	//ordre==2 -> 3a o 4a setmanes
 		//dia {1..5} == {dilluns..divendres}
 
+		
+		//console.log("===========:   "+fr1.codgrup+"   "+fr2.codgrup);
+		//console.log("####### dia:   "+fr1.dia+"   "+fr2.dia);
 		//Si son de días diferentes no solapan
 		if (fr1.dia != fr2.dia) return false;
 
+		//console.log("### setmana:   "+fr1.setmana+"   "+fr2.setmana);
 		//Si ambos se hacen en 2 semanas específicas de 4
 		if ((fr1.setmana!=null)&&(fr2.setmana!=null)){
 			//Si son de semanas diferentes no solapan
 			if (fr1.setmana != fr2.setmana) return false;
 
+			//console.log("##### ordre:   "+fr1.ordre+"   "+fr2.ordre);
 			//Si son del mismo par de semanas
 			//Si ambos se hacen en 1 semana específica de ese par
 			if ((fr1.ordre!=null)&&(fr2.ordre!=null)){
@@ -386,17 +417,20 @@ class InitialScreen extends React.Component {
 			}
 		}
 
-		//Si hemos llegado hasta aquí sin pasar por return, significa que los dos fragmentos suceden el mismo día de la misma semana. Solo queda comparar las horas de inicio y fin de cada uno
+		//Si hemos llegado hasta aquí sin pasar por return, significa que los dos fragmentos suceden el mismo día de la misma semana (por lo menos 1 semana al mes como mínimo). Solo queda comparar las horas de inicio y fin de cada uno
 
 		let i1 = this.padTimeString(fr1.h_i); let f1 = this.padTimeString(fr1.h_f);
 		let i2 = this.padTimeString(fr2.h_i); let f2 = this.padTimeString(fr2.h_f);
 
+		//console.log("##### inici:   "+i1+"   "+i2);
+		//console.log("######## fi:   "+f1+"   "+f2);
 		//this.horesSolapen("08:30", "10:30", "10:29", "12:30"); //test
 		return this.horesSolapen(i1, f1, i2, f2);
 		
 	}
 	horarisSolapen(h1, h2){
 		//h1 y h2 son listas de fragmentos de horarios (cada lista es un grupo)
+		//console.log("INICI HORARIS SOLAPEN"+h1.length+"   "+h2.length);
 		for(let i=0; i<h1.length; i++){
 			for(let j=0; j<h2.length; j++){
 				if (this.fragmentsSolapen(h1[i], h2[j])) return true;
@@ -412,12 +446,15 @@ class InitialScreen extends React.Component {
 
 
 	emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar_assigs_amb_conviccio){
+		//if (nom_grup != null) this.total_combinations_count++;
+		//if (grups_assig_afegits.length > 0) this.total_combinations_count++;
+		this.total_combinations_count++;
 
 		//Comprobamos que el nuevo grupo que vamos a añadir sea compatible con todos los demás que habíamos añadido anteriormente
 		let compatibles = true;
 		if (nom_grup != null){
-			for (let i=0; (compatibles && (i<grups_assig_afegits.len)); i++){
-				compatibles = this.horarisSolapen(
+			for (let i=0; (compatibles && (i<grups_assig_afegits.length)); i++){
+				compatibles = !this.horarisSolapen(
 					this.assig_grups[sigles_ud].grups[nom_grup].fragments, //nou grup
 					this.assig_grups[grups_assig_afegits[i].sigles_ud].grups[grups_assig_afegits[i].nom_grup].fragments //grup(s) que ja haviem afegit
 					);
@@ -431,6 +468,7 @@ class InitialScreen extends React.Component {
 				nom_grup: nom_grup
 			});
 		}
+		else{this.discarded_overlap_count++;}
 		this.creaCombinacionsPossibles(new_grups_assig_afegits, comprovar_assigs_amb_conviccio);
 	}
 	
@@ -473,6 +511,7 @@ class InitialScreen extends React.Component {
 		//grups_assig_afegits es una lista de objetos {sigles_ud, nom_grup}
 
 		//Descartamos las asignaturas añadidas con un grupo null que simboliza que no han sido añadidas
+		//console.log(grups_assig_afegits.length);
 		let assigs_amb_grup_no_null = grups_assig_afegits.filter(a_g => a_g.nom_grup != null);
 
 		//Si hemos llegado a la cantidad máxima (objetivo) de asignaturas que añadir
@@ -481,12 +520,14 @@ class InitialScreen extends React.Component {
 			this.combinacions_possibles.push(assigs_amb_grup_no_null);
 			return;
 		}
+		if (grups_assig_afegits.length > 0) this.discarded_not_enough_assigns++;
 
 		//Si no hay más asignaturas posibles que añadir
 		if (grups_assig_afegits.length == this.pool_flagged.length){
 			//Acabamos la rama sin guardar el resultado (porque no son suficientes asignaturas)
 			return;
 		}
+		
 
 
 		//Si la recursión no ha llegado a su fin, continuamos con el siguiente nivel, buscando la siguiente asignatura que añadir
@@ -522,14 +563,80 @@ class InitialScreen extends React.Component {
 	}
 
 
-
+	posaPuntsAlsMilers(x){
+		return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+	}
 
 
 	generaPossiblesHoraris(){
 
 		this.combinacions_possibles = [];
+		this.discarded_overlap_count = 0;
+		this.total_combinations_count = 0;
+		this.discarded_not_enough_assigns = 0;
 
 		this.creaCombinacionsPossibles([], true);
+
+		
+		console.log(this.combinacions_possibles);
+
+		console.log("      Total combinacions provades: "+(this.discarded_not_enough_assigns+this.discarded_overlap_count+this.combinacions_possibles.length));
+
+		console.log("--------------Poques assignatures: "+this.discarded_not_enough_assigns);
+		console.log("-----------------------Solapament: "+this.discarded_overlap_count);
+		
+		console.log("Combinacions possibles resultants: "+this.combinacions_possibles.length);
+
+
+
+
+		this.combinacions_a_mostrar = this.combinacions_possibles.slice(0, this.preferencies.max_horaris);
+
+		this.horaris_render = <>
+			{this.combinacions_a_mostrar.length == 0 ? <>
+				No hi ha cap horari possible que mostrar...
+				<br/>
+				Prova a canviar la teva selecció i/o els paràmetres introduïts.
+			</>:<>
+
+				{this.total_combinations_count==1 ? (""):("")}
+				D'entre les {(this.total_combinations_count-this.discarded_not_enough_assigns)==1?"(només 1)":this.posaPuntsAlsMilers(this.total_combinations_count-this.discarded_not_enough_assigns)} possibles combinacions de grups trobades per a {this.preferencies.max_assignatures} {this.preferencies.max_assignatures==1?"assignatura":"assignatures"}, s'ha{this.discarded_overlap_count==1?"":"n"} descartat {this.posaPuntsAlsMilers(this.discarded_overlap_count)} per solapament.
+				<br/><br/>
+				{this.combinacions_possibles.length==1?
+				"Només resta una sola combinació d'horaris possible, que es la que mostrem a continuació"
+				:
+				"D'entre les "+this.posaPuntsAlsMilers(this.combinacions_possibles.length)+" combinacions no descartades, ara mostrarem les "+(Math.min(this.preferencies.max_horaris, this.combinacions_a_mostrar.length))+" millors per pantalla."
+				}
+
+
+
+
+				{this.combinacions_a_mostrar.map(combinacio => {return(<>
+
+					
+
+
+				</>);
+				})}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+			</>}
+
+		</>;
+
+
 
 		this.forceUpdate();
 	}
@@ -588,6 +695,7 @@ class InitialScreen extends React.Component {
 					//console.log("CLICKED!!!");
 				}
 			}}
+			mostra_limits={true}
 		/>;
 		//console.log(this.preferencies.max_assignatures_used_by_user, this.preferencies.max_assignatures);
 
@@ -602,6 +710,7 @@ class InitialScreen extends React.Component {
 				this.preferencies.max_horaris = newVal;
 				this.forceUpdate();
 			}}
+			mostra_limits={true}
 		/>;
 
 
@@ -939,12 +1048,17 @@ class InitialScreen extends React.Component {
 						<br/><br/>
 						<p className="text-center">
 							<Button
-								onClick={()=>{console.log("generating?")}}
+								onClick={()=>{this.generaPossiblesHoraris()}}
 							>
 								<b>{"Genera el"+((this.preferencies.max_horaris==1)?" millor horari possible" : ("s "+this.preferencies.max_horaris+" millors horaris possibles") )}</b>
 							</Button>
 							<br/>
-							Si has escollit una gran quantitat d'assignatures, podria trigar...
+							{
+							//"Si has escollit una gran quantitat d'assignatures, podria trigar..."
+							}
+							<br/><br/>
+
+							{this.horaris_render}
 						</p>
 					</>:""}
 
