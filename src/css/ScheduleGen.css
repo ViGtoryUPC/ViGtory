@@ -111,11 +111,11 @@
 
 .paramSelectAll{
 	color: white;
-	background-color: #0d6efd;
+	background-color: rgb(13, 110, 253);
 }
 .paramSelectList .list-group-item{
 	/*cursor: auto;*/
-	border-color: #0d6efd;
+	border-color: rgb(13, 110, 253);
 	border-width: 0.15rem;
 }
 .paramSelectList .list-group-item.paramSelectAll{
@@ -128,22 +128,19 @@
 
 
 
+
 /* PANTALLA MÉS ALTA QUE BAIXA */
 @media screen and (orientation:portrait) {
+
 
 	.schedule_gen{
 		width: 93vw;
 	}
-	.post_edit{
-		width: 92vw;
+	.render_horari{
+		width: 93vw;
 	}
-	.assignatura_selector .dropdown-menu.show{
-		width: 75vw;
-		max-height: 60vh;
-	}
-	.assigSelectList{
-		/*width: 90vw !important;*/
-	}
+	
+	
 
 }
 
@@ -154,15 +151,8 @@
 	.schedule_gen{
 		width: max(82vh, 315px);
 	}
-	.post_edit{
-		width: max(72vh, 305px);
-	}
-	.assignatura_selector .dropdown-menu.show{
-		width: max(73vh, 220px);
-		max-height: 70vh;
-	}
-	.assigSelectList{
-		/*width: max(70vh, 300px) !important;*/
+	.render_horari{
+		width: max(85vh, 325px);
 	}
 
 }

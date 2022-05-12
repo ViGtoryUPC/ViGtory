@@ -4,7 +4,7 @@ import {API_address} from '../libraries/API_address';
 //import ReactDOM from 'react-dom';
 import { Routes, Route, Link, useHistory, useNavigate } from "react-router-dom";
 
-import { Accordion, Button, Form, FloatingLabel, ListGroup, Card } from 'react-bootstrap';
+import { Accordion, Button, Form, FloatingLabel, ListGroup, Card, Table } from 'react-bootstrap';
 import { useAccordionButton } from 'react-bootstrap/AccordionButton';
 
 import NavBar from "../components/NavBar";
@@ -181,12 +181,16 @@ class InitialScreen extends React.Component {
 		this.state = {
 		};
 
+		
+		this.mati = {inici:"8:30", fi:"14:30"};
+		this.tarda = {inici:"15:00", fi:"21:00"};
+
 		this.max_assignatures_select = 10;
 		this.min_assignatures_result = 1;
 		this.max_assignatures_result = 7;
 
 		this.min_horaris_result = 1;
-		this.max_horaris_result = 10;
+		this.max_horaris_result = 20;
 
 		this.horaris = [];
 		this.cursos = {};
@@ -444,7 +448,8 @@ class InitialScreen extends React.Component {
 
 
 
-
+/*
+	//Esta versión debería ser funcional, pero a JS no le gustan tantas llamadas recursivas ¬¬
 	emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar_assigs_amb_conviccio){
 		//if (nom_grup != null) this.total_combinations_count++;
 		//if (grups_assig_afegits.length > 0) this.total_combinations_count++;
@@ -454,10 +459,10 @@ class InitialScreen extends React.Component {
 		let compatibles = true;
 		if (nom_grup != null){
 			for (let i=0; (compatibles && (i<grups_assig_afegits.length)); i++){
-				compatibles = !this.horarisSolapen(
-					this.assig_grups[sigles_ud].grups[nom_grup].fragments, //nou grup
-					this.assig_grups[grups_assig_afegits[i].sigles_ud].grups[grups_assig_afegits[i].nom_grup].fragments //grup(s) que ja haviem afegit
-					);
+				//compatibles = !this.horarisSolapen(
+				//	this.assig_grups[sigles_ud].grups[nom_grup].fragments, //nou grup
+				//	this.assig_grups[grups_assig_afegits[i].sigles_ud].grups[grups_assig_afegits[i].nom_grup].fragments //grup(s) que ja haviem afegit
+				//	);
 			}
 		}
 		//Si el grupo resulta ser compatible (no se solapa), lo añadimos a la lista de esta rama de recursión, y continuamos
@@ -471,7 +476,98 @@ class InitialScreen extends React.Component {
 		else{this.discarded_overlap_count++;}
 		this.creaCombinacionsPossibles(new_grups_assig_afegits, comprovar_assigs_amb_conviccio);
 	}
-	
+*/
+
+
+/*
+emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar_assigs_amb_conviccio){
+	//if (nom_grup != null) this.total_combinations_count++;
+	//if (grups_assig_afegits.length > 0) this.total_combinations_count++;
+	this.total_combinations_count++;
+
+	//Comprobamos que el nuevo grupo que vamos a añadir sea compatible con todos los demás que habíamos añadido anteriormente
+	let solapen = false;
+	if (nom_grup != null){
+		for (let i=0; ((!solapen) && (i<grups_assig_afegits.length)); i++){
+			//compatibles = !this.horarisSolapen(
+			//	this.assig_grups[sigles_ud].grups[nom_grup].fragments, //nou grup
+			//	this.assig_grups[grups_assig_afegits[i].sigles_ud].grups[grups_assig_afegits[i].nom_grup].fragments //grup(s) que ja haviem afegit
+			//	);
+
+
+			//ESTO NO HA SERVIDO DE NADA :)))))))
+			
+			let h1 = this.assig_grups[sigles_ud].grups[nom_grup].fragments;
+			let h2 = this.assig_grups[grups_assig_afegits[i].sigles_ud].grups[grups_assig_afegits[i].nom_grup].fragments;
+
+
+			for(let x=0; x<h1.length; x++){
+				for(let y=0; y<h2.length; y++){
+
+					let fr1 = h1[x];
+					let fr2 = h2[y];
+
+					if (fr1.dia != fr2.dia) solapen = false;
+					else{
+						if ((fr1.setmana!=null)&&(fr2.setmana!=null)){
+							//Si son de semanas diferentes no solapan
+							if (fr1.setmana != fr2.setmana) solapen = false;
+							else{
+								if ((fr1.ordre!=null)&&(fr2.ordre!=null)){
+									//Si son de semanas diferentes no solapan
+									if (fr1.ordre != fr2.ordre) solapen = false;
+								}
+							}
+						}
+						else{
+							let i1 = ((fr1.h_i).length==4?"0":"")+fr1.h_i
+							let f1 = ((fr1.h_f).length==4?"0":"")+fr1.h_f
+
+							let i2 = ((fr2.h_i).length==4?"0":"")+fr2.h_i
+							let f2 = ((fr2.h_f).length==4?"0":"")+fr2.h_f
+					
+							solapen = ((f1>i2)&&(i1<f2));
+						}
+					}
+				}
+			}
+
+
+		}
+	}
+	//Si el grupo resulta ser compatible (no se solapa), lo añadimos a la lista de esta rama de recursión, y continuamos
+	let new_grups_assig_afegits = [...grups_assig_afegits];
+	//let new_grups_assig_afegits = [];
+	//for (let i=0; i<grups_assig_afegits.length; i++){
+	//	new_grups_assig_afegits.push(grups_assig_afegits[i]);
+	//}
+
+	if (!solapen){
+		new_grups_assig_afegits.push({
+			sigles_ud: sigles_ud,
+			nom_grup: nom_grup
+		});
+	}
+	else{this.discarded_overlap_count++;}
+	this.creaCombinacionsPossibles(new_grups_assig_afegits, comprovar_assigs_amb_conviccio);
+}
+*/
+
+
+
+
+	emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar_assigs_amb_conviccio){
+		this.total_combinations_count++;
+		
+		let new_grups_assig_afegits = [...grups_assig_afegits];
+		new_grups_assig_afegits.push({
+			sigles_ud: sigles_ud,
+			nom_grup: nom_grup
+		});
+
+		this.creaCombinacionsPossibles(new_grups_assig_afegits, comprovar_assigs_amb_conviccio);
+	}
+
 
 	exploraGrups(sigles_ud, grups_assig_afegits, comprovar_assigs_amb_conviccio){
 		
@@ -513,6 +609,13 @@ class InitialScreen extends React.Component {
 		//Descartamos las asignaturas añadidas con un grupo null que simboliza que no han sido añadidas
 		//console.log(grups_assig_afegits.length);
 		let assigs_amb_grup_no_null = grups_assig_afegits.filter(a_g => a_g.nom_grup != null);
+		//let assigs_amb_grup_no_null = [];
+		//for (let i=0; i<grups_assig_afegits.length; i++){
+		//	if (grups_assig_afegits[i].nom_grup != null) assigs_amb_grup_no_null.push(grups_assig_afegits[i]);
+		//}
+
+
+
 
 		//Si hemos llegado a la cantidad máxima (objetivo) de asignaturas que añadir
 		if(assigs_amb_grup_no_null.length == this.preferencies.max_assignatures){
@@ -563,12 +666,21 @@ class InitialScreen extends React.Component {
 	}
 
 
+
+
+
+
 	posaPuntsAlsMilers(x){
 		return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 	}
 
 
 	generaPossiblesHoraris(){
+		//let mati = {inici:"8:30", fi:"14:30"};
+		//let tarda = {inici:"15:00", fi:"21:00"};
+		
+		let mati = this.mati;
+		let tarda = this.tarda;
 
 		this.combinacions_possibles = [];
 		this.discarded_overlap_count = 0;
@@ -577,6 +689,25 @@ class InitialScreen extends React.Component {
 
 		this.creaCombinacionsPossibles([], true);
 
+		this.combinacions_possibles.filter(combinacio => {
+			let solapa = false;
+			for (let i=0; i<combinacio.length; i++){
+				for (let j=0; j<combinacio.length; j++){
+					if (i != j){
+						solapa = this.horarisSolapen(
+							this.assig_grups[combinacio[i].sigles_ud].grups[combinacio[i].nom_grup].fragments,
+							this.assig_grups[combinacio[j].sigles_ud].grups[combinacio[j].nom_grup].fragments,
+						);
+
+						if (solapa){
+							this.discarded_overlap_count++;
+							return false;
+						}
+					}
+				}
+			}
+			return !solapa;
+		})
 		
 		console.log(this.combinacions_possibles);
 
@@ -592,6 +723,9 @@ class InitialScreen extends React.Component {
 
 		this.combinacions_a_mostrar = this.combinacions_possibles.slice(0, this.preferencies.max_horaris);
 
+
+		
+
 		this.horaris_render = <>
 			{this.combinacions_a_mostrar.length == 0 ? <>
 				No hi ha cap horari possible que mostrar...
@@ -600,37 +734,21 @@ class InitialScreen extends React.Component {
 			</>:<>
 
 				{this.total_combinations_count==1 ? (""):("")}
-				D'entre les {(this.total_combinations_count-this.discarded_not_enough_assigns)==1?"(només 1)":this.posaPuntsAlsMilers(this.total_combinations_count-this.discarded_not_enough_assigns)} possibles combinacions de grups trobades per a {this.preferencies.max_assignatures} {this.preferencies.max_assignatures==1?"assignatura":"assignatures"}, s'ha{this.discarded_overlap_count==1?"":"n"} descartat {this.posaPuntsAlsMilers(this.discarded_overlap_count)} per solapament.
+				D'entre les {(this.total_combinations_count-this.discarded_not_enough_assigns+this.discarded_overlap_count)==1?"(només 1)":this.posaPuntsAlsMilers(this.total_combinations_count-this.discarded_not_enough_assigns+this.discarded_overlap_count)} possibles combinacions de grups trobades per a {this.preferencies.max_assignatures} {this.preferencies.max_assignatures==1?"assignatura":"assignatures"}, s'ha{this.discarded_overlap_count==1?"":"n"} descartat {this.posaPuntsAlsMilers(this.discarded_overlap_count)} per solapament.
 				<br/><br/>
 				{this.combinacions_possibles.length==1?
 				"Només resta una sola combinació d'horaris possible, que es la que mostrem a continuació"
 				:
-				"D'entre les "+this.posaPuntsAlsMilers(this.combinacions_possibles.length)+" combinacions no descartades, ara mostrarem les "+(Math.min(this.preferencies.max_horaris, this.combinacions_a_mostrar.length))+" millors per pantalla."
+				"D'entre les "+this.posaPuntsAlsMilers(this.combinacions_possibles.length)+" combinacions no descartades, mostrem les "+(Math.min(this.preferencies.max_horaris, this.combinacions_a_mostrar.length))+" millors a continuació:"
 				}
+				<br/>
 
 
-
-
-				{this.combinacions_a_mostrar.map(combinacio => {return(<>
-
-					
-
-
-				</>);
-				})}
-
-
-
-
-
-
-
-
-
-
-
-
-
+				{
+					this.combinacions_a_mostrar.map((combinacio, i) => {
+						return(<>{this.renderTaulaHoraris(combinacio, i+1)}</>);
+					})
+				}
 
 			</>}
 
@@ -640,6 +758,180 @@ class InitialScreen extends React.Component {
 
 		this.forceUpdate();
 	}
+
+
+
+
+	renderTaulaHoraris(combinacio, posició){
+		let mati = this.mati;
+		let tarda = this.tarda;
+		let hores = [];
+		let dies = ["#"+posició, "Dilluns", "Dimarts", "Dimecres", "Dijous", "Divendres"];
+
+
+		//let hora_min = mati.inici;
+		//let hora_max = tarda.fi;
+		let hora_min = tarda.fi;
+		let hora_max = mati.inici;
+
+		for (let i=0; i<combinacio.length; i++){
+			let fragments = this.assig_grups[combinacio[i].sigles_ud].grups[combinacio[i].nom_grup].fragments;
+			for (let j=0; j<fragments.length; j++){
+				if (this.padTimeString(fragments[j].h_i) < this.padTimeString(hora_min)) hora_min = fragments[j].h_i;
+				if (this.padTimeString(fragments[j].h_f) > this.padTimeString(hora_max)) hora_max = fragments[j].h_i;
+			}
+		}
+		
+		//Provisional
+		//hora_min = mati.inici;
+		//hora_max = tarda.fi;
+
+		/*if (this.padTimeString(hora_min) < this.padTimeString(mati.fi)){
+			let inici = parseInt(hora_min.split(":")[0]);
+			let fi = parseInt(hora_min.split(":")[0]);
+		}*/
+		let hora_a_introduir = hora_min;
+		hores.push(hora_a_introduir);
+		while(this.padTimeString(hora_a_introduir) < this.padTimeString(hora_max)){
+			let h_split = hora_a_introduir.split(":");
+			if(this.padTimeString(hora_a_introduir) == this.padTimeString(mati.fi)){
+				hora_a_introduir = (parseInt(h_split[0])+1)+":00";
+			}
+			else{
+				hora_a_introduir = (parseInt(h_split[0])+1)+":"+h_split[1];
+			}
+			hores.push(hora_a_introduir);
+		}
+
+
+
+
+
+		let nomes_i_dies = [...Array(dies.length).keys()].splice(1);
+		let delete_rowspan = [];
+		return(
+		<>
+			<br/><br/><br/>
+
+			<Table style={{tableLayout:"fixed", width:"100%", borderCollapse:"collapse"}}>
+		
+
+				<thead>
+					<tr>
+						{dies.map((dia, i)=>{return(
+							<th className="px-0" style={i==0?{borderLeft:"none", borderTop:"none", width:"15%"}:{backgroundColor:"#3488bb", color:"white", width:"auto", border:"1px solid #30577b"}}>
+								{dia}
+							</th>
+						);})}
+					</tr>
+				</thead>
+
+				<tbody>
+					{[...Array(hores.length-1).keys()].map(i_hora=>{
+
+						return(
+					<tr>
+						
+						<td className="px-0" style={{backgroundColor:"#3488bb", color:"white", border:"1px solid #30577b"}}>
+							{hores[i_hora]+"-"+hores[i_hora+1]}
+						</td>
+
+						{nomes_i_dies.map((i_dia)=>{
+							
+							
+							let text = [];
+							let rowspan = 0;
+
+							for (let i=0; i<combinacio.length; i++){
+								let fragments = this.assig_grups[combinacio[i].sigles_ud].grups[combinacio[i].nom_grup].fragments;
+								for (let j=0; j<fragments.length; j++){
+									if ((fragments[j].dia == i_dia)&&(fragments[j].h_i==hores[i_hora])){
+										if (rowspan == 0){
+											rowspan = 
+											parseInt((fragments[j].h_f).split(":"[0]))
+											-
+											parseInt((fragments[j].h_i).split(":"[0]));
+
+											for (let x=1; x<rowspan; x++){
+												delete_rowspan.push({i_dia:i_dia, i_hora:i_hora+x});
+											}
+										}
+
+										//console.log(combinacio[i].sigles_ud+" grup "+combinacio[i].nom_grup+"   setmana: "+fragments[j].setmana+"   ordre:"+fragments[j].ordre);
+										
+										let x_set = (
+												//fragments[j].setmana+fragments[j].ordre+
+												(fragments[j].setmana==null) ? "" : (":s"+fragments[j].setmana
+												+((fragments[j].ordre==null) ? "" : (fragments[j].ordre))
+												)
+											);
+
+										let t = <>
+											<b>{combinacio[i].sigles_ud}</b>
+											<br/>
+											{fragments[j].tpla ? <><span className="text-muted">{(
+												(fragments[j].tpla=="T") ? "(Teoría)" :
+												((fragments[j].tpla=="L") ? "(Lab.)" : "")
+											)}</span><br/></>:""}
+											<span className="text-decoration-underline">
+												{" grup "+combinacio[i].nom_grup}
+											</span>
+											{(x_set!="") ? <><br/>{x_set}</> : ""}
+										</>;
+										text.push(t);
+									}
+								}
+							}
+
+							let has_content = text.length;
+							let content = text.map((txt, txt_i) => {return(<>
+								{txt}
+								{(txt_i<(text.length-1)) ? <>
+									<br/><br/><br/>
+								</>:""}
+							</>)});
+							
+							
+							
+							
+							
+							
+							
+							return(
+							
+							(delete_rowspan.some(del_cell => ( (del_cell.i_dia == i_dia)&&(del_cell.i_hora==i_hora) )))?<></>:
+							<td className="w-auto border-1" rowSpan={has_content ? rowspan.toString():"1"} style={
+								(this.padTimeString(hores[i_hora]) == this.padTimeString(mati.fi))?
+							{backgroundColor:"#cccccc", borderColor:"#30577b", border:"solid"}
+							:
+							((has_content)?
+								{backgroundColor:"#eef5ff", borderColor:"#30577b", border:"solid"}
+								:
+								{backgroundColor:"rgb(241, 241, 241)", borderColor:"#30577b", border:"solid"}
+							)}>
+								{content}
+							</td>
+						);})}
+
+
+					</tr>);
+
+
+
+					})}
+
+				</tbody>
+
+			</Table>
+			
+		</>);
+	}
+
+
+
+
+
+
 
 
 
@@ -1058,7 +1350,6 @@ class InitialScreen extends React.Component {
 							}
 							<br/><br/>
 
-							{this.horaris_render}
 						</p>
 					</>:""}
 
@@ -1085,6 +1376,14 @@ class InitialScreen extends React.Component {
 					
 
 				</div>
+
+
+				<p className="text-center">
+					<div className="render_horari m-auto">
+						{this.horaris_render}
+					</div>
+				</p>
+
 
 				<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 
