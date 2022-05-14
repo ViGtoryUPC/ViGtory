@@ -862,6 +862,18 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 
 
+	determinaHoraMinHoraMax(mati, tarda, fragments){
+		let hora_min = tarda.fi;
+		let hora_max = mati.inici;
+		
+		for (let i=0; i<fragments.length; i++){
+				if (this.padTimeString(fragments[i].h_i) < this.padTimeString(hora_min)) hora_min = fragments[i].h_i;
+				if (this.padTimeString(fragments[i].h_f) > this.padTimeString(hora_max)) hora_max = fragments[i].h_f;
+		}
+
+		return [hora_min, hora_max];
+	}
+
 	makeHoresList(mati, tarda, hora_min, hora_max){
 		let hores = [];
 
@@ -924,7 +936,19 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		//	fragments = fragments.filter(frag => (check_next.some(chk => ( (frag.dia == chk.dia) && (frag.h_i == chk.hora) ) )));
 
 
-		hores = this.makeHoresList(mati, tarda, mati.inici, tarda.fi);
+
+
+		//ROWSPAN FALLA CUANDO SOLO HAY ASIGNATURAS DE TARDE; CUANDO HAY ASIGNATURAS DE MAÑANA, O DE MAÑANA+TARDE FUNCIONA BIEN...!!!
+		//........Vale, no es solo en ausencia de asignaturas por la mañana; probando con FOPR y todas las asignaturas del curso 2 se fastidia igual...
+		//Es posible que el problema aparezca cuando no hay asignaturas a las 8:30????
+
+
+
+		//Parece que rowspan está arreglado(???)
+		//NUEVO PROBLEMA. Parece ser que no se muestra la franja horaria del último fragmento en ser leído!!!
+
+		let HoraMinHoraMax = this.determinaHoraMinHoraMax(mati, tarda, fragments)
+		hores = this.makeHoresList(mati, tarda, HoraMinHoraMax[0], HoraMinHoraMax[1]);
 
 		nomes_i_dies.map(i_dia=>{
 
@@ -983,18 +1007,9 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 
 		//Determinamos el rango de horas a mostrar en la tabla final (para ahorrarnos imprimir filas vacías)
-		let hora_min = tarda.fi;
-		let hora_max = mati.inici;
-		
-		for (let i=0; i<fragments.length; i++){
-			//if (  checkAll_T_onlyNext_F || ( (!checkAll_T_onlyNext_F) && check_next.some(chk=>(chk.hora==fragments[i].h_i) ) )  ){
-				if (this.padTimeString(fragments[i].h_i) < this.padTimeString(hora_min)) hora_min = fragments[i].h_i;
-				if (this.padTimeString(fragments[i].h_f) > this.padTimeString(hora_max)) hora_max = fragments[i].h_i;
-			//}
-		}
-		
+		HoraMinHoraMax = this.determinaHoraMinHoraMax(mati, tarda, fragments)
 		//Lista de horas final a imprimir vía tabla
-		hores = this.makeHoresList(mati, tarda, hora_min, hora_max);
+		hores = this.makeHoresList(mati, tarda, HoraMinHoraMax[0], HoraMinHoraMax[1]);
 
 
 
@@ -1028,88 +1043,89 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				<tbody>
 					{[...Array(hores.length-1).keys()].map(i_hora=>{
 
-						//ROWSPAN FALLA CUANDO SOLO HAY ASIGNATURAS DE TARDE; CUANDO HAY ASIGNATURAS DE MAÑANA, O DE MAÑANA+TARDE FUNCIONA BIEN...!!!
+						
 
 						return(
-					<tr>
-						
-						<td className="px-0" style={{backgroundColor:"#3488bb", color:"white", border:"1px solid #30577b"}}>
-							{hores[i_hora]+"-"+hores[i_hora+1]}
-						</td>
+							<tr>
+								
+								<td className="px-0" style={{backgroundColor:"#3488bb", color:"white", border:"1px solid #30577b"}}>
+									{hores[i_hora]+"-"+hores[i_hora+1]}
+								</td>
 
-						{nomes_i_dies.map((i_dia)=>{
-							
-							let text = [];
-							let rowspan = 0;
-							
+								{nomes_i_dies.map((i_dia)=>{
+									
+									let text = [];
+									let rowspan = 0;
+									
 
-							for (let i=0; i<fragments.length; i++){
+									for (let i=0; i<fragments.length; i++){
 
-								if ((fragments[i].dia == i_dia)&&(fragments[i].h_i==hores[i_hora])){
-									if (rowspan == 0){
-										rowspan = 
-										parseInt((fragments[i].h_f).split(":"[0]))
-										-
-										parseInt((fragments[i].h_i).split(":"[0]));
+										if ((fragments[i].dia == i_dia)&&(fragments[i].h_i==hores[i_hora])){
+											if (rowspan == 0){
+												rowspan = 
+												parseInt((fragments[i].h_f).split(":"[0]))
+												-
+												parseInt((fragments[i].h_i).split(":"[0]));
+											}
+											
+											let x_set = (
+												//fragments[i].setmana+fragments[i].ordre+
+												(fragments[i].setmana==null) ? "" : (":s"+fragments[i].setmana
+												+((fragments[i].ordre==null) ? "" : (fragments[i].ordre))
+												)
+											);
+
+											let t = <>
+												<b>{fragments[i].sigles_ud}</b>
+												<br/>
+												{fragments[i].tpla ? <><span className="text-muted">{(
+													(fragments[i].tpla=="T") ? "(Teoría)" :
+													((fragments[i].tpla=="L") ? "(Lab.)" : "")
+												)}</span><br/></>:""}
+												<span className="text-decoration-underline">
+													{" grup "+fragments[i].nom_grup}
+												</span>
+												{(x_set!="") ? <><br/>{x_set}</> : ""}
+											</>;
+											text.push(t);
+										}
+
 									}
 									
-									let x_set = (
-										//fragments[i].setmana+fragments[i].ordre+
-										(fragments[i].setmana==null) ? "" : (":s"+fragments[i].setmana
-										+((fragments[i].ordre==null) ? "" : (fragments[i].ordre))
-										)
-									);
 
-									let t = <>
-										<b>{fragments[i].sigles_ud}</b>
-										<br/>
-										{fragments[i].tpla ? <><span className="text-muted">{(
-											(fragments[i].tpla=="T") ? "(Teoría)" :
-											((fragments[i].tpla=="L") ? "(Lab.)" : "")
-										)}</span><br/></>:""}
-										<span className="text-decoration-underline">
-											{" grup "+fragments[i].nom_grup}
-										</span>
-										{(x_set!="") ? <><br/>{x_set}</> : ""}
-									</>;
-									text.push(t);
-								}
-
-							}
-							
-
-							let has_content = text.length;
-							let content = text.map((txt, txt_i) => {return(<>
-								{txt}
-								{(txt_i<(text.length-1)) ? <>
-									<br/><br/><br/>
-								</>:""}
-							</>)});
-							
-							
-							
-							
-							
-							
-							
-							return(
-							
-							(delete_rowspan.some(del_cell => ( (del_cell.i_dia == i_dia)&&(del_cell.i_hora==i_hora) )))?<></>:
-							<td className="w-auto border-1" rowSpan={has_content ? rowspan.toString():"1"} style={
-								(this.padTimeString(hores[i_hora]) == this.padTimeString(mati.fi))?
-							{backgroundColor:"#cccccc", borderColor:"#30577b", border:"solid"}
-							:
-							((has_content)?
-								{backgroundColor:"#eef5ff", borderColor:"#30577b", border:"solid"}
-								:
-								{backgroundColor:"rgb(241, 241, 241)", borderColor:"#30577b", border:"solid"}
-							)}>
-								{content}
-							</td>
-						);})}
+									let has_content = text.length;
+									let content = text.map((txt, txt_i) => {return(<>
+										{txt}
+										{(txt_i<(text.length-1)) ? <>
+											<br/><br/><br/>
+										</>:""}
+									</>)});
+									
+									
+									
+									
+									
+									
+									
+									return(
+									
+									(delete_rowspan.some(del_cell => ( (del_cell.i_dia == i_dia)&&(del_cell.i_hora==i_hora) )))?<></>:
+									<td className="w-auto border-1" rowSpan={has_content ? rowspan.toString():"1"} style={
+										(this.padTimeString(hores[i_hora]) == this.padTimeString(mati.fi))?
+									{backgroundColor:"#cccccc", borderColor:"#30577b", border:"solid"}
+									:
+									((has_content)?
+										{backgroundColor:"#eef5ff", borderColor:"#30577b", border:"solid"}
+										:
+										{backgroundColor:"rgb(241, 241, 241)", borderColor:"#30577b", border:"solid"}
+									)}>
+										{content}
+									</td>
+								);})}
 
 
-					</tr>);
+							</tr>
+						);
 
 
 
