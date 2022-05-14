@@ -841,7 +841,11 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 				{
 					this.combinacions_a_mostrar.map((combinacio, i) => {
-						return(<>{this.renderTaulaHoraris(combinacio, i+1)}</>);
+						return(<>
+							<br/><br/><br/>
+							{this.renderTaulaHoraris(combinacio, i+1, true, [], 0)}
+						
+						</>);
 					})
 				}
 
@@ -857,34 +861,10 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 
 
-	renderTaulaHoraris(combinacio, posició){
-		let mati = this.mati;
-		let tarda = this.tarda;
+
+	makeHoresList(mati, tarda, hora_min, hora_max){
 		let hores = [];
-		let dies = ["#"+posició, "Dilluns", "Dimarts", "Dimecres", "Dijous", "Divendres"];
 
-
-		//let hora_min = mati.inici;
-		//let hora_max = tarda.fi;
-		let hora_min = tarda.fi;
-		let hora_max = mati.inici;
-
-		for (let i=0; i<combinacio.length; i++){
-			let fragments = this.assig_grups[combinacio[i].sigles_ud].grups[combinacio[i].nom_grup].fragments;
-			for (let j=0; j<fragments.length; j++){
-				if (this.padTimeString(fragments[j].h_i) < this.padTimeString(hora_min)) hora_min = fragments[j].h_i;
-				if (this.padTimeString(fragments[j].h_f) > this.padTimeString(hora_max)) hora_max = fragments[j].h_i;
-			}
-		}
-		
-		//Provisional
-		//hora_min = mati.inici;
-		//hora_max = tarda.fi;
-
-		/*if (this.padTimeString(hora_min) < this.padTimeString(mati.fi)){
-			let inici = parseInt(hora_min.split(":")[0]);
-			let fi = parseInt(hora_min.split(":")[0]);
-		}*/
 		let hora_a_introduir = hora_min;
 		hores.push(hora_a_introduir);
 		while(this.padTimeString(hora_a_introduir) < this.padTimeString(hora_max)){
@@ -898,15 +878,139 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 			hores.push(hora_a_introduir);
 		}
 
+		return hores;
+	}
 
 
+	renderTaulaHoraris(combinacio, posició, checkAll_T_onlyNext_F, check_next, depth){
+
+		//if ((!checkAll_T_onlyNext_F) && check_next.length==0) return(<></>);
+
+		let mati = this.mati;
+		let tarda = this.tarda;
+		let hores = [];
+		let dies = [(checkAll_T_onlyNext_F?("#"+posició):""), "Dilluns", "Dimarts", "Dimecres", "Dijous", "Divendres"];
 
 
 		let nomes_i_dies = [...Array(dies.length).keys()].splice(1);
 		let delete_rowspan = [];
+
+		let check_later = [];
+		//{dia, hora}
+
+
+
+		//Creamos una lista de fragmentos para facilitar la manipulación en caso de solapamientos visuales de asignaturas que no empiecen y acaben a la vez
+		let fragments = [];
+		for (let i=0; i<combinacio.length; i++){
+			(this.assig_grups[combinacio[i].sigles_ud].grups[combinacio[i].nom_grup].fragments).forEach(frag => {
+				if (
+						checkAll_T_onlyNext_F 
+					|| 
+					( 
+							(!checkAll_T_onlyNext_F) 
+						&& 
+							(check_next.some(chk => ( (frag.dia == chk.dia) && (frag.h_i == chk.hora) ) )) 
+					)
+				){
+					let f = {...frag};
+					f["nom_grup"] = combinacio[i].nom_grup;
+					fragments.push(f);
+				}
+			});
+		}
+
+		//if (!checkAll_T_onlyNext_F)
+		//	fragments = fragments.filter(frag => (check_next.some(chk => ( (frag.dia == chk.dia) && (frag.h_i == chk.hora) ) )));
+
+
+		hores = this.makeHoresList(mati, tarda, mati.inici, tarda.fi);
+
+		nomes_i_dies.map(i_dia=>{
+
+			[...Array(hores.length-1).keys()].map(i_hora=>{
+
+
+				//Buscamos todos los fragmentos que empiecen en este mismo día y hora
+				let frags = fragments.filter(frag=>( (frag.dia == i_dia) && (frag.h_i == hores[i_hora]) ));
+
+				//Buscamos las horas a las que acaban estos fragmentos, para encontrar si son diversas o si siempre es la misma
+				let hores_f = frags.reduce((a, d)=>{
+					if (a.indexOf(d.h_f) === -1) {
+						a.push(d.h_f);
+					}
+					return a;
+				}, []);
+				
+				//Si reconocemos horas a una profundidad visualizable
+				if (depth < hores_f.length){
+					//Eliminamos el resto de fragmentos que empiecen al mismo día y hora pero acaben a hora distinta a la que corresponde a nuestro nivel de profundidad
+					fragments = fragments.filter(frag => !(  ( (frag.dia == i_dia) && (frag.h_i == hores[i_hora]) ) && (frag.h_f != hores_f[depth])  ) );
+
+
+					let rowspan = 0;
+					frags = fragments.filter(frag=>( (frag.dia == i_dia) && (frag.h_i == hores[i_hora]) ));
+
+					for (let i=0; i<frags.length; i++){
+						if (rowspan == 0){
+							rowspan = 
+								parseInt((frags[i].h_f).split(":"[0]))
+								-
+								parseInt((frags[i].h_i).split(":"[0]))
+							;
+
+							for (let x=0; x<rowspan; x++){
+
+								if ((hores_f.length-1-depth) > 0)
+									check_later.push({dia:i_dia, hora:hores[i_hora]});
+
+								if (x>0) 
+									delete_rowspan.push({i_dia:i_dia, i_hora:i_hora+x});
+
+							}
+						}
+					}
+
+
+				}
+
+
+			});
+		});
+
+
+
+
+
+		//Determinamos el rango de horas a mostrar en la tabla final (para ahorrarnos imprimir filas vacías)
+		let hora_min = tarda.fi;
+		let hora_max = mati.inici;
+		
+		for (let i=0; i<fragments.length; i++){
+			//if (  checkAll_T_onlyNext_F || ( (!checkAll_T_onlyNext_F) && check_next.some(chk=>(chk.hora==fragments[i].h_i) ) )  ){
+				if (this.padTimeString(fragments[i].h_i) < this.padTimeString(hora_min)) hora_min = fragments[i].h_i;
+				if (this.padTimeString(fragments[i].h_f) > this.padTimeString(hora_max)) hora_max = fragments[i].h_i;
+			//}
+		}
+		
+		//Lista de horas final a imprimir vía tabla
+		hores = this.makeHoresList(mati, tarda, hora_min, hora_max);
+
+
+
+
+
+
+
+
+
 		return(
 		<>
-			<br/><br/><br/>
+			{checkAll_T_onlyNext_F ? "" : 
+			<>
+				<br/><br/>
+			</>
+			}
 
 			<Table style={{tableLayout:"fixed", width:"100%", borderCollapse:"collapse"}}>
 		
@@ -924,6 +1028,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				<tbody>
 					{[...Array(hores.length-1).keys()].map(i_hora=>{
 
+						//ROWSPAN FALLA CUANDO SOLO HAY ASIGNATURAS DE TARDE; CUANDO HAY ASIGNATURAS DE MAÑANA, O DE MAÑANA+TARDE FUNCIONA BIEN...!!!
+
 						return(
 					<tr>
 						
@@ -933,50 +1039,44 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 						{nomes_i_dies.map((i_dia)=>{
 							
-							
 							let text = [];
 							let rowspan = 0;
+							
 
-							for (let i=0; i<combinacio.length; i++){
-								let fragments = this.assig_grups[combinacio[i].sigles_ud].grups[combinacio[i].nom_grup].fragments;
-								for (let j=0; j<fragments.length; j++){
-									if ((fragments[j].dia == i_dia)&&(fragments[j].h_i==hores[i_hora])){
-										if (rowspan == 0){
-											rowspan = 
-											parseInt((fragments[j].h_f).split(":"[0]))
-											-
-											parseInt((fragments[j].h_i).split(":"[0]));
+							for (let i=0; i<fragments.length; i++){
 
-											for (let x=1; x<rowspan; x++){
-												delete_rowspan.push({i_dia:i_dia, i_hora:i_hora+x});
-											}
-										}
-
-										//console.log(combinacio[i].sigles_ud+" grup "+combinacio[i].nom_grup+"   setmana: "+fragments[j].setmana+"   ordre:"+fragments[j].ordre);
-										
-										let x_set = (
-												//fragments[j].setmana+fragments[j].ordre+
-												(fragments[j].setmana==null) ? "" : (":s"+fragments[j].setmana
-												+((fragments[j].ordre==null) ? "" : (fragments[j].ordre))
-												)
-											);
-
-										let t = <>
-											<b>{combinacio[i].sigles_ud}</b>
-											<br/>
-											{fragments[j].tpla ? <><span className="text-muted">{(
-												(fragments[j].tpla=="T") ? "(Teoría)" :
-												((fragments[j].tpla=="L") ? "(Lab.)" : "")
-											)}</span><br/></>:""}
-											<span className="text-decoration-underline">
-												{" grup "+combinacio[i].nom_grup}
-											</span>
-											{(x_set!="") ? <><br/>{x_set}</> : ""}
-										</>;
-										text.push(t);
+								if ((fragments[i].dia == i_dia)&&(fragments[i].h_i==hores[i_hora])){
+									if (rowspan == 0){
+										rowspan = 
+										parseInt((fragments[i].h_f).split(":"[0]))
+										-
+										parseInt((fragments[i].h_i).split(":"[0]));
 									}
+									
+									let x_set = (
+										//fragments[i].setmana+fragments[i].ordre+
+										(fragments[i].setmana==null) ? "" : (":s"+fragments[i].setmana
+										+((fragments[i].ordre==null) ? "" : (fragments[i].ordre))
+										)
+									);
+
+									let t = <>
+										<b>{fragments[i].sigles_ud}</b>
+										<br/>
+										{fragments[i].tpla ? <><span className="text-muted">{(
+											(fragments[i].tpla=="T") ? "(Teoría)" :
+											((fragments[i].tpla=="L") ? "(Lab.)" : "")
+										)}</span><br/></>:""}
+										<span className="text-decoration-underline">
+											{" grup "+fragments[i].nom_grup}
+										</span>
+										{(x_set!="") ? <><br/>{x_set}</> : ""}
+									</>;
+									text.push(t);
 								}
+
 							}
+							
 
 							let has_content = text.length;
 							let content = text.map((txt, txt_i) => {return(<>
@@ -1019,6 +1119,14 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 			</Table>
 			
+
+			{(check_later.length>0) ?
+				this.renderTaulaHoraris(combinacio, posició, false, check_later, depth+1)
+				:
+				""
+			}
+
+
 		</>);
 	}
 
