@@ -185,7 +185,8 @@ class InitialScreen extends React.Component {
 		this.mati = {inici:"8:30", fi:"14:30"};
 		this.tarda = {inici:"15:00", fi:"21:00"};
 
-		this.max_assignatures_select = 10;
+		//this.max_assignatures_select = 10;
+		this.max_assignatures_select = 7; //Disseny ¬¬
 		this.min_assignatures_result = 1;
 		this.max_assignatures_result = 7;
 
@@ -420,11 +421,16 @@ class InitialScreen extends React.Component {
 				if (fr1.ordre != fr2.ordre) return false;
 			}
 		}
+		//if( ((fr1.sigles_ud == "INCO-I1O01") || (fr2.sigles_ud == "INCO-I1O01")) && ((fr1.sigles_ud == "FOPR-I1O23") || (fr2.sigles_ud == "FOPR-I1O23")) && ((fr1.dia==4)&&(fr2.dia==4)))
+			//console.log("IT'S HAPPENING");
 
 		//Si hemos llegado hasta aquí sin pasar por return, significa que los dos fragmentos suceden el mismo día de la misma semana (por lo menos 1 semana al mes como mínimo). Solo queda comparar las horas de inicio y fin de cada uno
 
 		let i1 = this.padTimeString(fr1.h_i); let f1 = this.padTimeString(fr1.h_f);
 		let i2 = this.padTimeString(fr2.h_i); let f2 = this.padTimeString(fr2.h_f);
+
+		//Provisional hasta averiguar qué sucede con horesSolapen???
+		if ((i1==i2) && (f1==f2)) return true;
 
 		//console.log("##### inici:   "+i1+"   "+i2);
 		//console.log("######## fi:   "+f1+"   "+f2);
@@ -669,6 +675,28 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 
 
+	eliminaSolapaments(){
+		this.combinacions_possibles = this.combinacions_possibles.filter(combinacio => {
+			let solapa = false;
+			for (let i=0; i<combinacio.length; i++){
+				for (let j=i+1; j<combinacio.length; j++){
+					if (i != j){
+						solapa = this.horarisSolapen(
+							this.assig_grups[combinacio[i].sigles_ud].grups[combinacio[i].nom_grup].fragments,
+							this.assig_grups[combinacio[j].sigles_ud].grups[combinacio[j].nom_grup].fragments,
+						);
+
+						if (solapa){
+							this.discarded_overlap_count++;
+							return !solapa;
+						}
+					}
+				}
+			}
+			return !solapa;
+		})
+	}
+
 
 	posaPuntsAlsMilers(x){
 		return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -683,31 +711,13 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		let tarda = this.tarda;
 
 		this.combinacions_possibles = [];
-		this.discarded_overlap_count = 0;
 		this.total_combinations_count = 0;
 		this.discarded_not_enough_assigns = 0;
+		this.discarded_overlap_count = 0;
 
 		this.creaCombinacionsPossibles([], true);
 
-		this.combinacions_possibles.filter(combinacio => {
-			let solapa = false;
-			for (let i=0; i<combinacio.length; i++){
-				for (let j=0; j<combinacio.length; j++){
-					if (i != j){
-						solapa = this.horarisSolapen(
-							this.assig_grups[combinacio[i].sigles_ud].grups[combinacio[i].nom_grup].fragments,
-							this.assig_grups[combinacio[j].sigles_ud].grups[combinacio[j].nom_grup].fragments,
-						);
-
-						if (solapa){
-							this.discarded_overlap_count++;
-							return false;
-						}
-					}
-				}
-			}
-			return !solapa;
-		})
+		this.eliminaSolapaments();
 		
 		console.log(this.combinacions_possibles);
 
@@ -717,6 +727,72 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		console.log("-----------------------Solapament: "+this.discarded_overlap_count);
 		
 		console.log("Combinacions possibles resultants: "+this.combinacions_possibles.length);
+
+
+
+
+		/*
+		for (let i=0; i<this.combinacions_possibles; i++){
+			this.combinacions_possibles[i]["puntuacions"] = {
+				hores_lliures_aviat_mati: 0,
+				hores_lliures_tard_mati: 0,
+
+				hores_lliures_aviat_tarda: 0,
+				hores_lliures_tard_tarda: 0,
+
+				hores_mortes: 0,
+
+				dies_lliures_principi_setmana: 0,
+				dies_lliures_enmig_setmana: 0,
+				dies_lliures_final_setmana: 0,
+
+				FINAL: 0
+			}
+			
+			//Aquí evaluaremos en una primera pasada y con valores en sucio las puntuaciones pertinentes
+
+			//////
+
+		}
+		//Aquí procederemos al cómputo de las puntuaciones pertinentes sobre la puntuación máxima conseguida en cada campo, y a ponderarlas unidas en una puntuación final
+		let max_puntuacions = {
+			hores_lliures_aviat_mati: 0,
+			hores_lliures_tard_mati: 0,
+
+			hores_lliures_aviat_tarda: 0,
+			hores_lliures_tard_tarda: 0,
+
+			hores_mortes: 0,
+
+			dies_lliures_principi_setmana: 0,
+			dies_lliures_enmig_setmana: 0,
+			dies_lliures_final_setmana: 0,
+
+			FINAL: 0
+		}
+
+		for (let i=0; i<this.combinacions_possibles; i++){
+			this.combinacions_possibles[i]["puntuacions"] = {
+				hores_lliures_aviat_mati: 0,
+				hores_lliures_tard_mati: 0,
+
+				hores_lliures_aviat_tarda: 0,
+				hores_lliures_tard_tarda: 0,
+
+				hores_mortes: 0,
+
+				dies_lliures_principi_setmana: 0,
+				dies_lliures_enmig_setmana: 0,
+				dies_lliures_final_setmana: 0,
+
+				FINAL: 0
+			}
+		}
+
+		this.combinacions_possibles.sort((a, b) => (a.puntuacions.FINAL - b.puntuacions.FINAL));
+		*/
+
+
 
 
 
@@ -734,12 +810,31 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 			</>:<>
 
 				{this.total_combinations_count==1 ? (""):("")}
-				D'entre les {(this.total_combinations_count-this.discarded_not_enough_assigns+this.discarded_overlap_count)==1?"(només 1)":this.posaPuntsAlsMilers(this.total_combinations_count-this.discarded_not_enough_assigns+this.discarded_overlap_count)} possibles combinacions de grups trobades per a {this.preferencies.max_assignatures} {this.preferencies.max_assignatures==1?"assignatura":"assignatures"}, s'ha{this.discarded_overlap_count==1?"":"n"} descartat {this.posaPuntsAlsMilers(this.discarded_overlap_count)} per solapament.
+
+				{"D'entre les "}
+				{(this.total_combinations_count-this.discarded_not_enough_assigns)==1?"(només 1)":this.posaPuntsAlsMilers(this.total_combinations_count-this.discarded_not_enough_assigns)}
+				{" possibles combinacions de grups trobades per a "}
+				{this.preferencies.max_assignatures}
+				{this.preferencies.max_assignatures==1?" assignatura":" assignatures"}
+				{", s'ha"}{this.discarded_overlap_count==1?"":"n"} 
+				{" descartat "}
+				{this.posaPuntsAlsMilers(this.discarded_overlap_count)}
+				{" per solapament."}
+
 				<br/><br/>
+				
 				{this.combinacions_possibles.length==1?
-				"Només resta una sola combinació d'horaris possible, que es la que mostrem a continuació"
+					"Només resta una sola combinació d'horaris possible, que es la que mostrem a continuació"
 				:
-				"D'entre les "+this.posaPuntsAlsMilers(this.combinacions_possibles.length)+" combinacions no descartades, mostrem les "+(Math.min(this.preferencies.max_horaris, this.combinacions_a_mostrar.length))+" millors a continuació:"
+					"D'entre les "+
+					
+					this.posaPuntsAlsMilers(this.combinacions_possibles.length)
+					
+					+" combinacions no descartades, mostrem les "+
+
+					(Math.min(this.preferencies.max_horaris, this.combinacions_a_mostrar.length))
+					
+					+" millors a continuació:"
 				}
 				<br/>
 
