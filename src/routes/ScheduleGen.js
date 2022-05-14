@@ -355,7 +355,11 @@ class InitialScreen extends React.Component {
 					if (hi_ha_hores_no_comunes){
 						//Hacemos push de todos los fragmentos comunes al grupo actual
 						for (let j=0; j<fragments_horaris.length; j++){
-							if(fragments_horaris[j].codgrup.length==3){
+							if(
+								(fragments_horaris[j].codgrup.length==3)
+								&&
+								(fragments_horaris[j].codgrup == fragments_horaris[i].codgrup.slice(0,3))
+							){
 								this.assig_grups[sigles_ud].grups[fragments_horaris[i].codgrup]["fragments"].push(
 									fragments_horaris[j]
 								);
@@ -803,11 +807,11 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		
 
 		this.horaris_render = <>
-			{this.combinacions_a_mostrar.length == 0 ? <>
+			{/*this.combinacions_a_mostrar.length == 0 ? <>
 				No hi ha cap horari possible que mostrar...
 				<br/>
 				Prova a canviar la teva selecció i/o els paràmetres introduïts.
-			</>:<>
+			</>:*/<>
 
 				{this.total_combinations_count==1 ? (""):("")}
 
@@ -982,6 +986,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 								-
 								parseInt((frags[i].h_i).split(":"[0]))
 							;
+							if((rowspan==1) && ((frags[i].setmana!=null) || (frags[i].ordre!=null))) console.log("ROWSPAN DE 1h: "+frags[i].sigles_ud+"   "+frags[i].nom_grup+"   "+hores[i_hora]);
 
 							for (let x=0; x<rowspan; x++){
 
