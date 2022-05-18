@@ -1,6 +1,7 @@
 import React from 'react';
 import { useEffect } from 'react';
 import {API_address} from '../libraries/API_address';
+import * as html2canvas from 'html2canvas';
 //import ReactDOM from 'react-dom';
 import { Routes, Route, Link, useHistory, useNavigate } from "react-router-dom";
 
@@ -847,7 +848,53 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 					this.combinacions_a_mostrar.map((combinacio, i) => {
 						return(<>
 							<br/><br/><br/>
+							<p className="text-end mb-0">
+								<Button
+									className="pt-0 position-relative shadow border-dark" style={{right:"-0.25rem", bottom:"0"}}
+									size="sm"
+									onClick={()=>{
+										html2canvas( window.document.getElementById("horari_"+(i+1)),{scale:2.5} ).then(canvas => {
+											//window.document.body.appendChild(canvas);
+
+											let date = new Date();
+
+											//["∶","˸","﹕", "᠄", "：", "︓"].forEach(x=>{console.log("12"+x+"34"+x+"56")})
+											let datestring = date.getFullYear()
+											+"-"
+											+(("0"+date.getMonth()).slice(-2))
+											+"-"
+											+(("0"+date.getDate()).slice(-2))
+											+"_"
+											+(("0"+date.getHours()).slice(-2))
+											+"∶"
+											+(("0"+date.getMinutes()).slice(-2))
+											+"∶"
+											+(("0"+date.getSeconds()).slice(-2))
+											;
+											
+											const image = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream');
+											const a = document.createElement('a');
+											a.setAttribute('download', "Horari ViGtory #"+(i+1)+" "+datestring+".png");
+											a.setAttribute('href', image);
+											a.click();
+										})
+										}
+									}
+								>
+									<span className="d-inline-flex align-content-center">
+										{
+										//📸&#xFE0E;
+										//<h5 className="d-inline my-0 text-decoration-underline">⇩</h5>
+										}
+										<h3 className="d-inline my-0">📷&#xFE0E;</h3>
+										&nbsp;
+										<span className="pt-1 align-self-center">{" Captura #"+(i+1)}</span>
+									</span>
+								</Button>
+							</p>
+							<div id={"horari_"+(i+1)}>
 							{this.renderTaulaHoraris(combinacio, i+1, true, [], 0)}
+							</div>
 						
 						</>);
 					})
@@ -898,14 +945,18 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 	}
 
 
-	renderTaulaHoraris(combinacio, posició, checkAll_T_onlyNext_F, check_next, depth){
+	renderTaulaHoraris(combinacio, posicio, checkAll_T_onlyNext_F, check_next, depth){
 
 		//if ((!checkAll_T_onlyNext_F) && check_next.length==0) return(<></>);
+
+		console.log(posicio+" "+depth);
+		console.log(check_next);
+
 
 		let mati = this.mati;
 		let tarda = this.tarda;
 		let hores = [];
-		let dies = [(checkAll_T_onlyNext_F?("#"+posició):""), "Dilluns", "Dimarts", "Dimecres", "Dijous", "Divendres"];
+		let dies = [(checkAll_T_onlyNext_F?("#"+posicio):""), "Dilluns", "Dimarts", "Dimecres", "Dijous", "Divendres"];
 
 
 		let nomes_i_dies = [...Array(dies.length).keys()].splice(1);
@@ -913,14 +964,14 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 		let check_later = [];
 		//{dia, hora}
-
+		//let check_later = false;
 
 
 		//Creamos una lista de fragmentos para facilitar la manipulación en caso de solapamientos visuales de asignaturas que no empiecen y acaben a la vez
 		let fragments = [];
 		for (let i=0; i<combinacio.length; i++){
 			(this.assig_grups[combinacio[i].sigles_ud].grups[combinacio[i].nom_grup].fragments).forEach(frag => {
-				if (
+				/*if (
 						checkAll_T_onlyNext_F 
 					|| 
 					( 
@@ -928,11 +979,11 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 						&& 
 							(check_next.some(chk => ( (frag.dia == chk.dia) && (frag.h_i == chk.hora) ) )) 
 					)
-				){
+				){*/
 					let f = {...frag};
 					f["nom_grup"] = combinacio[i].nom_grup;
 					fragments.push(f);
-				}
+				//}
 			});
 		}
 
@@ -940,66 +991,158 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		//	fragments = fragments.filter(frag => (check_next.some(chk => ( (frag.dia == chk.dia) && (frag.h_i == chk.hora) ) )));
 
 
+		//Para probar que se renderiza todo bien:
+		//el caso de 8:30-11:30 lo hace bien
+		//el caso de 9:30-10:30 NO lo hace bien
+		//el caso de 9:30-11:30 aún está por probar ??????
+		//let test_hi = [["8:30", "10:30"], ["9:30", "11:30"], ["10:30", "12:30"]];
+		let test_hi = [
+			//["8:30", "11:30"], 
+			["9:30", "10:30"], 
+			//["9:30", "11:30"]
+		];
+		for (let i=0; i<test_hi.length; i++){
+			fragments.push({
+				anyaca: 2021,
+				codgrup: "N10",
+				dia: 2,
+				grau: "N",
+				//h_f: "10:30",
+				//h_i: "8:30",
+				h_f: test_hi[i][1],
+				h_i: test_hi[i][0],
+				nom: "SOSTENIBILITAT I ACCESSIBILITAT",
+				ordre: null,
+				quadri: 1,
+				setmana: 2,
+				sigles_ud: "MIAUMIAU_"+i,
+				tpla: "T",
+				nom_grup: "PRUEBA",
+				codaul: "VGX012"
+			})
+		}
 
 
-		//ROWSPAN FALLA CUANDO SOLO HAY ASIGNATURAS DE TARDE; CUANDO HAY ASIGNATURAS DE MAÑANA, O DE MAÑANA+TARDE FUNCIONA BIEN...!!!
-		//........Vale, no es solo en ausencia de asignaturas por la mañana; probando con FOPR y todas las asignaturas del curso 2 se fastidia igual...
-		//Es posible que el problema aparezca cuando no hay asignaturas a las 8:30????
-
-
-
-		//Parece que rowspan está arreglado(???)
-		//NUEVO PROBLEMA. Parece ser que no se muestra la franja horaria del último fragmento en ser leído!!!
 
 		let HoraMinHoraMax = this.determinaHoraMinHoraMax(mati, tarda, fragments)
 		hores = this.makeHoresList(mati, tarda, HoraMinHoraMax[0], HoraMinHoraMax[1]);
+
+		let hora_i = null;
+		let hora_f = null;
+
 
 		nomes_i_dies.map(i_dia=>{
 
 			[...Array(hores.length-1).keys()].map(i_hora=>{
 
+				hora_i = hores[i_hora];
+
+				if ( check_later.some(chk => ( (chk.dia==i_dia) && (chk.hora==hora_i) )) ) return;
 
 				//Buscamos todos los fragmentos que empiecen en este mismo día y hora
-				let frags = fragments.filter(frag=>( (frag.dia == i_dia) && (frag.h_i == hores[i_hora]) ));
+				let frags = fragments.filter(frag=>( 
+					(frag.dia == i_dia) && 
+					(
+						(this.padTimeString(frag.h_i) == this.padTimeString(hores[i_hora])) 
+						//&& (this.padTimeString(frag.h_f) < this.padTimeString(hores[i_hora]))
+					) ));
 
-				//Buscamos las horas a las que acaban estos fragmentos, para encontrar si son diversas o si siempre es la misma
+				//Buscamos las horas (unique, sin repetición) a las que acaban estos fragmentos, para encontrar si son diversas o si siempre es la misma
 				let hores_f = frags.reduce((a, d)=>{
 					if (a.indexOf(d.h_f) === -1) {
 						a.push(d.h_f);
 					}
 					return a;
 				}, []);
+				//Ordenamos de mayor duración a menor duración para mostrar primero aquellos fragmentos que sean de mayor tamaño
+				hores_f = hores_f.sort((a,b)=>{return ( (this.padTimeString(a)<this.padTimeString(b)) ? 1 : -1 )});
+
+				//Determinamos el final del rango de horas que nos interesa comprobar, quedándonos únicamente con la hora de fin que corresponda a la profundidad de la tabla que estemos explorando en este momento (si no hay horas para esta profundidad, recibiremos un undefined)
+				hora_f = hores_f.slice(depth, depth+1)[0]; //No usamos splice porque alteraría la original
+
+				//Eliminamos todos los fragmentos que ya hayamos explorado en profundidades anteriores
+				let hores_f_explored = [...hores_f].reverse();
+				if (hora_f){//A partir de índice, si lo hay; de lo contrario, todo
+					hores_f_explored = hores_f_explored.slice(hores_f_explored.indexOf(hora_f)+1);
+				}
+				fragments = fragments.filter(frag => !(
+						(frag.dia==i_dia)
+					&&
+						( (frag.h_i == hora_i) && (hores_f_explored.some(h=>(h == frag.h_f))) )
+					)
+				);
 				
+
 				//Si reconocemos horas a una profundidad visualizable
-				if (depth < hores_f.length){
+				if (hora_f){
+
+					//Filtramos aquellos fragmentos que, para el mismo día, no tienen exactamente los mismos principio y final combinados que los que hemos elegido para mostrar en esta profundidad, pero sí tiene un principio comprendido entre el principio y el final elegidos
+					let filtering = (frag) => (  (
+						(frag.dia==i_dia)
+					&&
+						( (frag.h_i != hora_i) && (frag.h_f != hora_f) )
+					&&
+						( 
+								(this.padTimeString(frag.h_i) >= this.padTimeString(hores[i_hora])) 
+							&& 
+								(this.padTimeString(frag.h_i) < this.padTimeString(hora_f)) 
+						)
+					) ? true : false  );
+
+					//if ( fragments.some(frag => filtering(frag)) ) check_later = true;
+
+					fragments.filter(frag => filtering(frag))
+					.forEach(frag => {
+						if (  !check_later.some(chk => ( (chk.dia==i_dia) && (chk.hora==frag.h_i) ))  ){
+							check_later.push({dia:i_dia, hora:frag.h_i});
+						}
+					});
+					//Eliminamos los fragmentos que no vamos a mostrar de la iteración actual
+					fragments = fragments.filter(frag => !filtering(frag));
+
+
+					let rowspan = hores.indexOf(hora_f) - hores.indexOf(hora_i);
+					for (let x=/*0*/1; x<rowspan; x++){
+						//if (x>0) 
+							delete_rowspan.push({dia:i_dia, hora:hores[i_hora+x]});
+
+					}
+
+					
+					
+					/*
 					//Eliminamos el resto de fragmentos que empiecen al mismo día y hora pero acaben a hora distinta a la que corresponde a nuestro nivel de profundidad
 					fragments = fragments.filter(frag => !(  ( (frag.dia == i_dia) && (frag.h_i == hores[i_hora]) ) && (frag.h_f != hores_f[depth])  ) );
 
-
 					let rowspan = 0;
-					frags = fragments.filter(frag=>( (frag.dia == i_dia) && (frag.h_i == hores[i_hora]) ));
+					frags = fragments.filter(frag=>( (frag.dia == i_dia) && (frag.h_i == hores[i_hora]) 
+					//&& (!check_later.some(x=>( (x.dia==i_dia) && (x.hora==hores[i_hora]) )))*
+					));
 
 					for (let i=0; i<frags.length; i++){
 						if (rowspan == 0){
 							rowspan = 
-								parseInt((frags[i].h_f).split(":"[0]))
+								hores.indexOf(frags[i].h_f) //parseInt((frags[i].h_f).split(":"[0]))
 								-
-								parseInt((frags[i].h_i).split(":"[0]))
+								hores.indexOf(frags[i].h_i) //parseInt((frags[i].h_i).split(":"[0]))
 							;
 							if((rowspan==1) && ((frags[i].setmana!=null) || (frags[i].ordre!=null))) console.log("ROWSPAN DE 1h: "+frags[i].sigles_ud+"   "+frags[i].nom_grup+"   "+hores[i_hora]);
+							if((rowspan==3) && ((frags[i].setmana!=null) || (frags[i].ordre!=null))) console.log("ROWSPAN DE 3h: "+frags[i].sigles_ud+"   "+frags[i].nom_grup+"   "+hores[i_hora]);
 
 							for (let x=0; x<rowspan; x++){
 
 								if ((hores_f.length-1-depth) > 0)
-									check_later.push({dia:i_dia, hora:hores[i_hora]});
+									check_later.push({dia:i_dia, hora:hores[i_hora+x]});
 
-								if (x>0) 
+								if ( (x>0) 
+								//&& (!check_later.some(x=>( (x.dia==i_dia) && (x.hora==hores[i_hora]) )))
+								) 
 									delete_rowspan.push({i_dia:i_dia, i_hora:i_hora+x});
 
 							}
 						}
 					}
-
+					*/
 
 				}
 
@@ -1010,9 +1153,11 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 
 
+		//Hacemos efectivo el filtrado definitivo de los fragmentos cuya exploración vamos a dejar para 
+		//fragments = fragments.filter(frag => !(check_later.some(chk => ( (frag.dia==chk.dia) && (frag.h_i==chk.hora) )  )));
 
 		//Determinamos el rango de horas a mostrar en la tabla final (para ahorrarnos imprimir filas vacías)
-		HoraMinHoraMax = this.determinaHoraMinHoraMax(mati, tarda, fragments)
+		HoraMinHoraMax = this.determinaHoraMinHoraMax(mati, tarda, fragments);
 		//Lista de horas final a imprimir vía tabla
 		hores = this.makeHoresList(mati, tarda, HoraMinHoraMax[0], HoraMinHoraMax[1]);
 
@@ -1028,7 +1173,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		<>
 			{checkAll_T_onlyNext_F ? "" : 
 			<>
-				<br/><br/>
+				
 			</>
 			}
 
@@ -1063,14 +1208,19 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 									let rowspan = 0;
 									
 
+
+
 									for (let i=0; i<fragments.length; i++){
 
+
 										if ((fragments[i].dia == i_dia)&&(fragments[i].h_i==hores[i_hora])){
+
 											if (rowspan == 0){
 												rowspan = 
-												parseInt((fragments[i].h_f).split(":"[0]))
+												/*parseInt((fragments[i].h_f).split(":"[0]))
 												-
-												parseInt((fragments[i].h_i).split(":"[0]));
+												parseInt((fragments[i].h_i).split(":"[0]));*/
+												hores.indexOf(fragments[i].h_f) - hores.indexOf(fragments[i].h_i);
 											}
 											
 											let x_set = (
@@ -1083,11 +1233,16 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 											let t = <>
 												<b>{fragments[i].sigles_ud}</b>
 												<br/>
+												<span className="fst-italic">{fragments[i].codaul ? fragments[i].codaul : "VG?---"}</span>
+												<br/>
 												{fragments[i].tpla ? <><span className="text-muted">{(
 													(fragments[i].tpla=="T") ? "(Teoría)" :
 													((fragments[i].tpla=="L") ? "(Lab.)" : "")
 												)}</span><br/></>:""}
-												<span className="text-decoration-underline">
+												<span style={{
+													textDecorationLine:"underline",
+													//textDecorationStyle:"dotted"
+													}}>
 													{" grup "+fragments[i].nom_grup}
 												</span>
 												{(x_set!="") ? <><br/>{x_set}</> : ""}
@@ -1114,7 +1269,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 									
 									return(
 									
-									(delete_rowspan.some(del_cell => ( (del_cell.i_dia == i_dia)&&(del_cell.i_hora==i_hora) )))?<></>:
+									(delete_rowspan.some(del_cell => ( (del_cell.dia == i_dia)&&(del_cell.hora==hores[i_hora]) )))?<></>:
 									<td className="w-auto border-1" rowSpan={has_content ? rowspan.toString():"1"} style={
 										(this.padTimeString(hores[i_hora]) == this.padTimeString(mati.fi))?
 									{backgroundColor:"#cccccc", borderColor:"#30577b", border:"solid"}
@@ -1142,7 +1297,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 			
 
 			{(check_later.length>0) ?
-				this.renderTaulaHoraris(combinacio, posició, false, check_later, depth+1)
+				//check_later ?
+				this.renderTaulaHoraris(combinacio, posicio, false, check_later, depth+1)
 				:
 				""
 			}
