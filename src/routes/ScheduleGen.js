@@ -894,6 +894,49 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 							</p>
 							<div id={"horari_"+(i+1)}>
 							{this.renderTaulaHoraris(combinacio, i+1, true, [], 0)}
+
+
+
+							<Table style={{tableLayout:"fixed", width:"100%", borderCollapse:"collapse"}}>
+								<thead>
+									<tr>
+										<th style={{backgroundColor:"#3488bb", color:"white", width:"auto", border:"1px solid #30577b", width:"75%"}}>
+											{"Assignatures"}
+										</th>
+										<th style={{backgroundColor:"#3488bb", color:"white", width:"auto", border:"1px solid #30577b", width:"25%"}}>
+											{"Grups"}
+										</th>
+									</tr>
+								</thead>
+
+								<tbody>
+									{combinacio.sort((a,b)=>(a.sigles_ud<b.sigles_ud)).map(comb => {
+									
+									let nom_assig = this.pool_flagged.filter(assig => assig.sigles_ud==comb.sigles_ud)[0].nom;
+
+									return(
+									<tr>
+										<td className="text-start py-1" style={{backgroundColor:"#eef5ff", borderColor:"#30577b", border:"solid", borderWidth:"1px"}}>
+											<span className="text-break me-2">
+											<b>{comb.sigles_ud}</b>
+											<br/>
+											&nbsp;&nbsp;&nbsp;
+											{"  ⤷ "+nom_assig}
+										</span>
+										</td>
+										<td style={{backgroundColor:"#eef5ff", borderColor:"#30577b", border:"solid", borderWidth:"1px", verticalAlign:"middle"}}>
+											{comb.nom_grup}
+										</td>
+									</tr>
+									);})}
+									
+								</tbody>
+							</Table>
+
+
+
+
+								
 							</div>
 						
 						</>);
