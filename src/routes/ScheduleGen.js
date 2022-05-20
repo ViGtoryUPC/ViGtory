@@ -987,15 +987,14 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		return hores;
 	}
 
+	hourStringToValue(str){
+		let s = str.split(":");
+		return ( parseInt(s[0]) + parseInt(s[1])/60 );
+	}
 
-	renderTaulaHoraris(combinacio, posicio, checkAll_T_onlyNext_F, check_next/*, depth*/){
+	renderTaulaHoraris(combinacio, posicio, checkAll_T_onlyNext_F, check_next){
 
-		//if ((!checkAll_T_onlyNext_F) && check_next.length==0) return(<></>);
-
-		//console.log(posicio+" "+depth);
-		//console.log(check_next);
-
-
+		
 		let mati = this.mati;
 		let tarda = this.tarda;
 		let hores = [];
@@ -1006,23 +1005,12 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		let delete_rowspan = [];
 
 		let check_later = [];
-		//{dia, hora}
-		//let check_later = false;
 
 
 		//Creamos una lista de fragmentos para facilitar la manipulación en caso de solapamientos visuales de asignaturas que no empiecen y acaben a la vez
 		let fragments = [];
 		for (let i=0; i<combinacio.length; i++){
 			(this.assig_grups[combinacio[i].sigles_ud].grups[combinacio[i].nom_grup].fragments).forEach(frag => {
-				/*if (
-						checkAll_T_onlyNext_F 
-					|| 
-					( 
-							(!checkAll_T_onlyNext_F) 
-						&& 
-							(check_next.some(chk => ( (frag.dia == chk.dia) && (frag.h_i == chk.hora) ) )) 
-					)
-				){*/
 					let f = {...frag};
 					f["nom_grup"] = combinacio[i].nom_grup;
 					fragments.push(f);
@@ -1030,8 +1018,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 			});
 		}
 
-		//if (!checkAll_T_onlyNext_F)
-		//	fragments = fragments.filter(frag => (check_next.some(chk => ( (frag.dia == chk.dia) && (frag.h_i == chk.hora) ) )));
+		
 
 
 		//Para probar que se renderiza todo bien:
@@ -1039,6 +1026,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		//el caso de 9:30-10:30 NO lo hace bien
 		//el caso de 9:30-11:30 aún está por probar ??????
 		//let test_hi = [["8:30", "10:30"], ["9:30", "11:30"], ["10:30", "12:30"]];
+		/*
 		let test_hi = [
 			["8:30", "10:30"], 
 			["8:30", "11:30"], 
@@ -1065,16 +1053,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				codaul: "VG🐱"
 			})
 		}
-		//Con la entrada ["8:30", "11:30"], se agrupa junto a la que termina a las 10:30. MAL
-
-		//Con la entrada ["9:30", "10:30"], no hay duplicados, pero tampoco hace siquiera acto de presencia. MAL
-
-		//Con la entrada ["9:30", "11:30"], no hay duplicados, pero tampoco hace siquiera acto de presencia, y además intenta renderizar una segunda tabla pero esta no tiene filas siquiera. MAL
-
-		//Con una combinación de las entradas ["9:30", "10:30"] y ["9:30", "11:30"], aparece la entrada de las ["9:30", "10:30"] en una tabla secundaria como cabría esperar, pero la entrada de las ["9:30", "11:30"] no hace acto de presencia
-
-		//Con una combinación de las entradas, duplica el primer fragmento (real)
-
+		*/
 
 
 		let HoraMinHoraMax = this.determinaHoraMinHoraMax(mati, tarda, fragments)
@@ -1091,20 +1070,11 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 				hora_i = hores[i_hora];
 
-				//if ( check_later.some(chk => ( (chk.dia==i_dia) && (chk.hora==hora_i) )) ) return;
 
 				//Buscamos todos los fragmentos que empiecen en este mismo día y hora
 				let frags = fragments.filter(frag=>( 
-					(frag.dia == i_dia) && 
-					(
-						(frag.h_i == hora_i) 
-						//&& (this.padTimeString(frag.h_f) < this.padTimeString(hores[i_hora]))
-					) 
+					(frag.dia == i_dia) && (frag.h_i == hora_i) 
 				));
-				/*if (frags.length>0){
-					if (posicio==1){console.log("depth: "+depth+"      dia: "+i_dia+"    h_i: "+hora_i);}
-					if (posicio==1){console.log(frags);}
-				}*/
 
 				//Buscamos las horas (unique, sin repetición) a las que acaban estos fragmentos, para encontrar si son diversas o si siempre es la misma
 				let hores_f = frags.reduce((a, d)=>{
@@ -1115,13 +1085,15 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				}, []);
 				//Ordenamos de mayor duración a menor duración para mostrar primero aquellos fragmentos que sean de mayor tamaño
 				hores_f = hores_f.sort((a,b)=>{return ( (this.padTimeString(a)<this.padTimeString(b)) ? 1 : -1 )});
+
+				//Priorizamos los segmentos de 2 horas de duración porque son los más frecuentes (y por lo tanto tienen mayores probabilidades de solaparse con segmentos de la misma duración), y nuestro interés es mostrar la máxima cantidad de información posible a la menor profundidad posible
+				let priority_len = 2;
+				let getDuration = (hora_fi) => {
+					return (this.hourStringToValue(hora_fi)-this.hourStringToValue(hora_i));
+				}
+				hores_f = hores_f.sort((a,b)=>{return (  ( (getDuration(a) == priority_len) ? -1 : ((getDuration(b) == priority_len) ? 1 : 0) )  );});
 				
-				/*if (hores_f.length>0){
-					if (posicio==1){console.log("depth: "+depth+"      dia: "+i_dia+"    h_i: "+hora_i);}
-					if (posicio==1){console.log(hores_f.toString());}
-				}*/
 				//Determinamos el final del rango de horas que nos interesa comprobar, quedándonos únicamente con la hora de fin que corresponda a la profundidad de la tabla que estemos explorando en este momento (si no hay horas para esta profundidad, recibiremos un undefined)
-				//hora_f = hores_f.slice(depth, depth+1)[0]; //No usamos splice porque alteraría la original
 				let depth = 0;
 
 				if (!checkAll_T_onlyNext_F){
@@ -1132,79 +1104,14 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 				hora_f = hores_f.slice(depth, depth+1)[0]; //No usamos splice porque alteraría la original
 
-				//Eliminamos todos los fragmentos que ya hayamos explorado en profundidades anteriores
-				//let hores_f_explored = [...hores_f].reverse();
-				/*if (hora_f){//A partir de índice, si lo hay; de lo contrario, todo
-					hores_f_explored = hores_f_explored.slice(hores_f_explored.indexOf(hora_f)+1);
-				}
-				fragments = fragments.filter(frag => {
-					if (frag.dia != i_dia) return true;
-					
-					if (frag.h_i != hora_i) return true;
-
-					//Si empieza a la hora_i actual y termina con una de las horas finales ya exploradas para esta hora actual, se descarta
-					if (hores_f_explored.some(h => (h == frag.h_f))) return false;
-
-					return true;
-				}*/
-					
-					
-					/*!(
-						(frag.dia==i_dia)
-					&&
-						( (frag.h_i == hora_i) && (hores_f_explored.some(h=>(h == frag.h_f))) )
-					)*/
-				//);
+				
 				
 
 				//Si reconocemos horas a una profundidad visualizable
-				if (hora_f /*!= undefined*/){
+				if (hora_f){
 
 					//Filtramos aquellos fragmentos que, para el mismo día, no tienen exactamente los mismos principio y final combinados que los que hemos elegido para mostrar en esta profundidad, pero sí tiene un principio comprendido entre el principio y el final elegidos
-					/*let filtering = (frag) => (  (
-						(frag.dia==i_dia)
-					&&
-						(!( (frag.h_i == hora_i) && (frag.h_f == hora_f) ))
-					&&
-						( 
-								(this.padTimeString(frag.h_i) >= this.padTimeString(hores[i_hora])) 
-							&& 
-								(this.padTimeString(frag.h_i) < this.padTimeString(hora_f)) 
-						)
-					) ? true : false  );
-
-					//if ( fragments.some(frag => filtering(frag)) ) check_later = true;
-
-					fragments.filter(frag => filtering(frag))
-					.forEach(frag => {
-						if (  !check_later.some(chk => ( (chk.dia==i_dia) && (chk.hora==frag.h_i) ))  ){
-							check_later.push({dia:i_dia, hora:frag.h_i});
-						}
-					});
-					//Eliminamos los fragmentos que no vamos a mostrar de la iteración actual
-					fragments = fragments.filter(frag => !filtering(frag));*/
-
-
-
-/*
-					hores_f_explored = hores_f_explored.slice(hores_f_explored.indexOf(hora_f)+1);
 					
-					fragments = fragments.filter(frag => {
-						if (frag.dia != i_dia) return true;
-						
-						if (frag.h_i != hora_i) return true;
-
-						//Si empieza a la hora_i actual y termina con una de las horas finales ya exploradas para esta hora actual, se descarta
-						if (hores_f_explored.some(h => (h == frag.h_f))) return false;
-
-						return true;
-					}
-					);
-*/
-
-
-					//hores_f_explored = hores_f_explored.slice(hores_f_explored.indexOf(hora_f)+1);
-					//hores_f_explore_later = hores_f.slice(hores_f_explored.indexOf(hora_f)+1);
 
 					let rowspan = hores.indexOf(hora_f) - hores.indexOf(hora_i);
 
@@ -1214,32 +1121,12 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 							
 							if (frag.dia != i_dia) return true;
 
-							//if ((frag.h_i==hora_i) && (frag.h_f==hora_f)) return true;
-
-							//if ((frag.h_i==hora_i) && hores_f_explored.some(h => (h == frag.h_f))) return false;
-
-
-							/*if (frag.h_i==hora_i){
-								if (frag.h_f == hora_f) return true;
-								else{
-									//check_later.push({dia:i_dia, hora:frag.h_i});
-									return false;
-								}
-
-								//if (hores_f_explored.some(h => (h == frag.h_f))) return false;
-								//if (hores_f_explore_later.some(h => (h == frag.h_f))) return false;
-							}*/
-
 							
-
-							//let hora_added = hores[hores.indexOf(hora_i)+x];
 
 							let hora_added = hores[i_hora+x];
 
-							if (  (frag.h_i == hora_added) //&& 
-								//(this.padTimeString(frag.h_i) < this.padTimeString(hora_f)) 
+							if (frag.h_i == hora_added){
 
-							){
 								if (!( (frag.h_i == hora_i) && (frag.h_f == hora_f) )){
 
 									let d = 0;
@@ -1250,6 +1137,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 									}
 									if (frag.h_i == hora_i) d+=1;
 
+									//Eliminamos los fragmentos que no vamos a mostrar de la iteración actual, guardando una referencia a ellos para la siguiente
 									check_later.push({dia:i_dia, hora:frag.h_i, depth: d});
 									return false;
 								}
@@ -1261,51 +1149,13 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 						});
 					}
 
-
-
-					for (let x=1/*0*/; x<rowspan; x++){
-						//if (x>0) 
+					//Marcamos las casillas que no vamos a renderizar en la tabla final
+					for (let x=1; x<rowspan; x++){
 							delete_rowspan.push({dia:i_dia, hora:hores[i_hora+x]});
-
 					}
-
 					
-					
-					/*
-					//Eliminamos el resto de fragmentos que empiecen al mismo día y hora pero acaben a hora distinta a la que corresponde a nuestro nivel de profundidad
-					fragments = fragments.filter(frag => !(  ( (frag.dia == i_dia) && (frag.h_i == hores[i_hora]) ) && (frag.h_f != hores_f[depth])  ) );
-
-					let rowspan = 0;
-					frags = fragments.filter(frag=>( (frag.dia == i_dia) && (frag.h_i == hores[i_hora]) 
-					//&& (!check_later.some(x=>( (x.dia==i_dia) && (x.hora==hores[i_hora]) )))*
-					));
-
-					for (let i=0; i<frags.length; i++){
-						if (rowspan == 0){
-							rowspan = 
-								hores.indexOf(frags[i].h_f) //parseInt((frags[i].h_f).split(":"[0]))
-								-
-								hores.indexOf(frags[i].h_i) //parseInt((frags[i].h_i).split(":"[0]))
-							;
-							if((rowspan==1) && ((frags[i].setmana!=null) || (frags[i].ordre!=null))) console.log("ROWSPAN DE 1h: "+frags[i].sigles_ud+"   "+frags[i].nom_grup+"   "+hores[i_hora]);
-							if((rowspan==3) && ((frags[i].setmana!=null) || (frags[i].ordre!=null))) console.log("ROWSPAN DE 3h: "+frags[i].sigles_ud+"   "+frags[i].nom_grup+"   "+hores[i_hora]);
-
-							for (let x=0; x<rowspan; x++){
-
-								if ((hores_f.length-1-depth) > 0)
-									check_later.push({dia:i_dia, hora:hores[i_hora+x]});
-
-								if ( (x>0) 
-								//&& (!check_later.some(x=>( (x.dia==i_dia) && (x.hora==hores[i_hora]) )))
-								) 
-									delete_rowspan.push({i_dia:i_dia, i_hora:i_hora+x});
-
-							}
-						}
-					}
-					*/
-
 				}
+				//En caso de no haber una profundidad visualizable (no hay fragmentos que empiecen a esta hora, o ya hemos recorrido todas las profundidades para los fragmentos que empiezan a esta hora), eliminamos todos los fragmentos que empiecen a esta hora
 				else{
 					fragments = fragments.filter(frag => {
 							
@@ -1322,9 +1172,6 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 
 
-
-		//Hacemos efectivo el filtrado definitivo de los fragmentos cuya exploración vamos a dejar para 
-		//fragments = fragments.filter(frag => !(check_later.some(chk => ( (frag.dia==chk.dia) && (frag.h_i==chk.hora) )  )));
 
 		//Determinamos el rango de horas a mostrar en la tabla final (para ahorrarnos imprimir filas vacías)
 		HoraMinHoraMax = this.determinaHoraMinHoraMax(mati, tarda, fragments);
