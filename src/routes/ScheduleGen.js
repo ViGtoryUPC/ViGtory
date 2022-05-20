@@ -1,11 +1,12 @@
 import React from 'react';
 import { useEffect } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import {API_address} from '../libraries/API_address';
 import * as html2canvas from 'html2canvas';
 //import ReactDOM from 'react-dom';
 import { Routes, Route, Link, useHistory, useNavigate } from "react-router-dom";
 
-import { Accordion, Button, Form, FloatingLabel, ListGroup, Card, Table } from 'react-bootstrap';
+import { Accordion, Button, Form, FloatingLabel, ListGroup, Card, Table, Spinner } from 'react-bootstrap';
 import { useAccordionButton } from 'react-bootstrap/AccordionButton';
 
 import NavBar from "../components/NavBar";
@@ -213,6 +214,7 @@ class InitialScreen extends React.Component {
 
 
 		this.combinacions_possibles = [];
+		this.need_recompute = true;
 	}
 
 
@@ -680,6 +682,163 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 
 
+
+
+
+
+
+
+
+	creaCombinacionsPossiblesIteratiu(){
+
+		let pool_flagged = [...this.pool_flagged];
+		pool_flagged = pool_flagged.sort((a,b)=>{
+			//return (  ( (this.assig_grups[a.sigles_ud].conviccio) ? -1 : ((this.assig_grups[b.sigles_ud].conviccio) ? 1 : 0) )  );
+			//Con esto, los que tengan conviccio quedan atrás del todo, pero su orden original ha quedado invertido
+			return (  ( (this.assig_grups[a.sigles_ud].conviccio) ? 1 : ((this.assig_grups[b.sigles_ud].conviccio) ? -1 : 0) )  );
+		});
+		let conviccio_count = 0;
+		for (let i=pool_flagged.length-1; i >= 0; i--){
+			conviccio_count++;
+			if (!this.assig_grups[pool_flagged[i].sigles_ud].conviccio) i = 0;
+		}
+		//Con esto, los que tengan conviccio quedan al principio del todo, y su orden original queda restablecido
+		for (let i=0; i < conviccio_count; i++){pool_flagged.push(pool_flagged.pop());}
+
+
+		
+
+		//this.combinacions_possibles
+		let combinacions_possibles = [[]]; //Auxiliar
+
+
+			
+		for (let i=0; i < pool_flagged.length; i++){
+
+			//Comprobamos los grupos de la asignatura. Si hay alguno con convicción, solo usaremos ese
+			let grups = this.assig_grups[pool_flagged[i].sigles_ud].grups;
+			Object.keys(grups).some(key => {
+				if (grups[key].conviccio){
+					let grups_key = grups[key];
+					grups = {};
+					grups[key] = grups_key;
+					return true;
+				}
+				return false;
+			});
+			//console.log(grups);
+
+
+			let combinacions_possibles_length = combinacions_possibles.length;
+			for (let j=0;   j < combinacions_possibles_length; j++){
+
+				//Si hay convicción, la asignatura se añadirá siempre. Si no la hay, se añadirá una iteración adicional en la que esta asignatura no se haya añadido
+
+				if (!this.assig_grups[pool_flagged[i].sigles_ud].conviccio){
+					//Añadimos una entrada duplicada para simular un caso en el que no se añade la asignatura
+					combinacions_possibles.push([...combinacions_possibles[j]]);
+				}
+
+				//Si todavía se puede añadir alguna asignatura
+				if (combinacions_possibles[j].length < this.preferencies.max_assignatures){
+					
+					for (let k=0; k < Object.keys(grups).length; k++){
+
+						//Comprobar si se solapa con las actuales!!!
+						let solapa = false;
+						for (let l=0; ( (!solapa)&&(l < combinacions_possibles[j].length) ); l++){
+
+							solapa = this.horarisSolapen(
+								this.assig_grups[pool_flagged[i].sigles_ud].grups[Object.keys(grups)[k]].fragments, //nou grup
+								this.assig_grups[combinacions_possibles[j][l].sigles_ud].grups[combinacions_possibles[j][l].nom_grup].fragments
+							);
+
+						}
+
+						if ((combinacions_possibles[j].length+1) == this.preferencies.max_assignatures){
+							if (solapa) this.discarded_overlap_count++;
+						}
+
+
+						if (!solapa){
+							this.total_combinations_count++;
+
+							let nova_entrada = [...combinacions_possibles[j]];
+							nova_entrada.push({
+								sigles_ud: pool_flagged[i].sigles_ud,
+								nom_grup: Object.keys(grups)[k] //pool_flagged[i].nom_grup
+							});
+							if (nova_entrada.length == this.preferencies.max_assignatures)
+								this.combinacions_possibles.push(nova_entrada);
+							else{
+								combinacions_possibles.push(nova_entrada);
+								this.discarded_not_enough_assigns++;
+							}
+						}
+						
+					}
+
+				}
+				/*else{
+					this.discarded_not_enough_assigns++;
+				}*/	
+
+
+				//Si es la primera iteración de todas (1a iteración aplicada a combinacions_possibles = [[]] ), significará que se ha añadido por lo menos 1 entrada, y que ya podemos eliminar la entrada auxiliar que pusimos al principio
+				if ((i==0) && (j==0) /*&& (combinacions_possibles_length==1) && (combinacions_possibles[0]==[])*/ ){
+					combinacions_possibles.pop();
+				}
+
+				
+
+				
+			}
+
+		}
+		//this.total_combinations_count = combinacions_possibles.length; //Puesto aquí no sirve xd
+		//console.log(this.total_combinations_count);
+
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	eliminaSolapaments(){
 		this.combinacions_possibles = this.combinacions_possibles.filter(combinacio => {
 			let solapa = false;
@@ -715,23 +874,29 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		let mati = this.mati;
 		let tarda = this.tarda;
 
-		this.combinacions_possibles = [];
 		this.total_combinations_count = 0;
 		this.discarded_not_enough_assigns = 0;
 		this.discarded_overlap_count = 0;
 
-		this.creaCombinacionsPossibles([], true);
+		if (this.need_recompute){
+			this.combinacions_possibles = [];
 
-		this.eliminaSolapaments();
+			//this.creaCombinacionsPossibles([], true);
+			//this.eliminaSolapaments();
+
+			this.creaCombinacionsPossiblesIteratiu();
+		}
+		this.need_recompute = false;
 		
 		console.log(this.combinacions_possibles);
 
-		console.log("      Total combinacions provades: "+(this.discarded_not_enough_assigns+this.discarded_overlap_count+this.combinacions_possibles.length));
+		console.log("      Total combinacions provades:  "+(this.discarded_not_enough_assigns+this.discarded_overlap_count+this.combinacions_possibles.length));
 
-		console.log("--------------Poques assignatures: "+this.discarded_not_enough_assigns);
-		console.log("-----------------------Solapament: "+this.discarded_overlap_count);
+		console.log("--------------Poques assignatures: -"+this.discarded_not_enough_assigns);
+		console.log("          Combinacions resultants:  "+(this.discarded_overlap_count+this.combinacions_possibles.length));
+		console.log("-----------------------Solapament: -"+this.discarded_overlap_count);
 		
-		console.log("Combinacions possibles resultants: "+this.combinacions_possibles.length);
+		console.log("Combinacions possibles resultants:  "+this.combinacions_possibles.length);
 
 
 
@@ -817,7 +982,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				{this.total_combinations_count==1 ? (""):("")}
 
 				{"D'entre les "}
-				{(this.total_combinations_count-this.discarded_not_enough_assigns)==1?"(només 1)":this.posaPuntsAlsMilers(this.total_combinations_count-this.discarded_not_enough_assigns)}
+				{(this.total_combinations_count-this.discarded_not_enough_assigns+this.discarded_overlap_count)==1?"(només 1)":this.posaPuntsAlsMilers(this.total_combinations_count-this.discarded_not_enough_assigns+this.discarded_overlap_count)}
 				{" possibles combinacions de grups trobades per a "}
 				{this.preferencies.max_assignatures}
 				{this.preferencies.max_assignatures==1?" assignatura":" assignatures"}
@@ -948,8 +1113,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		</>;
 
 
-
-		this.forceUpdate();
+		//window.document.getElementsByClassName("render_horari")[0].innerHTML = "";
+		//this.forceUpdate();
 	}
 
 
@@ -1010,6 +1175,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		//Creamos una lista de fragmentos para facilitar la manipulación en caso de solapamientos visuales de asignaturas que no empiecen y acaben a la vez
 		let fragments = [];
 		for (let i=0; i<combinacio.length; i++){
+			//console.log(this.assig_grups);
+			//console.log(combinacio);
 			(this.assig_grups[combinacio[i].sigles_ud].grups[combinacio[i].nom_grup].fragments).forEach(frag => {
 					let f = {...frag};
 					f["nom_grup"] = combinacio[i].nom_grup;
@@ -1378,6 +1545,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 			max={max} 
 			defaultVal={this.preferencies.max_assignatures} 
 			onChangeFunc={(newVal, usedByUser)=>{
+				this.need_recompute = true;
 				this.preferencies.max_assignatures = newVal; 
 				if (usedByUser){
 					this.preferencies.max_assignatures_used_by_user = true;
@@ -1499,6 +1667,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 										onClick={()=>{
 											let simulated = (total_flagged_count+((!assig.pool_flag)?1:-1));
 											if (simulated <= this.max_assignatures_select){
+												this.need_recompute = true;
 												assig.pool_flag = !assig.pool_flag;
 												total_flagged_count = simulated;
 												if(assig.pool_flag){this.initialitzaAssigGrups(assig.sigles_ud)}
@@ -1581,7 +1750,10 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 									
 									onClick={()=>{
 										if ( ((!assig_marcada) && total_conviccio_assig_count<this.max_assignatures_result) || assig_marcada)
-										this.assig_grups[assig.sigles_ud].conviccio = !assig_marcada;
+											this.assig_grups[assig.sigles_ud].conviccio = !assig_marcada;
+
+										this.need_recompute = true;
+										
 										this.forceUpdate();
 									}}
 								>
@@ -1638,6 +1810,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 												}
 												this.assig_grups[assig.sigles_ud].grups[nom_grup].conviccio = !grup_marcat;
 
+												this.need_recompute = true;
+
 												this.forceUpdate();
 											}}
 										>
@@ -1653,7 +1827,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 												>
 												<p className="text-end mb-1">
 													<span className="d-inline">
-														{grup_marcat ? "Preferent 🔵":"No ho tinc clar ⚪"}
+														{grup_marcat ? "Definitiu 🔵":"No ho tinc clar ⚪"}
 													</span>
 												</p>
 												</span>
@@ -1737,36 +1911,44 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 						<br/><br/>
 						<p className="text-center">
 							<Button
-								onClick={()=>{this.generaPossiblesHoraris()}}
+								onClick={()=>{
+									/*window.document.getElementsByClassName("render_horari")[0].innerHTML =
+										renderToStaticMarkup(
+											<div className="text-center" >
+												HELLO!
+											</div>
+										);
+									;*/
+									/*this.horaris_render = 
+										<div className="text-center">
+											HELLO!
+										</div>
+									;
+									this.forceUpdate();*/
+
+									setTimeout(()=>{
+										window.document.getElementById("render_horari_loading").style.display="block";
+									}, 10);
+
+									setTimeout(()=>{
+										this.generaPossiblesHoraris();
+										window.document.getElementById("render_horari_done").innerHTML = renderToStaticMarkup(this.horaris_render);
+									}, 20);
+									
+									setTimeout(()=>{
+										window.document.getElementById("render_horari_loading").style.display="none";
+									}, 30);
+								}}
 							>
 								<b>{"Genera el"+((this.preferencies.max_horaris==1)?" millor horari possible" : ("s "+this.preferencies.max_horaris+" millors horaris possibles") )}</b>
 							</Button>
-							<br/>
+							<br/><br/>
 							{
 							//"Si has escollit una gran quantitat d'assignatures, podria trigar..."
 							}
-							<br/><br/>
 
 						</p>
 					</>:""}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1777,7 +1959,16 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 				<p className="text-center">
 					<div className="render_horari m-auto">
-						{this.horaris_render}
+						
+						<p id="render_horari_loading" className="text-center" style={{display:"none"}} >
+							<Spinner animation="border" variant="primary" />
+						</p>
+
+						<br/>
+
+						{/*this.horaris_render*/}
+						<div id="render_horari_done"></div>
+
 					</div>
 				</p>
 
