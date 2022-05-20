@@ -901,7 +901,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 								<thead>
 									<tr>
 										<th style={{backgroundColor:"#3488bb", color:"white", width:"auto", border:"1px solid #30577b", width:"75%"}}>
-											{"Assignatures"}
+											{"Assignatures de l'horari #"+(i+1)}
 										</th>
 										<th style={{backgroundColor:"#3488bb", color:"white", width:"auto", border:"1px solid #30577b", width:"25%"}}>
 											{"Grups"}
@@ -988,12 +988,12 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 	}
 
 
-	renderTaulaHoraris(combinacio, posicio, checkAll_T_onlyNext_F, check_next, depth){
+	renderTaulaHoraris(combinacio, posicio, checkAll_T_onlyNext_F, check_next/*, depth*/){
 
 		//if ((!checkAll_T_onlyNext_F) && check_next.length==0) return(<></>);
 
-		console.log(posicio+" "+depth);
-		console.log(check_next);
+		//console.log(posicio+" "+depth);
+		//console.log(check_next);
 
 
 		let mati = this.mati;
@@ -1040,55 +1040,71 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		//el caso de 9:30-11:30 aún está por probar ??????
 		//let test_hi = [["8:30", "10:30"], ["9:30", "11:30"], ["10:30", "12:30"]];
 		let test_hi = [
-			//["8:30", "11:30"], 
+			["8:30", "10:30"], 
+			["8:30", "11:30"], 
 			["9:30", "10:30"], 
-			//["9:30", "11:30"]
+			["9:30", "11:30"]
 		];
 		for (let i=0; i<test_hi.length; i++){
 			fragments.push({
 				anyaca: 2021,
-				codgrup: "N10",
+				codgrup: "🐱",
 				dia: 2,
 				grau: "N",
 				//h_f: "10:30",
 				//h_i: "8:30",
 				h_f: test_hi[i][1],
 				h_i: test_hi[i][0],
-				nom: "SOSTENIBILITAT I ACCESSIBILITAT",
+				nom: "🐱🐱🐱🐱🐱🐱🐱🐱🐱🐱🐱🐱🐱🐱🐱",
 				ordre: null,
 				quadri: 1,
 				setmana: 2,
-				sigles_ud: "MIAUMIAU_"+i,
+				sigles_ud: "🐱🐱🐱 "+i,
 				tpla: "T",
-				nom_grup: "PRUEBA",
-				codaul: "VGX012"
+				nom_grup: "🐱",
+				codaul: "VG🐱"
 			})
 		}
+		//Con la entrada ["8:30", "11:30"], se agrupa junto a la que termina a las 10:30. MAL
+
+		//Con la entrada ["9:30", "10:30"], no hay duplicados, pero tampoco hace siquiera acto de presencia. MAL
+
+		//Con la entrada ["9:30", "11:30"], no hay duplicados, pero tampoco hace siquiera acto de presencia, y además intenta renderizar una segunda tabla pero esta no tiene filas siquiera. MAL
+
+		//Con una combinación de las entradas ["9:30", "10:30"] y ["9:30", "11:30"], aparece la entrada de las ["9:30", "10:30"] en una tabla secundaria como cabría esperar, pero la entrada de las ["9:30", "11:30"] no hace acto de presencia
+
+		//Con una combinación de las entradas, duplica el primer fragmento (real)
 
 
 
 		let HoraMinHoraMax = this.determinaHoraMinHoraMax(mati, tarda, fragments)
 		hores = this.makeHoresList(mati, tarda, HoraMinHoraMax[0], HoraMinHoraMax[1]);
 
-		let hora_i = null;
-		let hora_f = null;
 
 
 		nomes_i_dies.map(i_dia=>{
 
 			[...Array(hores.length-1).keys()].map(i_hora=>{
 
+				let hora_i = null;
+				let hora_f = null;
+
 				hora_i = hores[i_hora];
 
-				if ( check_later.some(chk => ( (chk.dia==i_dia) && (chk.hora==hora_i) )) ) return;
+				//if ( check_later.some(chk => ( (chk.dia==i_dia) && (chk.hora==hora_i) )) ) return;
 
 				//Buscamos todos los fragmentos que empiecen en este mismo día y hora
 				let frags = fragments.filter(frag=>( 
 					(frag.dia == i_dia) && 
 					(
-						(this.padTimeString(frag.h_i) == this.padTimeString(hores[i_hora])) 
+						(frag.h_i == hora_i) 
 						//&& (this.padTimeString(frag.h_f) < this.padTimeString(hores[i_hora]))
-					) ));
+					) 
+				));
+				/*if (frags.length>0){
+					if (posicio==1){console.log("depth: "+depth+"      dia: "+i_dia+"    h_i: "+hora_i);}
+					if (posicio==1){console.log(frags);}
+				}*/
 
 				//Buscamos las horas (unique, sin repetición) a las que acaban estos fragmentos, para encontrar si son diversas o si siempre es la misma
 				let hores_f = frags.reduce((a, d)=>{
@@ -1099,31 +1115,56 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				}, []);
 				//Ordenamos de mayor duración a menor duración para mostrar primero aquellos fragmentos que sean de mayor tamaño
 				hores_f = hores_f.sort((a,b)=>{return ( (this.padTimeString(a)<this.padTimeString(b)) ? 1 : -1 )});
-
+				
+				/*if (hores_f.length>0){
+					if (posicio==1){console.log("depth: "+depth+"      dia: "+i_dia+"    h_i: "+hora_i);}
+					if (posicio==1){console.log(hores_f.toString());}
+				}*/
 				//Determinamos el final del rango de horas que nos interesa comprobar, quedándonos únicamente con la hora de fin que corresponda a la profundidad de la tabla que estemos explorando en este momento (si no hay horas para esta profundidad, recibiremos un undefined)
+				//hora_f = hores_f.slice(depth, depth+1)[0]; //No usamos splice porque alteraría la original
+				let depth = 0;
+
+				if (!checkAll_T_onlyNext_F){
+					depth = check_next.filter(chk => ( (chk.dia==i_dia) && (chk.hora==hora_i) ));
+					if (depth.length > 0){depth = depth.sort((a,b) => {return ( (a.depth<b.depth) ? 1 : -1 )})[0].depth;}
+					else {depth = -1;}
+				}
+
 				hora_f = hores_f.slice(depth, depth+1)[0]; //No usamos splice porque alteraría la original
 
 				//Eliminamos todos los fragmentos que ya hayamos explorado en profundidades anteriores
-				let hores_f_explored = [...hores_f].reverse();
-				if (hora_f){//A partir de índice, si lo hay; de lo contrario, todo
+				//let hores_f_explored = [...hores_f].reverse();
+				/*if (hora_f){//A partir de índice, si lo hay; de lo contrario, todo
 					hores_f_explored = hores_f_explored.slice(hores_f_explored.indexOf(hora_f)+1);
 				}
-				fragments = fragments.filter(frag => !(
+				fragments = fragments.filter(frag => {
+					if (frag.dia != i_dia) return true;
+					
+					if (frag.h_i != hora_i) return true;
+
+					//Si empieza a la hora_i actual y termina con una de las horas finales ya exploradas para esta hora actual, se descarta
+					if (hores_f_explored.some(h => (h == frag.h_f))) return false;
+
+					return true;
+				}*/
+					
+					
+					/*!(
 						(frag.dia==i_dia)
 					&&
 						( (frag.h_i == hora_i) && (hores_f_explored.some(h=>(h == frag.h_f))) )
-					)
-				);
+					)*/
+				//);
 				
 
 				//Si reconocemos horas a una profundidad visualizable
-				if (hora_f){
+				if (hora_f /*!= undefined*/){
 
 					//Filtramos aquellos fragmentos que, para el mismo día, no tienen exactamente los mismos principio y final combinados que los que hemos elegido para mostrar en esta profundidad, pero sí tiene un principio comprendido entre el principio y el final elegidos
-					let filtering = (frag) => (  (
+					/*let filtering = (frag) => (  (
 						(frag.dia==i_dia)
 					&&
-						( (frag.h_i != hora_i) && (frag.h_f != hora_f) )
+						(!( (frag.h_i == hora_i) && (frag.h_f == hora_f) ))
 					&&
 						( 
 								(this.padTimeString(frag.h_i) >= this.padTimeString(hores[i_hora])) 
@@ -1141,11 +1182,88 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 						}
 					});
 					//Eliminamos los fragmentos que no vamos a mostrar de la iteración actual
-					fragments = fragments.filter(frag => !filtering(frag));
+					fragments = fragments.filter(frag => !filtering(frag));*/
 
+
+
+/*
+					hores_f_explored = hores_f_explored.slice(hores_f_explored.indexOf(hora_f)+1);
+					
+					fragments = fragments.filter(frag => {
+						if (frag.dia != i_dia) return true;
+						
+						if (frag.h_i != hora_i) return true;
+
+						//Si empieza a la hora_i actual y termina con una de las horas finales ya exploradas para esta hora actual, se descarta
+						if (hores_f_explored.some(h => (h == frag.h_f))) return false;
+
+						return true;
+					}
+					);
+*/
+
+
+					//hores_f_explored = hores_f_explored.slice(hores_f_explored.indexOf(hora_f)+1);
+					//hores_f_explore_later = hores_f.slice(hores_f_explored.indexOf(hora_f)+1);
 
 					let rowspan = hores.indexOf(hora_f) - hores.indexOf(hora_i);
-					for (let x=/*0*/1; x<rowspan; x++){
+
+					
+					for (let x=0; x<rowspan; x++){
+						fragments = fragments.filter(frag => {
+							
+							if (frag.dia != i_dia) return true;
+
+							//if ((frag.h_i==hora_i) && (frag.h_f==hora_f)) return true;
+
+							//if ((frag.h_i==hora_i) && hores_f_explored.some(h => (h == frag.h_f))) return false;
+
+
+							/*if (frag.h_i==hora_i){
+								if (frag.h_f == hora_f) return true;
+								else{
+									//check_later.push({dia:i_dia, hora:frag.h_i});
+									return false;
+								}
+
+								//if (hores_f_explored.some(h => (h == frag.h_f))) return false;
+								//if (hores_f_explore_later.some(h => (h == frag.h_f))) return false;
+							}*/
+
+							
+
+							//let hora_added = hores[hores.indexOf(hora_i)+x];
+
+							let hora_added = hores[i_hora+x];
+
+							if (  (frag.h_i == hora_added) //&& 
+								//(this.padTimeString(frag.h_i) < this.padTimeString(hora_f)) 
+
+							){
+								if (!( (frag.h_i == hora_i) && (frag.h_f == hora_f) )){
+
+									let d = 0;
+									if (!checkAll_T_onlyNext_F){
+										d = check_next.filter(chk => ( (chk.dia==i_dia) && (chk.hora==frag.h_i) ));
+										if (d.length > 0){d = d.sort((a,b) => {return ( (a.depth<b.depth) ? 1 : -1 )})[0].depth;}
+										else {d = -1;}
+									}
+									if (frag.h_i == hora_i) d+=1;
+
+									check_later.push({dia:i_dia, hora:frag.h_i, depth: d});
+									return false;
+								}
+							}
+							
+
+							return true;
+								
+						});
+					}
+
+
+
+					for (let x=1/*0*/; x<rowspan; x++){
 						//if (x>0) 
 							delete_rowspan.push({dia:i_dia, hora:hores[i_hora+x]});
 
@@ -1188,6 +1306,15 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 					*/
 
 				}
+				else{
+					fragments = fragments.filter(frag => {
+							
+						if ((frag.dia == i_dia) && (frag.h_i == hora_i)) return false;
+
+						return true;
+							
+					});
+				}
 
 
 			});
@@ -1208,7 +1335,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 
 
-
+		if (fragments.length == 0) return(<></>);
 
 
 
@@ -1241,8 +1368,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 						return(
 							<tr>
 								
-								<td className="px-0" style={{backgroundColor:"#3488bb", color:"white", border:"1px solid #30577b"}}>
-									{hores[i_hora]+"-"+hores[i_hora+1]}
+								<td className="px-0" style={{backgroundColor:"#3488bb", color:"white", border:"1px solid #30577b", verticalAlign:"middle"}}>
+									{hores[i_hora]+" - "+hores[i_hora+1]}
 								</td>
 
 								{nomes_i_dies.map((i_dia)=>{
@@ -1341,7 +1468,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 			{(check_later.length>0) ?
 				//check_later ?
-				this.renderTaulaHoraris(combinacio, posicio, false, check_later, depth+1)
+				this.renderTaulaHoraris(combinacio, posicio, false, check_later/*, depth+1*/)
 				:
 				""
 			}
