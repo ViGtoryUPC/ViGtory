@@ -202,7 +202,23 @@ class InitialScreen extends React.Component {
 		this.preferencies = {
 			max_assignatures_used_by_user: false,
 			max_assignatures: 1,
-			max_horaris: 5
+			max_horaris: 5,
+
+
+			hores_mortes: "min", //"min", "max", "ignore"
+			hores_mortes_imp: 8,
+
+			dies_lliures: "prin", //"prin", "mitj", "final"
+			dies_lliures_imp: 8,
+
+			prioritza_matiT_tardaF: true,
+			prioritza_matiT_tardaF_imp: 8,
+
+			comencar_tardT_aviatF_mati: true,
+			comencar_tard_aviat_imp_mati: 5,
+
+			comencar_tardT_aviatF_tarda: true,
+			comencar_tard_aviat_imp_tarda: 5
 		}
 
 		this.total_combinations_count = 0;
@@ -211,6 +227,10 @@ class InitialScreen extends React.Component {
 
 		this.combinacions_a_mostrar = [];
 		this.horaris_render = <></>;
+		
+		this.temps_inici_render_horari = new Date();
+		this.render_horari_loading_status = "";
+		this.statusInterval = null;
 
 
 		this.combinacions_possibles = [];
@@ -712,7 +732,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		let combinacions_possibles = [[]]; //Auxiliar
 
 
-			
+		let iteracions_status = 0;
 		for (let i=0; i < pool_flagged.length; i++){
 
 			//Comprobamos los grupos de la asignatura. Si hay alguno con convicción, solo usaremos ese
@@ -790,8 +810,10 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				}
 
 				
-
-				
+				//Nope, no puede hacerse así; añade demasiado delay
+				//iteracions_status++;
+				//setTimeout(()=>{this.updateLoadingStatus()}, iteracions_status * 10);
+				//this.updateLoadingStatus();
 			}
 
 		}
@@ -867,19 +889,32 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 	}
 
 
+	updateLoadingStatus(){
+		console.log(new Date().toString());
+		window.document.getElementById("render_horari_loading_status").innerHTML = (new Date()).toString()+"<br/>"+this.render_horari_loading_status;
+	}
+
 	generaPossiblesHoraris(){
+		//let generadorWorker = new Worker("../libraries/ScheduleGen_worker.js");
+
 		//let mati = {inici:"8:30", fi:"14:30"};
 		//let tarda = {inici:"15:00", fi:"21:00"};
+		
+		this.temps_inici_render_horari = new Date();
+		this.render_horari_loading_status = "Inicialitzant...";
+
+		this.horaris_render = "";
 		
 		let mati = this.mati;
 		let tarda = this.tarda;
 
-		this.total_combinations_count = 0;
-		this.discarded_not_enough_assigns = 0;
-		this.discarded_overlap_count = 0;
+		
 
 		if (this.need_recompute){
 			this.combinacions_possibles = [];
+			this.total_combinations_count = 0;
+			this.discarded_not_enough_assigns = 0;
+			this.discarded_overlap_count = 0;
 
 			//this.creaCombinacionsPossibles([], true);
 			//this.eliminaSolapaments();
@@ -911,6 +946,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				hores_lliures_tard_tarda: 0,
 
 				hores_mortes: 0,
+				hores_mortes_imp: 8,
 
 				dies_lliures_principi_setmana: 0,
 				dies_lliures_enmig_setmana: 0,
@@ -1498,7 +1534,77 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 
 
+	parametresMatiTarda(matiTtardaF){
+		//prefer
+		let MT = matiTtardaF ? "mati" : "tarda";
 
+		//començar: aviat o tard + importància
+		//hores mortes: 
+
+		/*this.preferencies = {
+			max_assignatures_used_by_user: false,
+			max_assignatures: 1,
+			max_horaris: 5,
+
+
+			hores_mortes: "min" //"min", "max", "ignore"
+
+			prioritza_matiT_tardaF: true,
+			prioritza_matiT_tardaF_imp: 8,
+
+			comencar_tardT_aviatF_mati: true,
+			comencar_tard_aviat_imp_mati: 5,
+
+			comencar_tardT_aviatF_tarda: true,
+			comencar_tard_aviat_imp_tarda: 5,
+		}*/
+
+		//flex-fill
+		return(
+			<p className="text-center mb-0">
+				<h5><b><u>{matiTtardaF ? "Matí" : "Tarda"}</u></b></h5>
+				
+				<div className="d-flex align-items-center justify-content-center">
+
+					<span>{"Prefereixo començar "}</span>
+
+					<Form.Select 
+						className="mx-1 py-0"
+						size="sm"
+						style={{width:"fit-content"}}
+						defaultValue={this.preferencies["comencar_tardT_aviatF_"+MT]}
+						onChange={(e)=>{
+							this.preferencies["comencar_tardT_aviatF_"+MT] = e.currentTarget.value;
+							this.forceUpdate();
+						}}
+					>
+						<option value={false}>{"Aviat"}</option>
+						<option value={true}>{"Tard"}</option>
+					</Form.Select>
+					<span>{matiTtardaF ? " pels matins.":" per les tardes."}</span>
+
+				</div>
+				
+
+
+				<span>
+					{"Importància de começar "+((this.preferencies["comencar_tardT_aviatF_"+MT]==true)?"tard":"aviat")+(matiTtardaF?" pels matins":" per les tardes")+":"}
+				</span>
+				<br/>
+				<NumInput 
+					min={0} max={10} 
+					defaultVal={this.preferencies["comencar_tard_aviat_imp_"+MT]} 
+					onChangeFunc={(newVal)=>{
+						this.preferencies["comencar_tard_aviat_imp_"+MT] = newVal;
+						//this.forceUpdate();
+					}}
+					mostra_limits={true}
+				/>
+			</p>
+
+
+		);
+	}
 
 
 
@@ -1570,6 +1676,129 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 			mostra_limits={true}
 		/>;
 
+
+
+
+		let hores_mortes = 
+			<p className="text-center mb-0">
+				<h5><b><u>{"Hores mortes"}</u></b></h5>
+				
+				<div className="d-flex align-items-center justify-content-center">
+					<span>{"Prefereixo"}</span>
+					<Form.Select 
+						className="mx-1 py-0"
+						size="sm"
+						style={{width:"fit-content"}}
+						defaultValue={this.preferencies["hores_mortes"]}
+						onChange={(e)=>{
+							this.preferencies["hores_mortes"] = e.currentTarget.value;
+							this.forceUpdate();
+						}}
+					>
+						<option value={"min"}>{"Minimitzar"}</option>
+						{//<option value={"ignore"}>{"Ignorar"}</option>
+						}
+						<option value={"max"}>{"Maximitzar"}</option>
+					</Form.Select>
+					<span>{" les hores mortes."}</span>
+
+				</div>
+				
+
+
+				<span>
+					{"Importància d"+(
+
+						(this.preferencies["hores_mortes"]=="ignore")
+						?
+							"'ignorar"
+						:
+							"e "+( (this.preferencies["hores_mortes"]=="min")
+							?
+							"minimitzar"
+							:
+							"maximitzar")
+
+						)+" les hores mortes:"}
+				</span>
+				<br/>
+				<NumInput 
+					min={0} max={10} 
+					defaultVal={this.preferencies["hores_mortes_imp"]} 
+					onChangeFunc={(newVal)=>{
+						this.preferencies["hores_mortes_imp"] = newVal;
+						//this.forceUpdate();
+					}}
+					mostra_limits={true}
+				/>
+			</p>
+		;
+
+
+
+
+		//"prin", "mitj", "final"
+		let dies_lliures = 
+			<p className="text-center mb-0">
+				<h5><b><u>{"Dies lliures"}</u></b></h5>
+				
+				<div className="d-flex align-items-center justify-content-center">
+					<span>{"Prefereixo dies lliures a "}</span>
+					<Form.Select 
+						className="mx-1 py-0"
+						size="sm"
+						style={{width:"fit-content"}}
+						defaultValue={this.preferencies["dies_lliures"]}
+						onChange={(e)=>{
+							this.preferencies["dies_lliures"] = e.currentTarget.value;
+							this.forceUpdate();
+						}}
+					>
+						<option value={"prin"}>{"Principis"}</option>
+						<option value={"mitj"}>{"Mitjans"}</option>
+						<option value={"final"}>{"Finals"}</option>
+					</Form.Select>
+					<span>{" de setmana."}</span>
+
+				</div>
+				
+
+
+				<span>
+					{"Importància dels dies lliures a "+(
+
+						(this.preferencies["dies_lliures"]=="prin")
+						?
+							"principis"
+						:
+							( (this.preferencies["dies_lliures"]=="mitj")
+							?
+							"mitjans"
+							:
+							"finals")
+
+						)+" de setmana:"}
+				</span>
+				<br/>
+				<NumInput 
+					min={0} max={10} 
+					defaultVal={this.preferencies["dies_lliures_imp"]} 
+					onChangeFunc={(newVal)=>{
+						this.preferencies["dies_lliures_imp"] = newVal;
+						//this.forceUpdate();
+					}}
+					mostra_limits={true}
+				/>
+			</p>
+		;
+
+
+
+
+
+
+
+		let parametresMatiTarda = [this.parametresMatiTarda(true), this.parametresMatiTarda(false)];
 
 		
 
@@ -1892,6 +2121,45 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 
 
+							<ListGroup.Item 
+								className={"pe-2 py-1 no_hover"}
+								style={{borderTop:"0"}}
+							>
+								{hores_mortes}
+							</ListGroup.Item>
+
+
+							<ListGroup.Item 
+								className={"pe-2 py-1 no_hover"}
+								style={{borderTop:"0"}}
+							>
+								{dies_lliures}
+							</ListGroup.Item>
+
+
+
+
+
+
+
+
+							<ListGroup.Item 
+								className={"pe-2 py-1 no_hover"}
+								style={{borderTop:"0"}}
+							>
+								{parametresMatiTarda[0]}
+							</ListGroup.Item>
+
+							<ListGroup.Item 
+								className={"pe-2 py-1 no_hover"}
+								style={{borderTop:"0"}}
+							>
+								{parametresMatiTarda[1]}
+							</ListGroup.Item>
+
+
+
+
 
 
 
@@ -1926,18 +2194,61 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 									;
 									this.forceUpdate();*/
 
+
+
+										/*renderToStaticMarkup(<>
+											{(new Date()).toDateString()}
+											<br/>
+											{this.render_horari_loading_status}
+										</>);*/
+
+
+									/*this.temps_inici_render_horari = new Date();
+									//window.clearInterval(this.statusInterval);
+									this.statusInterval = window.setInterval(async ()=>{
+										let f = () => {
+											console.log(new Date().toString());
+											window.document.getElementById("render_horari_loading_status").innerHTML = (new Date()).toString()
+										};
+										await f();
+										
+									}, 10);*/
+
+
+
+
+									/*let timeoutStatus = ()=>{
+										setTimeout(()=>{
+											console.log(new Date().toString());
+											window.document.getElementById("render_horari_loading_status").innerHTML = (new Date()).toString();
+											if (this.horaris_render == ""){timeoutStatus();}
+										}, 10);
+									};*/
+
+
+
+//let func = async () => {
 									setTimeout(()=>{
 										window.document.getElementById("render_horari_loading").style.display="block";
-									}, 10);
+										//this.horaris_render = "";
+										//timeoutStatus();
+									}, 100);
+
+									//setTimeout(()=>{timeoutStatus();}, 150);
 
 									setTimeout(()=>{
 										this.generaPossiblesHoraris();
-										window.document.getElementById("render_horari_done").innerHTML = renderToStaticMarkup(this.horaris_render);
-									}, 20);
+										//window.clearInterval(this.statusInterval);
+									}, 200);
 									
 									setTimeout(()=>{
+										window.document.getElementById("render_horari_done").innerHTML = renderToStaticMarkup(this.horaris_render);
+										
 										window.document.getElementById("render_horari_loading").style.display="none";
-									}, 30);
+									}, 300);
+//}
+//func();
+
 								}}
 							>
 								<b>{"Genera el"+((this.preferencies.max_horaris==1)?" millor horari possible" : ("s "+this.preferencies.max_horaris+" millors horaris possibles") )}</b>
@@ -1962,6 +2273,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 						
 						<p id="render_horari_loading" className="text-center" style={{display:"none"}} >
 							<Spinner animation="border" variant="primary" />
+							<br/>
+							<span id="render_horari_loading_status"></span>
 						</p>
 
 						<br/>
