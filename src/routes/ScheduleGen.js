@@ -23,7 +23,7 @@ import {BaseName} from "../libraries/basename";
 var viewport = document.querySelector("meta[name=viewport]");
 viewport.setAttribute("content", viewport.content + ", height=" + window.innerHeight);
 
-
+var thread = require('thread-js');
 
 
 
@@ -182,7 +182,7 @@ class InitialScreen extends React.Component {
 		super(props);
 		this.state = {
 		};
-
+		console.log(Object.keys(this));
 		
 		this.mati = {inici:"8:30", fi:"14:30"};
 		this.tarda = {inici:"15:00", fi:"21:00"};
@@ -1615,6 +1615,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 	
 	render(){
 
+		//console.log(Object.keys(this));
+
 		let total_flagged_count = 0;
 		let total_conviccio_assig_count = 0;
 		this.pool_flagged = [];
@@ -2235,15 +2237,95 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 									}, 100);
 
 									//setTimeout(()=>{timeoutStatus();}, 150);
+/*									
+let clone_json = {};
+console.log(this);
+console.log(Object.getOwnPropertyNames(this));
+console.log(Object.keys(this));
+Object.keys(this).forEach((key)=>{
+	if (!["props", "context", "refs", "updater", "state", "_reactInternalInstance", "_reactInternals"].some(k=>k==key)){
+		//if (typeof (this[key]) === 'function'){
+			//clone_json[key]=() => {this[key]()};
+		//if (typeof (this[key]) === 'Symbol(react.element)'){
+		if (React.isValidElement(this[key])){
+			clone_json[key] = renderToStaticMarkup(this[key])
+		}
+		else
+			clone_json[key] = this[key];
+		}
+	}
+);*/
+//clone_json["generaPossiblesHoraris"]=this.generaPossiblesHoraris;
+/*clone_json["padTimeString"]=this.padTimeString.toString();
+console.log(clone_json);
+									//setTimeout(()=>{
+										//this.generaPossiblesHoraris();
+										//window.document.getElementById("render_horari_done").innerHTML = renderToStaticMarkup(this.horaris_render);
 
-									setTimeout(()=>{
-										this.generaPossiblesHoraris();
+										thread().run(function (done) {
+											console.log("HELLO WORKER");
+											console.log(this.padTimeString);
+											console.log(typeof this.padTimeString);
+											console.log(this.mati);
+
+
+											console.log(eval(this.padTimeString));//se cuelga
+											this.padTimeString = eval(this.padTimeString);
+											console.log(typeof this.padTimeString);
+											console.log(this.padTimeString("8:30"));*/
+											/*console.log(this.padTimeString("8:30"));
+											var func = ()=>{
+												this.generaPossiblesHoraris();
+												//let clone_json = {};
+												Object.keys(this).forEach((key)=>{
+													//if (typeof (this[key]) === 'Symbol(react.element)'){
+													if (React.isValidElement(this[key])){
+														this[key] = renderToStaticMarkup(this[key]);
+													}
+												});
+												console.log("IN WORKER: "+this.horaris_render)
+												return this.horaris_render;
+											}*/
+											//done(null, 4/*func()*/)
+										/*}, clone_json*//*{...clone_json
+											mati: this.mati,
+											tarda: this.tarda,
+
+											max_assignatures_select: this.max_assignatures_select,
+											min_assignatures_result: this.min_assignatures_result,
+											max_assignatures_result: this.max_assignatures_result,
+
+											min_horaris_result: this.min_horaris_result,
+											max_horaris_result: this.max_horaris_result,
+
+											horaris: this.horaris,
+											cursos: this.cursos,
+											assig_grups: this.assig_grups,
+
+											preferencies: this.preferencies,
+
+											pool_flagged: this.pool_flagged,
+											assig_grups: this.assig_grups,
+
+											generaPossiblesHoraris: (() => {this.generaPossiblesHoraris()})
+										}*//*)</p>
+										.then(function (horaris_render) {
+											console.log("IN THEN: "+horaris_render);
+
+											window.document.getElementById("render_horari_done").innerHTML = renderToStaticMarkup(horaris_render);
+
+											window.document.getElementById("render_horari_loading").style.display="none";
+										});*/
+
 										//window.clearInterval(this.statusInterval);
-									}, 200);
+									//}, 200);
 									
 									setTimeout(()=>{
+										this.generaPossiblesHoraris();
 										window.document.getElementById("render_horari_done").innerHTML = renderToStaticMarkup(this.horaris_render);
-										
+									}, 200);
+
+									setTimeout(()=>{
 										window.document.getElementById("render_horari_loading").style.display="none";
 									}, 300);
 //}
