@@ -715,7 +715,12 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 	creaCombinacionsPossiblesIteratiu(){
 
+		//let pool_flagged = [];
+
+		//setTimeout(()=>{
+
 		let pool_flagged = [...this.pool_flagged];
+		//Con esto, los que tengan conviccio quedan al final del todo, por el mismo orden en que se encontrasen
 		pool_flagged = pool_flagged.sort((a,b)=>{
 			//return (  ( (this.assig_grups[a.sigles_ud].conviccio) ? -1 : ((this.assig_grups[b.sigles_ud].conviccio) ? 1 : 0) )  );
 			//Con esto, los que tengan conviccio quedan atrás del todo, pero su orden original ha quedado invertido
@@ -723,14 +728,17 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		});
 		let conviccio_count = 0;
 		for (let i=pool_flagged.length-1; i >= 0; i--){
-			conviccio_count++;
-			if (!this.assig_grups[pool_flagged[i].sigles_ud].conviccio) i = 0;
+			if (this.assig_grups[pool_flagged[i].sigles_ud].conviccio) conviccio_count++;
+			//if (!this.assig_grups[pool_flagged[i].sigles_ud].conviccio) i = 0;
+			else i = 0;
 		}
 		//Con esto, los que tengan conviccio quedan al principio del todo, y su orden original queda restablecido
 		for (let i=0; i < conviccio_count; i++){pool_flagged.push(pool_flagged.pop());}
 
 
+		console.log(conviccio_count);
 		
+		//},139);
 
 		//this.combinacions_possibles
 		let combinacions_possibles = [[]]; //Auxiliar
@@ -739,8 +747,12 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		let iteracions_status = 0;
 		for (let i=0; i < pool_flagged.length; i++){
 
+			let grups = {};
+
+			setTimeout(()=>{
+
 			//Comprobamos los grupos de la asignatura. Si hay alguno con convicción, solo usaremos ese
-			let grups = this.assig_grups[pool_flagged[i].sigles_ud].grups;
+			grups = this.assig_grups[pool_flagged[i].sigles_ud].grups;
 			Object.keys(grups).some(key => {
 				if (grups[key].conviccio){
 					let grups_key = grups[key];
@@ -750,8 +762,21 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				}
 				return false;
 			});
-			//console.log(grups);
+			console.log(grups);
 
+
+				this.render_horari_loading_status = "Computant les possibles combinacions per a "
+				+this.preferencies.max_assignatures
+				+" assignatur"+((this.preferencies.max_assignatures==1) ? "a":"es")+"..."
+				+"<br/>"+
+				"Exlorant "+(i+1)+"ª (de "+pool_flagged.length+") assignatura seleccionada: "+pool_flagged[i].sigles_ud+
+				" ("+Object.keys(grups).length+" grup"+((Object.keys(grups).length==1)?"":"s")+")"
+				;
+				this.updateLoadingStatus();
+
+			},140+i*2);
+
+			setTimeout(()=>{
 
 			let combinacions_possibles_length = combinacions_possibles.length;
 			for (let j=0;   j < combinacions_possibles_length; j++){
@@ -820,10 +845,13 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				//this.updateLoadingStatus();
 			}
 
+
+			},140+i*2+1);
 		}
 		//this.total_combinations_count = combinacions_possibles.length; //Puesto aquí no sirve xd
 		//console.log(this.total_combinations_count);
 
+		//},135);
 	}
 
 
@@ -893,10 +921,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 	}
 
 
-	/*updateLoadingStatus(){
-		console.log(new Date().toString());
-		window.document.getElementById("render_horari_loading_status").innerHTML = (new Date()).toString()+"<br/>"+this.render_horari_loading_status;
-	}*/
+	
 
 
 
@@ -940,7 +965,6 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				hores_lliures_tard_tarda: 0,
 
 				hores_mortes: 0,
-				hores_mortes_imp: 8,
 
 				dies_lliures_principi_setmana: 0,
 				dies_lliures_enmig_setmana: 0,
@@ -964,25 +988,99 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 			//let i_dies = [...Array(5).keys()]
 			for (let setmana=1; setmana<3; setmana++){
 			for (let ordre=1; ordre<3; ordre++){
-				//let tram_diari = {d_i: 1, d_f: 1, classeTlliureF: false};
-				for (let dia=1; dia<6; dia++){
+
+				//Inicializamos un tramo diario
+				let tram_diari = {d_i: 1, /*d_f: 1,*/ classeTlliureF: false};
+
+				for (let dia=1; dia<=6; dia++){
+
+					let es_dia_lliure = false;
+
+					//Inicializamos un tramo horario
 					let tram_horari = {h_i: i_hora, /*h_f: i_hora,*/ classeTlliureF: false};
+
+					//Recorremos las horas del día en bucle
 					let i_hora=0;
-					while (i_hora<hores.length-1){
+					while ( (i_hora<hores.length) && (dia<6) ){
+
 						//Buscamos un fragmento que corresponda al tramo actual (solo debería haber uno porque ya habíamos eliminado los solapamientos)
 						let frag = fragments.find(f =>
 							((f.setmana == null) || (f.setmana == setmana)) && ((f.ordre == null) || (f.ordre == ordre)) && (f.dia == dia) && (f.h_i == hores[i_hora])
 						);
 
+						//Inicializamos el primer tramo horario en caso de ser primera hora
 						if ((i_hora==0) && frag) tram_horari.classeTlliureF = true;
 
-						let nou_tram = ( (i_hora>0) && ((tram_horari.classeTlliureF==true) && (!frag)) || ((tram_horari.classeTlliureF==false) && (frag)) );
+						//Comprobamos si ha de empezar un tramo distino o si seguimos con el actual (clase vs libre)
+						let nou_tram = ( ((i_hora>0) && (i_hora<(hores.length-1))) && ((tram_horari.classeTlliureF==true) && (!frag)) || ((tram_horari.classeTlliureF==false) && (frag)) );
 
-						if (nou_tram) {
-							let duracio = this.hourStringToValue(frag.h_i)-this.hourStringToValue(hores[tram_horari.h_i]);
+						//Si comienza un nuevo tramo, o llegamos al final del día (final del último tramo posible)
+						if ( nou_tram || (i_hora == (hores.length-1)) ) {
+							//Recolectamos las estadísticas correspondientes al último tramo explorado.
+
+							//Horas libres
+							if (!tram_horari.classeTlliureF){
+
+								//let duracio_total = this.hourStringToValue(hores[i_hora])-this.hourStringToValue(hores[tram_horari.h_i]);
+
+								//COMPUTAMOS LAS ESTADÍSTICAS CORRESPONDIENTES
+
+								//Si el tramo empieza al principio de la mañana
+								if (tram_horari.h_i == 0){
+
+									//Si el tramo termina al final del día -> Día libre
+									if (i_hora == hores.length-1){
+										es_dia_lliure = true;
+									}
+
+									//Horas libres al principio de la mañana
+									this.combinacions_possibles[i]["puntuacions"]["hores_lliures_aviat_mati"] += 
+										this.hourStringToValue(hores[Math.min(i_hora, hores.indexOf(mati.fi))])
+										-
+										this.hourStringToValue(hores[tram_horari.h_i])
+									;
+								}
+
+								//Si el tramo empieza al principio de la tarde o antes
+								if (tram_horari.h_i <= hores.indexOf(tarda.inici)){
+
+									//Horas libres al principio de la tarde
+									this.combinacions_possibles[i]["puntuacions"]["hores_lliures_aviat_tarda"] += 
+										this.hourStringToValue(hores[i_hora])
+										-
+										this.hourStringToValue(tarda.inici)
+									;
+								}
 
 
-							//SUMAMOS A LAS ESTADÍSTICAS LO QUE CORRESPONDA EN FUNCIÓN DE SI LA HORA DE INICIO O LA DE FIN DEL TRAMO QUE ACABA DE TERMINAR CORRESPONDEN A ALGÚN LÍMITE O NO
+								//Si el tramo termina al final de la mañana
+								if (i_hora == hores.indexOf(mati.fi)){
+
+								}
+
+
+								//Si el tramo termina al final de la tarde
+								if (i_hora == hores.length-1){
+									
+								}
+
+
+
+
+								//Si el tramo empieza pasado el principio de la mañana, y acaba antes que el último tramo posible -> Horas muertas
+								if ((tram_horari.h_i > 0) && (i_hora < (hores.length-1))){
+
+									//Horas muertas en cualquier punto del día (incluye la hora de la comida)
+									this.combinacions_possibles[i]["puntuacions"]["hores_mortes"] += 
+										this.hourStringToValue(hores[i_hora])
+										-
+										this.hourStringToValue(hores[tram_horari.h_i])
+									;
+								}
+
+
+
+							}
 
 
 
@@ -1000,6 +1098,46 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 							i_hora++;
 						}
 					}
+
+
+					//Inicializamos el primer tramo diario en caso de ser primer día
+					if ((dia==1) && (!es_dia_lliure)) tram_diari.classeTlliureF = true;
+
+					//Comprobamos si ha de empezar un tramo distino o si seguimos con el actual (clase vs libre)
+					let nou_tram = ( ((dia>1) && (dia<6)) && ((tram_diari.classeTlliureF==true) && (es_dia_lliure)) || ((tram_diari.classeTlliureF==false) && (!es_dia_lliure)) );
+
+
+					//Si comienza un nuevo tramo, o llegamos al final de la semana
+					if ( nou_tram || (dia == 6) ){
+						//Recolectamos las estadísticas correspondientes al último tramo explorado.
+
+						//Días libres
+						if (!tram_diari.classeTlliureF){
+
+							let duracio = dia - tram_diari.d_i;
+
+							//COMPUTAMOS LAS ESTADÍSTICAS CORRESPONDIENTES
+
+							//A principios de semana
+							if (tram_diari.d_i == 1){
+								this.combinacions_possibles[i]["puntuacions"]["dies_lliures_principi_setmana"] += duracio;
+							}
+
+							//A finales de semana
+							if (dia == 6){
+								this.combinacions_possibles[i]["puntuacions"]["dies_lliures_final_setmana"] += duracio;
+							}
+
+							//A mediados de semana
+							if ((tram_diari.d_i > 1) && (dia < 6)){
+								this.combinacions_possibles[i]["puntuacions"]["dies_lliures_enmig_setmana"] += duracio;
+							}
+						}
+
+						tram_diari = {d_i: dia, /*h_f: i_hora,*/ classeTlliureF: !tram_diari.classeTlliureF};
+					}
+
+
 				}
 			}
 			}
@@ -1030,7 +1168,12 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 
 
-
+	updateLoadingStatus(){
+		window.document.getElementById("render_horari_loading_status").innerHTML = 
+		//(new Date()).toString()+"<br/>"+
+		this.render_horari_loading_status;
+		//console.log(new Date().toString());
+	}
 
 
 
@@ -1043,18 +1186,34 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		//let mati = {inici:"8:30", fi:"14:30"};
 		//let tarda = {inici:"15:00", fi:"21:00"};
 		
-		this.temps_inici_render_horari = new Date();
-		this.render_horari_loading_status = "Inicialitzant...";
-
-		this.horaris_render = "";
+		setTimeout(()=>{
+			//this.temps_inici_render_horari = new Date();
+			this.render_horari_loading_status = "Inicialitzant...";
+			this.updateLoadingStatus();
+		},120);
 		
+
+		
+		setTimeout(()=>{
+			this.render_horari_loading_status = "Computant les possibles combinacions per a "
+			+this.preferencies.max_assignatures
+			+" assignatur"+((this.preferencies.max_assignatures==1) ? "a":"es")+"...";
+			this.updateLoadingStatus();
+
+			this.horaris_render = "";
+		},125);
+
+		//125-160?  130+index
+		//setTimeout(()=>{
 		
 
 		if (this.need_recompute){
+		setTimeout(()=>{
 			this.combinacions_possibles = [];
 			this.total_combinations_count = 0;
 			this.discarded_not_enough_assigns = 0;
 			this.discarded_overlap_count = 0;
+		},129);
 
 			//this.creaCombinacionsPossibles([], true);
 			//this.eliminaSolapaments();
@@ -1063,6 +1222,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		}
 		this.need_recompute = false;
 		
+		setTimeout(()=>{
 		console.log(this.combinacions_possibles);
 
 		console.log("      Total combinacions provades:  "+(this.discarded_not_enough_assigns+this.discarded_overlap_count+this.combinacions_possibles.length));
@@ -1072,11 +1232,19 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		console.log("-----------------------Solapament: -"+this.discarded_overlap_count);
 		
 		console.log("Combinacions possibles resultants:  "+this.combinacions_possibles.length);
+		},170);
+		//},130);
 
 
 
-
+		setTimeout(()=>{
+			this.render_horari_loading_status = "Ordenant d'acord amb les preferencies seleccionades...";
+			this.updateLoadingStatus();
+		},180);
+			
+		setTimeout(()=>{
 		this.recopilaEstadistiquesIOrdena();
+		},200);
 
 		/*
 		
@@ -1122,7 +1290,12 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 
 
+		setTimeout(()=>{
+			this.render_horari_loading_status = "Renderitzant taules horàries!";
+			this.updateLoadingStatus();
+		},220);
 
+		setTimeout(()=>{
 		this.combinacions_a_mostrar = this.combinacions_possibles.slice(0, this.preferencies.max_horaris);
 
 
@@ -1268,6 +1441,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 		</>;
 
+		},240);
 
 		//window.document.getElementsByClassName("render_horari")[0].innerHTML = "";
 		//this.forceUpdate();
@@ -1386,7 +1560,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 		nomes_i_dies.map(i_dia=>{
 
-			[...Array(hores.length-1).keys()].map(i_hora=>{
+			for (let i_hora=0; i_hora<hores.length-1; i_hora++){
+			//[...Array(hores.length-1).keys()].map(i_hora=>{
 
 				let hora_i = null;
 				let hora_f = null;
@@ -1490,7 +1665,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				}
 
 
-			});
+			//});
+			}
 		});
 
 
@@ -2488,12 +2664,13 @@ console.log(clone_json);
 										//window.clearInterval(this.statusInterval);
 									//}, 200);
 									
-									setTimeout(()=>{
+									//setTimeout(()=>{
 										this.generaPossiblesHoraris();
-										window.document.getElementById("render_horari_done").innerHTML = renderToStaticMarkup(this.horaris_render);
-									}, 200);
+									//}, 200);
 
 									setTimeout(()=>{
+										window.document.getElementById("render_horari_done").innerHTML = renderToStaticMarkup(this.horaris_render);
+
 										window.document.getElementById("render_horari_loading").style.display="none";
 									}, 300);
 //}
