@@ -928,50 +928,52 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 
 
+	computaPuntuacio(estadistica, max){
+		let puntuacio = 0;
 
+
+
+
+
+
+		return puntuacio;
+	}
 
 
 	
 
 	recopilaEstadistiquesIOrdena(){
 
-		let max_estadistiques = {
-			hores_lliures_aviat_mati: 0,
-			hores_lliures_tard_mati: 0,
+		//console.log(this.combinacions_possibles.length);
 
-			hores_lliures_aviat_tarda: 0,
-			hores_lliures_tard_tarda: 0,
+		let plantilla = {
 
 			hores_mortes: 0,
 
 			dies_lliures_principi_setmana: 0,
 			dies_lliures_enmig_setmana: 0,
-			dies_lliures_final_setmana: 0//,
+			dies_lliures_final_setmana: 0,
+
+			hores_classe_mati: 0,
+			hores_classe_tarda: 0,
+			
+			hores_lliures_aviat_mati: 0,
+			hores_lliures_tard_mati: 0,
+
+			hores_lliures_aviat_tarda: 0,
+			hores_lliures_tard_tarda: 0
 
 			//FINAL: 0
 		}
+		let max_estadistiques = {...plantilla};
 
 		let mati = this.mati;
 		let tarda = this.tarda;
 		let hores = this.makeHoresList(mati, tarda, mati.inici, tarda.fi);
 		//this.hourStringToValue(hora_fi)-this.hourStringToValue(hora_i)
 
-		for (let i=0; i<this.combinacions_possibles; i++){
-			this.combinacions_possibles[i]["puntuacions"] = {
-				hores_lliures_aviat_mati: 0,
-				hores_lliures_tard_mati: 0,
-
-				hores_lliures_aviat_tarda: 0,
-				hores_lliures_tard_tarda: 0,
-
-				hores_mortes: 0,
-
-				dies_lliures_principi_setmana: 0,
-				dies_lliures_enmig_setmana: 0,
-				dies_lliures_final_setmana: 0//,
-
-				//FINAL: 0
-			}
+		for (let i=0; i<this.combinacions_possibles.length; i++){
+			this.combinacions_possibles[i]["puntuacions"] = {...plantilla};
 			//Aquí evaluaremos en una primera pasada y con valores brutos las puntuaciones pertinentes
 
 			//Creamos una lista de fragmentos para facilitar el recorrido
@@ -996,11 +998,11 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 					let es_dia_lliure = false;
 
+					let i_hora=0;
 					//Inicializamos un tramo horario
 					let tram_horari = {h_i: i_hora, /*h_f: i_hora,*/ classeTlliureF: false};
 
 					//Recorremos las horas del día en bucle
-					let i_hora=0;
 					while ( (i_hora<hores.length) && (dia<6) ){
 
 						//Buscamos un fragmento que corresponda al tramo actual (solo debería haber uno porque ya habíamos eliminado los solapamientos)
@@ -1018,12 +1020,44 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 						if ( nou_tram || (i_hora == (hores.length-1)) ) {
 							//Recolectamos las estadísticas correspondientes al último tramo explorado.
 
+							//let duracio_total = this.hourStringToValue(hores[i_hora])-this.hourStringToValue(hores[tram_horari.h_i]);
+
+							//COMPUTAMOS LAS ESTADÍSTICAS CORRESPONDIENTES
+
+
+
+							//Horas de clase
+							if (tram_horari.classeTlliureF){
+
+
+								//Si el tramo empieza en algún momento de la mañana (salvo el final)
+								if (tram_horari.h_i < hores.indexOf(mati.fi)){
+									this.combinacions_possibles[i]["puntuacions"]["hores_classe_mati"] += 
+										this.hourStringToValue(hores[Math.min(i_hora, hores.indexOf(mati.fi))])
+										-
+										this.hourStringToValue(hores[tram_horari.h_i])
+									;
+								}
+
+
+								//Si el tramo empieza en algún momento de la tarde o antes (salvo el final), y acaba en algún momento de la tarde (salvo el inicio)
+								if ((tram_horari.h_i < (hores.length-1)) && (i_hora > hores.indexOf(tarda.inici))){
+									this.combinacions_possibles[i]["puntuacions"]["hores_classe_tarda"] += 
+										this.hourStringToValue(hores[i_hora])
+										-
+										this.hourStringToValue(tarda.inici)
+									;
+								}
+
+							}
+
+
+
+
+
+
 							//Horas libres
-							if (!tram_horari.classeTlliureF){
-
-								//let duracio_total = this.hourStringToValue(hores[i_hora])-this.hourStringToValue(hores[tram_horari.h_i]);
-
-								//COMPUTAMOS LAS ESTADÍSTICAS CORRESPONDIENTES
+							else{//if (!tram_horari.classeTlliureF){
 
 								//Si el tramo empieza al principio de la mañana
 								if (tram_horari.h_i == 0){
@@ -1041,28 +1075,45 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 									;
 								}
 
-								//Si el tramo empieza al principio de la tarde o antes
-								if (tram_horari.h_i <= hores.indexOf(tarda.inici)){
-
-									//Horas libres al principio de la tarde
-									this.combinacions_possibles[i]["puntuacions"]["hores_lliures_aviat_tarda"] += 
+								//Si el tramo empieza en algún momento de la tarde o antes (salvo el final) 
+								if (tram_horari.h_i < (hores.length-1)){
+									
+									//Si el tramo acaba en algún momento de la tarde (salvo el inicio)
+									if (i_hora > hores.indexOf(tarda.inici)){
+										//Horas libres al principio de la tarde
+										this.combinacions_possibles[i]["puntuacions"]["hores_lliures_aviat_tarda"] += 
 										this.hourStringToValue(hores[i_hora])
 										-
 										this.hourStringToValue(tarda.inici)
+										;
+									}
+
+									//Si el tramo acaba al final de la tarde
+									if (i_hora == (hores.length-1)){
+										//Horas libres al final de la tarde
+										this.combinacions_possibles[i]["puntuacions"]["hores_lliures_tard_tarda"] += 
+										this.hourStringToValue(hores[i_hora])
+										-
+										this.hourStringToValue(hores[Math.max(hores.indexOf(tarda.inici), tram_horari.h_i)])
+									;
+									}
+
+									
+								}
+
+
+
+
+								//Si el tramo empieza en algún momento de la mañana (salvo el final) y termina al final de la mañana o más allá
+								if ((tram_horari.h_i < hores.indexOf(mati.fi)) && (i_hora >= hores.indexOf(mati.fi))){
+									//Horas libres al final de la mañana
+									this.combinacions_possibles[i]["puntuacions"]["hores_lliures_tard_mati"] += 
+										this.hourStringToValue(mati.fi)
+										-
+										this.hourStringToValue(hores[tram_horari.h_i])
 									;
 								}
 
-
-								//Si el tramo termina al final de la mañana
-								if (i_hora == hores.indexOf(mati.fi)){
-
-								}
-
-
-								//Si el tramo termina al final de la tarde
-								if (i_hora == hores.length-1){
-									
-								}
 
 
 
@@ -1070,7 +1121,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 								//Si el tramo empieza pasado el principio de la mañana, y acaba antes que el último tramo posible -> Horas muertas
 								if ((tram_horari.h_i > 0) && (i_hora < (hores.length-1))){
 
-									//Horas muertas en cualquier punto del día (incluye la hora de la comida)
+									//Horas muertas en cualquier punto del día (incluye la hora de la comida (14:30-15:00))
 									this.combinacions_possibles[i]["puntuacions"]["hores_mortes"] += 
 										this.hourStringToValue(hores[i_hora])
 										-
@@ -1114,23 +1165,23 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 						//Días libres
 						if (!tram_diari.classeTlliureF){
 
-							let duracio = dia - tram_diari.d_i;
+							//let duracio = dia - tram_diari.d_i;
 
 							//COMPUTAMOS LAS ESTADÍSTICAS CORRESPONDIENTES
 
-							//A principios de semana
+							//A principios de semana (lunes-x)
 							if (tram_diari.d_i == 1){
-								this.combinacions_possibles[i]["puntuacions"]["dies_lliures_principi_setmana"] += duracio;
+								this.combinacions_possibles[i]["puntuacions"]["dies_lliures_principi_setmana"] += dia - tram_diari.d_i;
 							}
 
-							//A finales de semana
+							//A finales de semana (x-viernes)
 							if (dia == 6){
-								this.combinacions_possibles[i]["puntuacions"]["dies_lliures_final_setmana"] += duracio;
+								this.combinacions_possibles[i]["puntuacions"]["dies_lliures_final_setmana"] += dia - tram_diari.d_i;
 							}
 
-							//A mediados de semana
-							if ((tram_diari.d_i > 1) && (dia < 6)){
-								this.combinacions_possibles[i]["puntuacions"]["dies_lliures_enmig_setmana"] += duracio;
+							//A mediados de semana (martes-jueves)
+							if ((dia > 2) && (dia <= 6)){
+								this.combinacions_possibles[i]["puntuacions"]["dies_lliures_enmig_setmana"] += Math.min(dia,5) - Math.max(2, tram_diari.d_i);
 							}
 						}
 
@@ -1149,6 +1200,22 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 					max_estadistiques[key] = this.combinacions_possibles[i]["puntuacions"][key];
 			})
 
+		}
+
+		//Ordenamos de mayor a menor puntuación
+		this.combinacions_possibles = this.combinacions_possibles.sort((c1,c2)=>{
+			let val_1 = this.computaPuntuacio(c1.puntuacions, max_estadistiques);
+			let val_2 = this.computaPuntuacio(c2.puntuacions, max_estadistiques);
+
+			if (val_1 < val_2) return -1;
+			if (val_1 > val_2) return 1;
+			return 0;
+		});
+
+		//Console.log para verificar métricas
+		for(let i=0; i < Math.min(this.preferencies.max_assignatures, this.combinacions_possibles.length); i++){
+			console.log("ESTADÍSTIQUES #"+(i+1)+":")
+			console.log(this.combinacions_possibles[i]["puntuacions"]);
 		}
 
 
@@ -1752,7 +1819,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 												<span className="fst-italic">{fragments[i].codaul ? fragments[i].codaul : "VG?---"}</span>
 												<br/>
 												{fragments[i].tpla ? <><span className="text-muted">{(
-													(fragments[i].tpla=="T") ? "(Teoría)" :
+													(fragments[i].tpla=="T") ? "(Teoria)" :
 													((fragments[i].tpla=="L") ? "(Lab.)" : "")
 												)}</span><br/></>:""}
 												<span style={{
