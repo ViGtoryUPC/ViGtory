@@ -478,12 +478,15 @@ class InitialScreen extends React.Component {
 
 function Home(props){
 	//ESTE TROZO DE CÓDIGO EXPULSA AL USUARIO SI INTENTA CARGAR UNA PÁGINA SIN ESTAR LOGUEADO
-	if (!Cookie.get("jwt")){
-		window.location.href = 
-			window.location.protocol+"//"+window.location.host+
-			(BaseName==="/"?"":BaseName) + "/signin";
-	}
+	setTimeout(()=>{
+		if (!Cookie.get("jwt")){
+			window.location.href = 
+				window.location.protocol+"//"+window.location.host+
+				(BaseName==="/"?"":BaseName) + "/signin";
+		}
 
+	}, 10);
+	//...sin los timeouts que hay en esta función, se cuelga en Firefox al intentar entrar desde esta ruta directamente sin estar logueado. La razón es desconocida; se teoriza que puede deberse a la forma en que la cache es manejada.
 
 
 
@@ -499,7 +502,7 @@ function Home(props){
 
 
 	//let screen_ref = React.createRef();
-	let screen_ref = props.home_ref;
+	let screen_ref = props.home_ref; //Es posible que esto fuera lo que causaba el error al entrar directamente a la ruta Home desde Firefox??? Parece que no, porque peta igual
 	let screen = <InitialScreen currentSection={props.currentSection} ref={screen_ref} location={location} useParams={params} />
 
 
@@ -543,11 +546,14 @@ function Home(props){
 
 
 
+	setTimeout(()=>{
 
-	return(
-		<>
-		{screen}
-		</>
-	)
+		return(
+			<>
+			{screen}
+			</>
+		)
+
+	}, 20);
 }
 export default Home;

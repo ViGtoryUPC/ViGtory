@@ -193,7 +193,7 @@ class InitialScreen extends React.Component {
 		this.max_assignatures_result = 7;
 
 		this.min_horaris_result = 1;
-		this.max_horaris_result = 20;
+		this.max_horaris_result = 50;
 
 		this.horaris = [];
 		this.cursos = {};
@@ -202,7 +202,7 @@ class InitialScreen extends React.Component {
 		this.preferencies = {
 			max_assignatures_used_by_user: false,
 			max_assignatures: 1,
-			max_horaris: 5,
+			max_horaris: 10,
 
 
 			hores_mortes: "min", //"min", "max", "ignore"
@@ -768,8 +768,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				this.render_horari_loading_status = "Computant les possibles combinacions per a "
 				+this.preferencies.max_assignatures
 				+" assignatur"+((this.preferencies.max_assignatures==1) ? "a":"es")+"..."
-				+"<br/>"+
-				"Exlorant "+(i+1)+"ª (de "+pool_flagged.length+") assignatura seleccionada: "+pool_flagged[i].sigles_ud+
+				+"<br/><br/>"+
+				"Exlorant "+(i+1)+"ª (de "+pool_flagged.length+") assignatura seleccionada: <br/>"+pool_flagged[i].sigles_ud+
 				" ("+Object.keys(grups).length+" grup"+((Object.keys(grups).length==1)?"":"s")+")"
 				;
 				this.updateLoadingStatus();
@@ -931,7 +931,94 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 	computaPuntuacio(estadistica, max){
 		let puntuacio = 0;
 
+		//Normalizamos las puntuaciones en base a las máximas:
+		let norm = {};
+		for (let i=0; i<Object.keys(max).length; i++){
+			if (max[Object.keys(max)[i]] == 0)
+				norm[Object.keys(max)[i]] = 0;
+			else
+				norm[Object.keys(max)[i]] = estadistica[Object.keys(max)[i]] / max[Object.keys(max)[i]];
+		}
 
+		//Hacemos el tratamiento de las puntuaciones normalizadas según las preferencias del usuario.
+
+		puntuacio += 
+
+			+ (  this.preferencies.hores_mortes_imp * ( 
+				(this.preferencies.hores_mortes == "min") ?
+					(1-norm.hores_mortes)
+				:
+					((this.preferencies.hores_mortes == "max") ?
+						norm.hores_mortes
+					:
+						0
+					)
+			)  )
+			
+
+
+			+ ( this.preferencies.dies_lliures_imp * (
+				(this.preferencies.dies_lliures == "prin") ? 
+					norm.dies_lliures_principi_setmana
+				: 
+					((this.preferencies.dies_lliures == "mitj") ?
+						norm.dies_lliures_enmig_setmana
+					:
+						((this.preferencies.dies_lliures == "final") ?
+							norm.dies_lliures_final_setmana
+						:
+							0
+						)
+					) 
+			) )
+
+
+
+			+ ( this.preferencies.prioritza_matiT_tardaF_imp * (
+				(this.preferencies.prioritza_matiT_tardaF == true) ? 
+					//norm.hores_classe_mati
+					estadistica.hores_classe_mati
+				:
+					//norm.hores_classe_tarda
+					estadistica.hores_classe_tarda
+			)/(estadistica.hores_classe_mati+estadistica.hores_classe_tarda) )
+
+
+
+
+			+ ( this.preferencies.comencar_tard_aviat_imp_mati * (
+				(this.preferencies.comencar_tardT_aviatF_mati == true) ?
+					norm.hores_lliures_aviat_mati
+				:
+					(1-norm.hores_lliures_aviat_mati)
+			) )
+
+			+ ( this.preferencies.acabar_tard_aviat_imp_mati * (
+				(this.preferencies.acabar_tardT_aviatF_mati == true) ?
+					(1-norm.hores_lliures_tard_mati)
+				:
+					norm.hores_lliures_tard_mati
+			) )
+
+
+
+
+			+ ( this.preferencies.comencar_tard_aviat_imp_tarda * (
+				(this.preferencies.comencar_tardT_aviatF_tarda == true) ?
+					norm.hores_lliures_aviat_tarda
+				:
+					(1-norm.hores_lliures_aviat_tarda)
+			) )
+
+
+			+ ( this.preferencies.acabar_tard_aviat_imp_tarda * (
+				(this.preferencies.acabar_tardT_aviatF_tarda == true) ?
+					(1-norm.hores_lliures_tard_tarda)
+				:
+					norm.hores_lliures_tard_tarda
+			) )
+
+		;
 
 
 
@@ -1068,6 +1155,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 									}
 
 									//Horas libres al principio de la mañana
+									if (!es_dia_lliure)
 									this.combinacions_possibles[i]["puntuacions"]["hores_lliures_aviat_mati"] += 
 										this.hourStringToValue(hores[Math.min(i_hora, hores.indexOf(mati.fi))])
 										-
@@ -1081,6 +1169,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 									//Si el tramo acaba en algún momento de la tarde (salvo el inicio)
 									if (i_hora > hores.indexOf(tarda.inici)){
 										//Horas libres al principio de la tarde
+										if (!es_dia_lliure)
 										this.combinacions_possibles[i]["puntuacions"]["hores_lliures_aviat_tarda"] += 
 										this.hourStringToValue(hores[i_hora])
 										-
@@ -1091,6 +1180,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 									//Si el tramo acaba al final de la tarde
 									if (i_hora == (hores.length-1)){
 										//Horas libres al final de la tarde
+										if (!es_dia_lliure)
 										this.combinacions_possibles[i]["puntuacions"]["hores_lliures_tard_tarda"] += 
 										this.hourStringToValue(hores[i_hora])
 										-
@@ -1107,6 +1197,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 								//Si el tramo empieza en algún momento de la mañana (salvo el final) y termina al final de la mañana o más allá
 								if ((tram_horari.h_i < hores.indexOf(mati.fi)) && (i_hora >= hores.indexOf(mati.fi))){
 									//Horas libres al final de la mañana
+									if (!es_dia_lliure)
 									this.combinacions_possibles[i]["puntuacions"]["hores_lliures_tard_mati"] += 
 										this.hourStringToValue(mati.fi)
 										-
@@ -1207,14 +1298,14 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 			let val_1 = this.computaPuntuacio(c1.puntuacions, max_estadistiques);
 			let val_2 = this.computaPuntuacio(c2.puntuacions, max_estadistiques);
 
-			if (val_1 < val_2) return -1;
-			if (val_1 > val_2) return 1;
+			if (val_1 < val_2) return 1;
+			if (val_1 > val_2) return -1;
 			return 0;
 		});
 
 		//Console.log para verificar métricas
-		for(let i=0; i < Math.min(this.preferencies.max_assignatures, this.combinacions_possibles.length); i++){
-			console.log("ESTADÍSTIQUES #"+(i+1)+":")
+		for(let i=0; i < Math.min(this.preferencies.max_horaris, this.combinacions_possibles.length); i++){
+			console.log("\n\n\nESTADÍSTIQUES #"+(i+1)+" (puntuació "+this.computaPuntuacio(this.combinacions_possibles[i].puntuacions, max_estadistiques)+"):")
 			console.log(this.combinacions_possibles[i]["puntuacions"]);
 		}
 
@@ -1369,19 +1460,20 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		
 
 		this.horaris_render = <>
-			{/*this.combinacions_a_mostrar.length == 0 ? <>
-				No hi ha cap horari possible que mostrar...
-				<br/>
-				Prova a canviar la teva selecció i/o els paràmetres introduïts.
-			</>:*/<>
+			{this.combinacions_a_mostrar.length == 0 ? <>
+				{"No s'ha trobat cap combinació de grups possible (sense solapaments) que mostrar per a "}
+				{this.preferencies.max_assignatures==1?" l'assignatura seleccionada":" les "+this.preferencies.max_assignatures+" assignatures seleccionades"}
+				{"..."}
+				<br/><br/>
+				{"Prova a canviar la teva selecció i/o els paràmetres introduïts."}
+			</>:<>
 
 				{this.total_combinations_count==1 ? (""):("")}
 
 				{"D'entre les "}
 				{(this.total_combinations_count-this.discarded_not_enough_assigns+this.discarded_overlap_count)==1?"(només 1)":this.posaPuntsAlsMilers(this.total_combinations_count-this.discarded_not_enough_assigns+this.discarded_overlap_count)}
-				{" possibles combinacions de grups trobades per a "}
-				{this.preferencies.max_assignatures}
-				{this.preferencies.max_assignatures==1?" assignatura":" assignatures"}
+				{" combinacions de grups trobades per a "}
+				{this.preferencies.max_assignatures==1?" l'assignatura seleccionada":" les "+this.preferencies.max_assignatures+" assignatures seleccionades"}
 				{", s'ha"}{this.discarded_overlap_count==1?"":"n"} 
 				{" descartat "}
 				{this.posaPuntsAlsMilers(this.discarded_overlap_count)}
@@ -1414,31 +1506,50 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 									className="pt-0 position-relative shadow border-dark" style={{right:"-0.25rem", bottom:"0"}}
 									size="sm"
 									onClick={()=>{
-										html2canvas( window.document.getElementById("horari_"+(i+1)),{scale:2.5} ).then(canvas => {
-											//window.document.body.appendChild(canvas);
 
-											let date = new Date();
+										setTimeout(()=>{
+											window.document.getElementById("span_posicio_horari_"+(i+1)).style.display = "none";
+										}, 50);
 
-											//["∶","˸","﹕", "᠄", "：", "︓"].forEach(x=>{console.log("12"+x+"34"+x+"56")})
-											let datestring = date.getFullYear()
-											+"-"
-											+(("0"+date.getMonth()).slice(-2))
-											+"-"
-											+(("0"+date.getDate()).slice(-2))
-											+"_"
-											+(("0"+date.getHours()).slice(-2))
-											+"∶"
-											+(("0"+date.getMinutes()).slice(-2))
-											+"∶"
-											+(("0"+date.getSeconds()).slice(-2))
-											;
-											
-											const image = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream');
-											const a = document.createElement('a');
-											a.setAttribute('download', "Horari ViGtory #"+(i+1)+" "+datestring+".png");
-											a.setAttribute('href', image);
-											a.click();
-										})
+										//console.log(window.document.getElementById("horari_"+(i+1)))
+
+										setTimeout(()=>{
+											html2canvas( window.document.getElementById("horari_"+(i+1)),{scale:2.5} ).then(canvas => {
+												//window.document.body.appendChild(canvas);
+
+												let date = new Date();
+
+												//["∶","˸","﹕", "᠄", "：", "︓"].forEach(x=>{console.log("12"+x+"34"+x+"56")})
+												let datestring = date.getFullYear()
+												+"-"
+												+(("0"+date.getMonth()).slice(-2))
+												+"-"
+												+(("0"+date.getDate()).slice(-2))
+												+"_"
+												+(("0"+date.getHours()).slice(-2))
+												+"∶"
+												+(("0"+date.getMinutes()).slice(-2))
+												+"∶"
+												+(("0"+date.getSeconds()).slice(-2))
+												;
+												
+												const image = canvas.toDataURL('image/png').replace('image/png', 'image/octet-stream');
+												const a = document.createElement('a');
+												a.setAttribute('download', "Horari ViGtory #"+(i+1)+" "+datestring+".png");
+												a.setAttribute('href', image);
+												a.click();
+											})
+										}, 100);
+
+
+										setTimeout(()=>{
+											window.document.getElementById("span_posicio_horari_"+(i+1)).style.display = "block";
+										}, 150);
+
+
+
+
+
 										}
 									}
 								>
@@ -1511,7 +1622,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		},240);
 
 		//window.document.getElementsByClassName("render_horari")[0].innerHTML = "";
-		//this.forceUpdate();
+		setTimeout(()=>{this.forceUpdate();}, 250)
+		
 	}
 
 
@@ -1767,7 +1879,13 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 					<tr>
 						{dies.map((dia, i)=>{return(
 							<th className="px-0" style={i==0?{borderLeft:"none", borderTop:"none", width:"15%"}:{backgroundColor:"#3488bb", color:"white", width:"auto", border:"1px solid #30577b"}}>
-								{dia}
+								{i==0 ?
+									<span id={"span_posicio_horari_"+(i+1)}>
+										{dia}
+									</span>
+									:
+									dia
+								}
 							</th>
 						);})}
 					</tr>
@@ -2736,7 +2854,10 @@ console.log(clone_json);
 									//}, 200);
 
 									setTimeout(()=>{
-										window.document.getElementById("render_horari_done").innerHTML = renderToStaticMarkup(this.horaris_render);
+										//window.document.getElementById("render_horari_done").innerHTML = renderToStaticMarkup(this.horaris_render);
+
+										//window.document.getElementById("render_horari_done").innerHTML = ""
+										//window.document.getElementById("render_horari_done").appendChild(this.horaris_render);
 
 										window.document.getElementById("render_horari_loading").style.display="none";
 									}, 300);
@@ -2774,7 +2895,9 @@ console.log(clone_json);
 						<br/>
 
 						{/*this.horaris_render*/}
-						<div id="render_horari_done"></div>
+						<div id="render_horari_done">
+							{this.horaris_render}
+						</div>
 
 					</div>
 				</p>
