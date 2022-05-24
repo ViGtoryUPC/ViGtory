@@ -784,62 +784,82 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 			setTimeout(()=>{
 
 			let combinacions_possibles_length = combinacions_possibles.length;
-			for (let j=0;   j < combinacions_possibles_length; j++){
 
-				//Si hay convicción, la asignatura se añadirá siempre. Si no la hay, se añadirá una iteración adicional en la que esta asignatura no se haya añadido
+			//PRUNING
+			//Ejecutamos el bucle hacia atrás para poder eliminar lo antes posible las combinaciones que no van a llegar a la cantidad deseada de asignaturas sin temer por que cambien los índices (j) de la lista.
+			for (let j = combinacions_possibles_length-1; j >= 0; j--){
+			//for (let j=0;   j < combinacions_possibles_length; j++){
 
-				if (!this.assig_grups[pool_flagged[i].sigles_ud].conviccio){
-					//Añadimos una entrada duplicada para simular un caso en el que no se añade la asignatura
-					combinacions_possibles.push([...combinacions_possibles[j]]);
+				//PRUNING
+				//Si la cantidad de asignaturas que todavía se pueden añadir no conseguirían ni tan solo en su totalidad hacer que la combinación actual llegase a la cantidad de asignaturas elegida por el usuario, eliminamos la combinación
+				if ((combinacions_possibles[j].length+(pool_flagged.length-i)) < this.preferencies.max_assignatures){
+					combinacions_possibles.splice(j,1);
+					//this.discarded_not_enough_assigns++;
 				}
+				else{
 
-				//Si todavía se puede añadir alguna asignatura
-				if (combinacions_possibles[j].length < this.preferencies.max_assignatures){
-					
-					for (let k=0; k < Object.keys(grups).length; k++){
+					//Si hay convicción, la asignatura se añadirá siempre. Si no la hay, se añadirá una iteración adicional en la que esta asignatura no se haya añadido
 
-						//Comprobar si se solapa con las actuales!!!
-						let solapa = false;
-						for (let l=0; ( (!solapa)&&(l < combinacions_possibles[j].length) ); l++){
-
-							solapa = this.horarisSolapen(
-								this.assig_grups[pool_flagged[i].sigles_ud].grups[Object.keys(grups)[k]].fragments, //nou grup
-								this.assig_grups[combinacions_possibles[j][l].sigles_ud].grups[combinacions_possibles[j][l].nom_grup].fragments
-							);
-
-						}
-
-						if ((combinacions_possibles[j].length+1) == this.preferencies.max_assignatures){
-							if (solapa) this.discarded_overlap_count++;
-						}
-
-
-						if (!solapa){
-							this.total_combinations_count++;
-
-							let nova_entrada = [...combinacions_possibles[j]];
-							nova_entrada.push({
-								sigles_ud: pool_flagged[i].sigles_ud,
-								nom_grup: Object.keys(grups)[k] //pool_flagged[i].nom_grup
-							});
-							if (nova_entrada.length == this.preferencies.max_assignatures)
-								this.combinacions_possibles.push(nova_entrada);
-							else{
-								combinacions_possibles.push(nova_entrada);
-								this.discarded_not_enough_assigns++;
-							}
-						}
-						
+					if (!this.assig_grups[pool_flagged[i].sigles_ud].conviccio){
+						//Añadimos una entrada duplicada para simular un caso en el que no se añade la asignatura
+						combinacions_possibles.push([...combinacions_possibles[j]]);
 					}
 
-				}
-				/*else{
-					this.discarded_not_enough_assigns++;
-				}*/	
+					//Si todavía se puede añadir alguna asignatura
+					if (combinacions_possibles[j].length < this.preferencies.max_assignatures){
 
+						
+
+						for (let k=0; k < Object.keys(grups).length; k++){
+
+							//PRUNING
+							//Comprobar si se solapa con las actuales!!!
+							let solapa = false;
+							for (let l=0; ( (!solapa)&&(l < combinacions_possibles[j].length) ); l++){
+
+								solapa = this.horarisSolapen(
+									this.assig_grups[pool_flagged[i].sigles_ud].grups[Object.keys(grups)[k]].fragments, //nou grup
+									this.assig_grups[combinacions_possibles[j][l].sigles_ud].grups[combinacions_possibles[j][l].nom_grup].fragments
+								);
+
+							}
+
+							if ((combinacions_possibles[j].length+1) == this.preferencies.max_assignatures){
+								if (solapa) this.discarded_overlap_count++;
+							}
+
+
+							if (!solapa){
+								this.total_combinations_count++;
+
+								let nova_entrada = [...combinacions_possibles[j]];
+								nova_entrada.push({
+									sigles_ud: pool_flagged[i].sigles_ud,
+									nom_grup: Object.keys(grups)[k] //pool_flagged[i].nom_grup
+								});
+								if (nova_entrada.length == this.preferencies.max_assignatures)
+									this.combinacions_possibles.push(nova_entrada);
+								else{
+									combinacions_possibles.push(nova_entrada);
+									this.discarded_not_enough_assigns++;
+								}
+							}
+							
+						}
+						
+						
+						
+
+					}
+					/*else{
+						this.discarded_not_enough_assigns++;
+					}*/	
+				}
 
 				//Si es la primera iteración de todas (1a iteración aplicada a combinacions_possibles = [[]] ), significará que se ha añadido por lo menos 1 entrada, y que ya podemos eliminar la entrada auxiliar que pusimos al principio
-				if ((i==0) && (j==0) /*&& (combinacions_possibles_length==1) && (combinacions_possibles[0]==[])*/ ){
+				
+				//if ((i==0) && (j==0) /*&& (combinacions_possibles_length==1) && (combinacions_possibles[0]==[])*/ ){
+				if ( (i==0) && (j == (combinacions_possibles_length-1)) ){
 					combinacions_possibles.pop();
 				}
 
@@ -1537,7 +1557,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 										//console.log(window.document.getElementById("horari_"+(i+1)))
 
 										setTimeout(()=>{
-											html2canvas( window.document.getElementById("horari_"+(i+1)),{scale:2.5} ).then(canvas => {
+											html2canvas( window.document.getElementById("horari_"+(i+1)),{scale:3} ).then(canvas => {
 												//window.document.body.appendChild(canvas);
 
 												let date = new Date();
@@ -2928,6 +2948,8 @@ console.log(clone_json);
 				</p>
 
 
+				<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
+				<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 				<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 
 			</>
