@@ -466,8 +466,8 @@ async function submitDataToAPI(event, route, navigate){
 		resp => { //SÍ ha sido posible conectar con la API
 			resp_ok = resp.ok;
 			//Si todo es correcto (status 200-299)
+			response = resp.json();
 			if (resp.ok){
-				response = resp.json();
 				if (route === "signUp"){
 					//Mostramos un alert al user y le llevamos a Login
 					window.alert("S'ha enviat un missatge amb un enllaç de verificació a l'adreça de correu electrònic que has introduït.\n\nRecorda que no podràs iniciar sessió fins a haver verificat el teu compte.\n\nComprova la carpeta d'spam del teu gestor de correus en cas que sigui necessari.");
@@ -493,10 +493,16 @@ async function submitDataToAPI(event, route, navigate){
 	)
 	.then(
 		data => {
+			console.log(data);
+
 			if (data === undefined) return;
 
 			if (!resp_ok){
-				window.alert(data.error);
+				window.alert(Array.isArray(data.error) ? 
+					data.error.join("\n")
+				:
+					data.error
+				);
 				return;
 			}
 
