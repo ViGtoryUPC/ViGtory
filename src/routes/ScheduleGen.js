@@ -773,7 +773,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				" ("+Object.keys(grups).length+" grup"+((Object.keys(grups).length==1)?"":"s")+")"
 				+"<br/>"
 				//+"<ProgressBar animated now={"+(100*i/pool_flagged.length)+"} label={"+i+"+'/'+"+pool_flagged.length+"} />"
-				+"<div class='progress'>"
+				+"<div class='progress' style='box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2), 0 3px 10px 0 rgba(0, 0, 0, 0.19);' >"
 				+"	<div class='progress-bar progress-bar-animated progress-bar-striped' role='progressbar' style='width: "+(100*i/pool_flagged.length)+"%' >"+i+"/"+pool_flagged.length+"</div>"
 				+"</div>"
 				;
@@ -1366,20 +1366,21 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		//let mati = {inici:"8:30", fi:"14:30"};
 		//let tarda = {inici:"15:00", fi:"21:00"};
 		
-		setTimeout(()=>{
+		//setTimeout(()=>{
 			//this.temps_inici_render_horari = new Date();
-			this.render_horari_loading_status = "Inicialitzant...";
-			this.updateLoadingStatus();
-		},120);
+			//this.render_horari_loading_status = "Inicialitzant...";
+			//this.updateLoadingStatus();
+		//},120);
 		
 
 		
 		setTimeout(()=>{
-			this.render_horari_loading_status = "Computant les possibles combinacions per a "
-			+this.preferencies.max_assignatures
-			+" assignatur"+((this.preferencies.max_assignatures==1) ? "a":"es")+"...";
-			this.updateLoadingStatus();
-
+			if (this.need_recompute) {
+				this.render_horari_loading_status = "Computant les possibles combinacions per a "
+				+this.preferencies.max_assignatures
+				+" assignatur"+((this.preferencies.max_assignatures==1) ? "a":"es")+"...";
+				this.updateLoadingStatus();
+			}
 			this.horaris_render = "";
 		},125);
 
@@ -1470,10 +1471,10 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 
 
-		setTimeout(()=>{
-			this.render_horari_loading_status = "Renderitzant taules horàries!";
-			this.updateLoadingStatus();
-		},220);
+		//setTimeout(()=>{
+			//this.render_horari_loading_status = "Renderitzant taules horàries!";
+			//this.updateLoadingStatus();
+		//},220);
 
 		setTimeout(()=>{
 		this.combinacions_a_mostrar = this.combinacions_possibles.slice(0, this.preferencies.max_horaris);
@@ -1483,8 +1484,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 		this.horaris_render = <>
 			{this.combinacions_a_mostrar.length == 0 ? <>
-				{"No s'ha trobat cap combinació de grups possible (sense solapaments) que mostrar per a "}
-				{this.preferencies.max_assignatures==1?" l'assignatura seleccionada":" les "+this.preferencies.max_assignatures+" assignatures seleccionades"}
+				{"No s'ha trobat cap combinació de grups possible (sense solapaments) que mostrar per a "}{this.preferencies.max_assignatures}{" assignatur"}
+				{this.preferencies.max_assignatures==1?"a":"es"}
 				{"..."}
 				<br/><br/>
 				{"Prova a canviar la teva selecció i/o els paràmetres introduïts."}
@@ -1494,8 +1495,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 				{"D'entre les "}
 				{(this.total_combinations_count-this.discarded_not_enough_assigns+this.discarded_overlap_count)==1?"(només 1)":this.posaPuntsAlsMilers(this.total_combinations_count-this.discarded_not_enough_assigns+this.discarded_overlap_count)}
-				{" combinacions de grups trobades per a "}
-				{this.preferencies.max_assignatures==1?" l'assignatura seleccionada":" les "+this.preferencies.max_assignatures+" assignatures seleccionades"}
+				{" combinacions de grups trobades per a "}{this.preferencies.max_assignatures}{" assignatur"}
+				{this.preferencies.max_assignatures==1?"a":"es"}
 				{", s'ha"}{this.discarded_overlap_count==1?"":"n"} 
 				{" descartat "}
 				{this.posaPuntsAlsMilers(this.discarded_overlap_count)}
@@ -1504,7 +1505,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				<br/><br/>
 				
 				{this.combinacions_possibles.length==1?
-					"Només resta una sola combinació d'horaris possible, que es la que mostrem a continuació"
+					"Només hi ha 1 combinació d'horaris possible, que és la que mostrem a continuació"
 				:
 					"D'entre les "+
 					

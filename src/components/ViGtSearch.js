@@ -161,7 +161,7 @@ class OrdreDropdown extends React.Component {
 				variant="outline-primary"
 				size="sm"
 				title={this.getJSONtext(this.ordreJSON(this.current_ordre, this.current_criteri))}
-				onSelect={(e)=>{this.updateSelected(e)}}
+				onSelect={(e)=>{this.updateSelected(e);this.props.executeSearch();}}
 			>
 				
 				{ this.valid_criteris.map((v_c, k_c) => { 
@@ -238,7 +238,7 @@ class LimitDropdown extends React.Component {
 				variant={"outline-primary"}
 				size="sm"
 				title={this.current_limit+" Publicacio"+(this.current_limit==1 ? "":"ns")+"/Pàg."}
-				onSelect={(e)=>{this.updateSelected(e);}}
+				onSelect={(e)=>{this.updateSelected(e);this.props.executeSearch();}}
 			>
 				
 				{ this.validValues.map((v, k) => { 
@@ -529,7 +529,7 @@ class InitialScreen extends React.Component {
 
 				<Button 
 					id="button-search"
-					onClick={() => {this.executeSearch()}}
+					onClick={() => {this.executeSearch();}}
 					type="submit"
 				>
 					{//🔎&#xFE0E; es el icono de la lupa junto con un selector de variable Unicode para que no sea mostrada por pantalla como emoticono (alternativa? 🔎&#xFE0F;
