@@ -6,7 +6,7 @@ import * as html2canvas from 'html2canvas';
 //import ReactDOM from 'react-dom';
 import { Routes, Route, Link, useHistory, useNavigate } from "react-router-dom";
 
-import { Accordion, Button, Form, FloatingLabel, ListGroup, Card, Table, Spinner } from 'react-bootstrap';
+import { Accordion, Button, Form, FloatingLabel, ListGroup, Card, Table, Spinner, ProgressBar } from 'react-bootstrap';
 import { useAccordionButton } from 'react-bootstrap/AccordionButton';
 
 import NavBar from "../components/NavBar";
@@ -769,8 +769,13 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				+this.preferencies.max_assignatures
 				+" assignatur"+((this.preferencies.max_assignatures==1) ? "a":"es")+"..."
 				+"<br/><br/>"+
-				"Exlorant "+(i+1)+"ª (de "+pool_flagged.length+") assignatura seleccionada: <br/>"+pool_flagged[i].sigles_ud+
+				"Explorant la "+(i+1)+"ª assignatura (de "+pool_flagged.length+") seleccionada: <br/>"+pool_flagged[i].sigles_ud+
 				" ("+Object.keys(grups).length+" grup"+((Object.keys(grups).length==1)?"":"s")+")"
+				+"<br/>"
+				//+"<ProgressBar animated now={"+(100*i/pool_flagged.length)+"} label={"+i+"+'/'+"+pool_flagged.length+"} />"
+				+"<div class='progress'>"
+				+"	<div class='progress-bar progress-bar-animated progress-bar-striped' role='progressbar' style='width: "+(100*i/pool_flagged.length)+"%' >"+i+"/"+pool_flagged.length+"</div>"
+				+"</div>"
 				;
 				this.updateLoadingStatus();
 
@@ -957,20 +962,33 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 			
 
 
-			+ ( this.preferencies.dies_lliures_imp * (
-				(this.preferencies.dies_lliures == "prin") ? 
-					norm.dies_lliures_principi_setmana
-				: 
-					((this.preferencies.dies_lliures == "mitj") ?
-						norm.dies_lliures_enmig_setmana
-					:
-						((this.preferencies.dies_lliures == "final") ?
-							norm.dies_lliures_final_setmana
-						:
-							0
-						)
-					) 
-			) )
+			+ ( this.preferencies.dies_lliures_imp * 
+					(()=>{
+						switch(this.preferencies.dies_lliures){
+							case("prin"):
+								return norm.dies_lliures_principi_setmana;
+							case("mitj"):
+								return norm.dies_lliures_enmig_setmana;
+							case("final"):
+								return norm.dies_lliures_final_setmana;
+							case("quan_s"):
+								return norm.dies_lliures_total;
+							case("prop_cap"):
+								return (
+									estadistica.dies_lliures_principi_setmana
+										+
+									estadistica.dies_lliures_final_setmana
+								)
+								/
+								(
+									max.dies_lliures_principi_setmana
+										+
+									max.dies_lliures_final_setmana
+								);
+						}
+					})()
+				
+				 )
 
 
 
@@ -1040,6 +1058,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 			dies_lliures_principi_setmana: 0,
 			dies_lliures_enmig_setmana: 0,
 			dies_lliures_final_setmana: 0,
+			dies_lliures_total: 0,
 
 			hores_classe_mati: 0,
 			hores_classe_tarda: 0,
@@ -1248,6 +1267,9 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 					//Comprobamos si ha de empezar un tramo distino o si seguimos con el actual (clase vs libre)
 					let nou_tram = ( ((dia>1) && (dia<6)) && ((tram_diari.classeTlliureF==true) && (es_dia_lliure)) || ((tram_diari.classeTlliureF==false) && (!es_dia_lliure)) );
 
+					if (es_dia_lliure && (dia < 6)){
+						this.combinacions_possibles[i]["puntuacions"]["dies_lliures_total"] += 1;
+					}
 
 					//Si comienza un nuevo tramo, o llegamos al final de la semana
 					if ( nou_tram || (dia == 6) ){
@@ -2230,6 +2252,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 						<option value={"prin"}>{"Principis"}</option>
 						<option value={"mitj"}>{"Mitjans"}</option>
 						<option value={"final"}>{"Finals"}</option>
+						<option value={"quan_s"}>{"Quan sigui"}</option>
+						<option value={"prop_cap"}>{"Prop del cap"}</option>
 					</Form.Select>
 					<span>{" de setmana."}</span>
 
@@ -2238,19 +2262,19 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 
 				<span>
-					{"Importància dels dies lliures a "+(
-
-						(this.preferencies["dies_lliures"]=="prin")
-						?
-							"principis"
-						:
-							( (this.preferencies["dies_lliures"]=="mitj")
-							?
-							"mitjans"
-							:
-							"finals")
-
-						)+" de setmana:"}
+					{"Importància dels dies lliures "+
+					
+						(()=>{
+							switch(this.preferencies["dies_lliures"]){
+								case("prin"): return "a principis de";
+								case("mitj"): return "a mitjans de";
+								case("final"): return "a finals de";
+								case("quan_s"): return "quan sigui de la";
+								case("prop_cap"): return "a prop del cap de";
+							}
+						})()
+					
+						+" setmana:"}
 				</span>
 				<br/>
 				<NumInput 

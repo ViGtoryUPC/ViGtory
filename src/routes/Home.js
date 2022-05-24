@@ -112,6 +112,9 @@ function getPostsTest(current_page, posts_per_page){
 
 
 async function getPosts(search_fields_data){
+
+	if (!Cookie.get("jwt")) return;
+
 	//search_fields_data es un JSON que contiene los campos NO VACÍOS de la búsqueda
 
 	//console.log(search_fields_data);
@@ -483,6 +486,7 @@ function Home(props){
 			window.location.href = 
 				window.location.protocol+"//"+window.location.host+
 				(BaseName==="/"?"":BaseName) + "/signin";
+			//return <></>;
 		}
 
 	}, 10);
@@ -522,6 +526,11 @@ function Home(props){
 
 
 		
+	setTimeout(()=>{
+		if (!Cookie.get("jwt")) return;
+	}, 20);
+
+	setTimeout(()=>{
 		getUserData().then((UserData) => {
 			screen_ref.current.isStudent = UserData.emailStudentConfirmed;
 			
@@ -534,6 +543,7 @@ function Home(props){
 				screen_ref.current.updatePageContent(data);//Algo se rompe al usar esto; puede que tenga que ver con las peticiones recursivas //SE HA SOLUCIONADO AÑADIENDO <React.StrictMode> EN index.js???????? O puede que no...
 			});
 		});
+	}, 25);
 
 	}, [window.location.href]);//[window.location.search]); //Seguramente haya alguna alternativa mejor, pero por el momento me quedo con esta (window.location.search) (para que se actualice el objeto que contiene la página al cargar nuevas publicaciones)
 
@@ -546,7 +556,6 @@ function Home(props){
 
 
 
-	setTimeout(()=>{
 
 		return(
 			<>
@@ -554,6 +563,5 @@ function Home(props){
 			</>
 		)
 
-	}, 20);
 }
 export default Home;

@@ -27,6 +27,7 @@ async function requestData(route, needAuth){
 	//headers.append("Access-Control-Allow-Origin", "*");
 	
 	if (needAuth){
+		if (!Cookie.get("jwt")) return {};
 		headers.append("authorization", Cookie.get("jwt"));
 	}
 
