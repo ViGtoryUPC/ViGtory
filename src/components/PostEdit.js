@@ -219,6 +219,8 @@ async function createOrUpdatePostToAPI(createTupdateF, text_data, route, files_t
 
 			var uploadFiles = () => {
 				//AÑADIMOS LOS ARCHIVOS UNO A UNO, CADA UNO CON SU PROPIA PETICIÓN
+				if (files_to_add.length == 0){checkFinish();}
+				else
 				for (let i = 0; i < files_to_add.length; i++) {
 					//console.log(data["IdAportacio"]);
 					uploadOrDeleteFile(true, files_to_add[i], createTupdateF?data["IdAportacio"]:current_post_id, i, uploaded_ready, checkFinish);
@@ -351,25 +353,27 @@ class DeleteFitxersInput extends React.Component {
 		
 		return(
 			<>
-				<Form.Label
-					className="mt-3 mb-1"
-					size="sm"
-				>{"Selecciona fitxers a eliminar de l'aportació:"}</Form.Label>
-
-				
-				<div className="fitxersDeleteList mb-0 px-3 mt-2 text-end">
-					<Button className="fitxersDeleteAll mb-0 px-2 pt-1 pb-0"
+				<div className="d-flex align-items-end justify-content-between">
+					<Form.Label
+						className="mt-3 mb-1"
 						size="sm"
-						onClick={()=>{
-							for (let i=0; i<this.file_list.length; i++){
-								this.file_list[i].deletion_flag = this.selecciona_buttn;
-							}
-							this.selecciona_buttn = !this.selecciona_buttn;
-							this.forceUpdate();
-						}}
-					>
-						{this.selecciona_buttn ? "Selecciona-ho tot":"Deselecciona-ho tot"}
-					</Button>
+					>{"Selecciona fitxers a eliminar de l'aportació:"}</Form.Label>
+
+					
+					<div className="fitxersDeleteList mb-0 me-0 px-3 mt-1 text-end">
+						<Button className="fitxersDeleteAll mb-0 px-2 pt-1 pb-0"
+							size="sm"
+							onClick={()=>{
+								for (let i=0; i<this.file_list.length; i++){
+									this.file_list[i].deletion_flag = this.selecciona_buttn;
+								}
+								this.selecciona_buttn = !this.selecciona_buttn;
+								this.forceUpdate();
+							}}
+						>
+							{this.selecciona_buttn ? "Selecciona-ho tot":"Deselecciona-ho tot"}
+						</Button>
+					</div>
 				</div>
 				<ListGroup className="fitxersDeleteList">
 					
@@ -1068,11 +1072,12 @@ class InitialScreen extends React.Component {
 							{this.subjectInput}
 							{this.new_title}
 							{this.new_body}
-							{this.fitxersInput}
 							{((!this.props.new_post)&&(this.file_list.length>0))?
 								this.delFitxersInput
 							:
 								<></>}
+							{this.fitxersInput}
+							
 
 							<p className="text-center mb-0" ><Button type="submit" className="mt-4" disabled={!this.state.allValid}>
 							{this.props.new_post ? "Publica":"Modifica"} aportació
