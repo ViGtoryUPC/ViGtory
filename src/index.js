@@ -11,6 +11,7 @@ import GradeCalc from "./routes/GradeCalc";
 import ScheduleGen from "./routes/ScheduleGen";
 //import NavBar from "./components/NavBar";
 import {BaseName} from "./libraries/basename";
+import { init_mobile_check } from './libraries/mobile_check';
 
 
 
@@ -75,7 +76,7 @@ console.warn = logWarn;
 
 
 
-
+init_mobile_check();
 
 
 

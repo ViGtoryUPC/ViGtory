@@ -105,7 +105,7 @@ async function deletePost(post_id, individual, sub, hidePost){
 
 
 
-function ScreenTogglePostEdit({ children, eventKey, post_id }){
+function ScreenTogglePostEdit({ children, eventKey, post_id, focusRef }){
 	const { activeEventKey } = useContext(AccordionContext);
 	const switchScreen = useAccordionButton(eventKey, null);
 	
@@ -114,7 +114,12 @@ function ScreenTogglePostEdit({ children, eventKey, post_id }){
 		<Dropdown.Item 
 			size="sm"
 			key={"edit_"+post_id}
-			onClick={switchScreen}
+			onClick={()=>{
+				switchScreen();
+				
+				if (!window.isMobileOrTablet())
+				setTimeout(()=>{focusRef();},100);
+			}}
 			id={"open_accord_edit_post_"+post_id}
 		>
 			{(eventKey===activeEventKey)?"✏️Deixa d'editar":"✏️Edita"}
@@ -321,7 +326,7 @@ class InitialScreen extends React.Component {
 						>
 
 
-							<ScreenTogglePostEdit eventKey={"accord_edit_post_"+this.props.post_info._id} post_id={this.props.post_info._id} />
+							<ScreenTogglePostEdit eventKey={"accord_edit_post_"+this.props.post_info._id} post_id={this.props.post_info._id} focusRef={()=>{this.postedit_ref.current.new_body_ref.current.focus()}} />
 
 
 							<Dropdown.Item 

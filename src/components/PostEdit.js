@@ -721,8 +721,16 @@ class TextAreaInput extends React.Component {
 		this.content_txt = this.props.new_post ? "":this.props.post_text;
 		this.valid = true;
 		this.titleTbodyF = props.titleTbodyF;
+
+
+		this.focus = this.focus.bind(this);
+		this.focusRef = React.createRef();
+		//this.focusRef = this.props.focusRef;
 	}
 
+	focus() {
+		this.focusRef.current.focus();
+	}
 
 	validate_content_clientside(notify_invalid){
 
@@ -750,11 +758,12 @@ class TextAreaInput extends React.Component {
 
 
 	render(){
-
+		//id={this.props.focusId}
 		return(
 
 			<>
 				<Form.Control
+					ref={this.focusRef}
 					readOnly={false}
 					className={this.titleTbodyF ? "new_title" : "new_body mt-3"} 
 					type="text" 
@@ -799,7 +808,7 @@ class TextAreaInput extends React.Component {
 
 
 
-function ScreenTogglePostEdit({ children, eventKey }){
+function ScreenTogglePostEdit({ children, eventKey, focusRef }){
 	const { activeEventKey } = useContext(AccordionContext);
 	const switchScreen = useAccordionButton(eventKey, null);
 
@@ -809,7 +818,12 @@ function ScreenTogglePostEdit({ children, eventKey }){
 	return(
 		<Button 
 			className="interactiveTogglePostEdit"
-			onClick={switchScreen}
+			onClick={()=>{
+				switchScreen();
+				
+				if (!window.isMobileOrTablet())
+				setTimeout(()=>{focusRef();},100);
+			}}
 			size="lg"
 			fontWeight="bolder"
 		>
@@ -954,9 +968,9 @@ class InitialScreen extends React.Component {
 
 	render(){
 
-		this.new_title = <TextAreaInput ref={this.new_title_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} titleTbodyF={true} new_post={this.props.new_post} post_text={this.props.post_info?this.props.post_info.title:""} isStudent={this.props.isStudent} />
+		this.new_title = <TextAreaInput ref={this.new_title_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} titleTbodyF={true} new_post={this.props.new_post} post_text={this.props.post_info?this.props.post_info.title:""} isStudent={this.props.isStudent} focusId={((!this.props.new_post) ? ("accord_edit_post_"+this.props.post_info._id) : "accord_post_edit")+"_title"} />
 
-		this.new_body = <TextAreaInput ref={this.new_body_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} titleTbodyF={false} new_post={this.props.new_post} post_text={this.props.post_info?this.props.post_info.body:""} isStudent={this.props.isStudent} />
+		this.new_body = <TextAreaInput ref={this.new_body_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} titleTbodyF={false} new_post={this.props.new_post} post_text={this.props.post_info?this.props.post_info.body:""} isStudent={this.props.isStudent} focusId={((!this.props.new_post) ? ("accord_edit_post_"+this.props.post_info._id) : "accord_post_edit")+"_body"} />
 
 
 		this.subjectInput = <SubjectInput subjectList={this.subjectList} current_assignatura={this.props.current_assignatura} ref={this.subjectInput_ref} new_post={this.props.new_post} post_info={this.props.post_info} isStudent={this.props.isStudent} />;
@@ -1016,13 +1030,12 @@ class InitialScreen extends React.Component {
 
 
 
-
-
+		
 		let contents = <>
 
 				{this.props.new_post ? 
 				<p className="text-center" style={{marginBottom: "-1.25rem", zIndex: "6", position: "relative"}} >
-					<ScreenTogglePostEdit eventKey={"accord_post_edit"}/>
+					<ScreenTogglePostEdit eventKey={"accord_post_edit"} focusRef={()=>{this.new_title_ref.current.focus()}} />
 				</p>
 				:""
 				}

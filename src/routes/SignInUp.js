@@ -76,8 +76,13 @@ class UsernameInput extends React.Component {
 		};
 		this.content_txt = "";
 		this.valid = true;
+
+		this.focusRef = React.createRef();
 	}
 
+	focus() {
+		this.focusRef.current.focus();
+	}
 
 	validate_content_clientside(event){
 
@@ -120,6 +125,8 @@ class UsernameInput extends React.Component {
 			<Form.Floating className="mt-3">
 					{/*onChange={this.validate_content_clientside.bind(this)}*/}
 				<Form.Control
+					autoFocus
+					ref={this.focusRef}
 					type="text" 
 					name={"username"} 
 					placeholder="usuari" 
@@ -360,16 +367,24 @@ class DegreeInput extends React.Component {
 
 
 
-function ScreenToggleLoginRegister({ children, eventKey }){
+function ScreenToggleLoginRegister({ children, eventKey, focusRefLogin, focusRefRegister }){
 	const switchScreen = useAccordionButton(eventKey, ()=>{
-		//console.log("Accordion "+eventKey+" triggered!")
-		changeURLandTitle(eventKey.split("_")[1] === "login")
+		console.log("Accordion "+eventKey+" triggered!");
+		changeURLandTitle(eventKey.split("_")[1] === "login");
 	});
 	
 	return(
 		<span 
 			className="interactiveToggleLoginRegister"
-			onClick={switchScreen}
+			onClick={()=>{
+				switchScreen();
+				
+				if (!window.isMobileOrTablet())
+				setTimeout(()=>{
+						focusRefLogin();
+						focusRefRegister();
+				},500);
+			}}
 		>
 			{children}
 		</span>
@@ -493,7 +508,7 @@ async function submitDataToAPI(event, route, navigate){
 	)
 	.then(
 		data => {
-			console.log(data);
+			//console.log(data);
 
 			if (data === undefined) return;
 
@@ -595,7 +610,7 @@ class LoginForm extends React.Component {
 
 
 		return(
-			<Form noValidate method="post" action="http://httpbin.org/post" onSubmit={(e) => this.submitButtonAction(e)} >
+			<Form noValidate method="post" action="https://httpbin.org/post" onSubmit={(e) => this.submitButtonAction(e)} >
 				<h1>Inicia sessió:</h1>
 				{this.user}
 				{this.password}
@@ -606,7 +621,7 @@ class LoginForm extends React.Component {
 				</p>*/}
 				<p className="text-center mt-1 mb-1">
 					No tens un compte?&nbsp;
-					<ScreenToggleLoginRegister eventKey="accord_register">Crea'n un!</ScreenToggleLoginRegister>
+					<ScreenToggleLoginRegister eventKey="accord_register" focusRefLogin={()=>{this.user_ref.current.focus()}} focusRefRegister={()=>{this.props.registerRef.current.user_ref.current.focus()}} >Crea'n un!</ScreenToggleLoginRegister>
 				</p>
 			</Form>
 		);
@@ -683,7 +698,7 @@ class RegisterForm extends React.Component {
 		let degree = <DegreeInput form_field_name="register_degree" degreeList={this.props.degreeList} />;
 
 		return(
-			<Form noValidate method="post" action="http://httpbin.org/post" onSubmit={(e) => this.submitButtonAction(e)} >
+			<Form noValidate method="post" action="https://httpbin.org/post" onSubmit={(e) => this.submitButtonAction(e)} >
 				<h1>Crea un nou compte:</h1>
 				{this.user}
 				{this.password}
@@ -694,7 +709,7 @@ class RegisterForm extends React.Component {
 				<p className="text-center" ><Button type="submit" className="mt-3 mb-2" disabled={!this.state.allValid}>Crea compte</Button></p>
 				<p className="text-center">
 					Ja tens un compte?&nbsp;
-					<ScreenToggleLoginRegister eventKey="accord_login">Accedeix-hi aquí!</ScreenToggleLoginRegister>
+					<ScreenToggleLoginRegister eventKey="accord_login"  focusRefLogin={()=>{this.props.loginRef.current.user_ref.current.focus()}} focusRefRegister={()=>{this.user_ref.current.focus()}} >Accedeix-hi aquí!</ScreenToggleLoginRegister>
 				</p>
 			</Form>
 		);
@@ -718,6 +733,8 @@ class InitialScreen extends React.Component {
 		changeURLandTitle(this.props.loginTregisterF);
 		this.degreeList = [];
 		
+		this.loginRef = React.createRef();
+		this.registerRef = React.createRef();
 	}
 
 	LoginOrRegisterClick(){
@@ -774,7 +791,7 @@ class InitialScreen extends React.Component {
 				<Accordion.Collapse eventKey="accord_register" >
 					<div>
 					<div className="content_wrapper">
-					<RegisterForm validation_rgx_msg={validation_rgx_msg} degreeList={degreeList} navigate={this.props.navigate} />
+					<RegisterForm validation_rgx_msg={validation_rgx_msg} degreeList={degreeList} navigate={this.props.navigate} ref={this.registerRef} loginRef={this.loginRef} />
 					</div>
 					<br/><br/><br/><br/><br/><br/><br/><br/><br/>
 					</div>
@@ -783,7 +800,7 @@ class InitialScreen extends React.Component {
 				<Accordion.Collapse eventKey="accord_login" >
 					<div>
 					<div className="content_wrapper">
-					<LoginForm validation_rgx_msg={validation_rgx_msg} navigate={this.props.navigate} />
+					<LoginForm validation_rgx_msg={validation_rgx_msg} navigate={this.props.navigate} ref={this.loginRef} registerRef={this.registerRef} />
 					</div>
 					<br/><br/><br/><br/><br/><br/>
 					</div>
