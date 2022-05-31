@@ -389,11 +389,24 @@ class TextAreaInput extends React.Component {
 */
 
 	render(){
-
+		//console.log(this.props.isStudent);
 		return(
-
+			//La key, aunque redundante, es necesaria para que React se entere de que ha habido un cambio y se ha comprobado que el usuario es estudiante... Para más inri, el error solo sucedía en los casos en los que todavía no había ningún comentario. Cuando sí que hay algún comentario, el renderizado es el correcto...
+			//Era un problema de defaultValue, en que se asignaba el valor por defecto al input, y luego el valor por defecto cambiaba pero el valor que contenía el input ya estaba establecido y por tanto no cambiaba. De ahí la necesidad de que React cargase un elemento de input completamente nuevo. Habría otras formas de hacerlo, pero esta sufice, por el momento.
 			<>
 				<Form.Control
+					key={(
+						(!this.props.parentTreplyF) ? 
+						(
+							this.props.newTeditF ?
+								("input_new_reply_"+this.props.comm_id+"_"+(this.props.isStudent?"s":"ns"))
+							: 
+								("input_edit_comm_"+this.props.comm_id+"_"+(this.props.isStudent?"s":"ns"))
+						)
+						:
+						("input_new_comment_"+this.props.post_id+"_"+(this.props.isStudent?"s":"ns")) 
+							
+					)}
 					readOnly={(!this.props.isStudent)
 					//false
 					}
@@ -407,11 +420,11 @@ class TextAreaInput extends React.Component {
 					size="sm"
 					isInvalid={(!this.props.isStudent) || (!this.state.valid)}
 					style={{zIndex:"0", position:"relative"}}
-					defaultValue={!this.props.isStudent?
-						"Només els usuaris verificats com a estudiants poden crear i publicar comentaris."
+					defaultValue={((!this.props.isStudent) ?
+						("Només els usuaris verificats com a estudiants poden crear i publicar comentaris.")
 					:
 						(this.props.newTeditF ? "":this.props.body)
-					}
+					)}
 				/>
 
 
@@ -1169,7 +1182,6 @@ function CommentSection(props){
 			commentSection_ref.current.isStudent = UserData.emailStudentConfirmed;
 
 			commentSection_ref.current.reoder_comments();
-
 		});
 	}, []);
 

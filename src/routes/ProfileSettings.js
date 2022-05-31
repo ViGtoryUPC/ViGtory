@@ -487,10 +487,13 @@ class DegreeInput extends React.Component {
 		//selected={i===this.props.defaultValue}
 		let degreeList = this.props.degreeList ? this.props.degreeList : [];
 		
+		//defaultValue={this.props.defaultValue}
 		return(
 
 			<FloatingLabel className="mt-3 mb-2" label="Grau d'estudis d'interès">
-				<Form.Select name={"grau"} defaultValue={this.props.defaultValue} >
+				<Form.Select 
+					name={"grau"} 
+				>
 
 					{/*this.props.degreeList.map((deg_name, i) => { return (
 						<option 
@@ -501,9 +504,11 @@ class DegreeInput extends React.Component {
 						</option>
 					)})*/
 					degreeList.map((deg) => { return (
-						<option value={deg.codi_programa} key={deg.codi_programa}>
-							{deg.nom} {(deg.codi_programa===this.props.defaultValue)?"[ACTUALMENT]":""}
+						<option value={deg.codi_programa} key={deg.codi_programa} selected={deg.codi_programa===this.props.defaultValue} className={(deg.codi_programa===this.props.defaultValue)?"fw-bold":""}>
+
+							{deg.nom} {(deg.codi_programa===this.props.defaultValue)?"[actualment]":""}
 						</option>
+
 					)})
 					}
 
