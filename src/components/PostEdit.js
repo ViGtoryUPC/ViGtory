@@ -11,6 +11,7 @@ import { Card, OverlayTrigger, Tooltip, Dropdown, Popover, ListGroup } from 'rea
 import 'bootstrap/dist/css/bootstrap.min.css';
 import '../css/main.css';
 import '../css/PostEdit.css';
+import {humanReadableFileSize, iconForMIME} from '../libraries/visual_helper_for_files';
 
 import {Cookie} from '../libraries/cookie';
 import {BaseName} from "../libraries/basename";
@@ -300,11 +301,15 @@ class DeleteFitxersInput extends React.Component {
 		this.valid = true;
 		this.file_list = this.props.file_list.map(v=>{
 			return {
-					filename: v,
+					name: v[0],
+					size: v[1],
+					type: v[2],
 					deletion_flag: false
 				}
 		});
 		this.selecciona_buttn = true;
+
+		this.fitxersInput_ref = this.props.fitxersInput_ref;
 	}
 
 
@@ -347,6 +352,7 @@ class DeleteFitxersInput extends React.Component {
 		return;
 	}*/
 
+	
 
 
 	render(){
@@ -390,13 +396,24 @@ class DeleteFitxersInput extends React.Component {
 								}
 								this.selecciona_buttn = !(flagged_count>=this.file_list.length/2)
 
+								if (this.fitxersInput_ref.current){this.fitxersInput_ref.current.updateFileList();}
+
 								this.forceUpdate();
 							}}
 						>
 							<span className="text-decoration-none d-flex align-items-center justify-content-between">
+
+
 								<span className="text-break me-2">
-								{file.filename}
+									{iconForMIME(file.type)}&nbsp;{file.name}
+									<br/>
+									<span className="text-info small">
+									&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+										{humanReadableFileSize(file.size )}
+									</span>
 								</span>
+
+
 								<span 
 									className="individualDelete px-2" 
 									style={{whiteSpace:"nowrap"}}
@@ -477,37 +494,63 @@ class FitxersInput extends React.Component {
 			err_msg: ""
 		};
 		this.valid = true;
+
+
+		this.max_size_MB = 200;
+		this.max_file_count = 10;
+
+
+		this.file_list_in_input = [];
 		this.file_list = [];
+		this.delFitxersInput_ref = this.props.delFitxersInput_ref;
+		this.inputRef = React.createRef();
+
+		this.files_to_keep = this.delFitxersInput_ref.current ? ( this.delFitxersInput_ref.current.file_list.filter(file => {return !file.deletion_flag}) ) : [];
+
+		this.files_to_keep_size_MB = ( this.files_to_keep.reduce((sum,el)=>{
+			return sum+el.size}, 0) ) / (1024*1024);
 	}
 
 
-	updateFileList(event){
+	updateFileList(/*event*/){
 		let file_list = [];
+		this.file_list = [...file_list];
 
 		if(!this.props.isStudent) return;
 
-		let max_size_MB = 200;
 		let current_size_MB = 0;
-		//let max_file_count = 10;
 
-		let files = event.target.files;
+		let max_size_MB = this.max_size_MB;
+		let max_file_count = this.max_file_count;
 
-		/*if (files.length > max_file_count){
+		//let files = event.target.files;
+		let files = (this.file_list_in_input).sort((a,b)=>{return a.size-b.size});
+
+		this.files_to_keep = this.delFitxersInput_ref.current ? ( this.delFitxersInput_ref.current.file_list.filter(file => {return !file.deletion_flag}) ) : [];
+
+		if ((this.files_to_keep.length + files.length) > max_file_count){
 			this.setState({
 				valid: false,
-				err_msg: ("S'han seleccionat més fitxers que la quantitat màxima permesa d" + ((max_file_count===1)?"'":"e ") + max_file_count + " fitxer" + ((max_file_count===1)?"":"s") + ".")
+				err_msg: ("S'han seleccionat més fitxers que la quantitat màxima permesa d" + ((max_file_count===1)?"'":"e ") + max_file_count + " fitxer" + ((max_file_count===1)?"":"s") + (this.delFitxersInput_ref.current ? " (inclou els ja afegits)" : "") + ".")
 			});
 			this.valid = false;
 			return;
-		}*/
+		}
+
+		//console.log(this.files_to_keep);
+
+		this.files_to_keep_size_MB = ( this.files_to_keep.reduce((sum,el)=>{
+			return sum+el.size}, 0) ) / (1024*1024);
+		
+		//console.log(files_to_keep_size_MB);
 
 		for (let i=0; i<files.length; i++){
 			let file_size_MB = files[i].size / (1024*1024);
 
-			if ( (current_size_MB + file_size_MB) > max_size_MB){
+			if ( (current_size_MB + file_size_MB + this.files_to_keep_size_MB) > max_size_MB){
 				this.setState({
 					valid: false,
-					err_msg: ("Els fitxers afegits superen la mida total màxima permesa de "+max_size_MB+" MB.")
+					err_msg: ("Els fitxers seleccionats superen la mida total màxima permesa de "+max_size_MB+" MB" + (this.delFitxersInput_ref.current ? " (inclou els ja afegits)" : "") + ".")
 				});
 				this.valid = false;
 				return;
@@ -528,9 +571,50 @@ class FitxersInput extends React.Component {
 
 
 		//console.log(file_list);
-		this.file_list = file_list;
+		this.file_list = [...file_list];
 		//console.log(this.file_list);
 		return;
+	}
+
+
+
+	removeFileByIndex(filename/*i*/){
+		if (this.inputRef){
+			//console.log("ELIMINA " + this.inputRef.current.files[i].name);
+
+			let new_file_list = new DataTransfer();
+			//let new_file_list = {};
+			console.log(this.inputRef.current.files);
+
+			//let k = 0;
+			for (let j=0; j<this.inputRef.current.files.length; j++){
+				if (this.inputRef.current.files[j].name != filename){
+				//if (i != j){
+					let file = new File(
+						[this.inputRef.current.files[j]],
+						this.inputRef.current.files[j].name,
+						{
+							type: this.inputRef.current.files[j].type,
+							lastModified: this.inputRef.current.files[j].lastModified
+						}
+					);
+					new_file_list.items.add(file);
+
+					//new_file_list[k] = this.inputRef.current.files[j];
+					//k++;
+					//new_file_list.length = k;
+				}
+			}
+
+			this.inputRef.current.files = new_file_list.files;
+
+			this.file_list_in_input = [];
+			for (let j=0; j<new_file_list.files.length; j++){
+				this.file_list_in_input.push(new_file_list.files[j]);
+			}
+			this.updateFileList();
+			//this.forceUpdate();
+		}
 	}
 
 
@@ -544,16 +628,46 @@ class FitxersInput extends React.Component {
 					size="sm"
 				>
 					<Form.Label
-						className="mb-1"
-					size="sm"
-					>{//this.props.isStudent?
-					"Afegeix fitxers a l'aportació:"
-					//:"Només els usuaris verificats com a estudiants poden afegir fitxers a les seves aportacions."
-					}</Form.Label>
+						className="mb-1  d-flex align-items-center justify-content-between"
+						size="sm"
+					>
+					<span>
+						{//this.props.isStudent?
+						"Afegeix fitxers a l'aportació:"
+						//:"Només els usuaris verificats com a estudiants poden afegir fitxers a les seves aportacions."
+						}
+					</span>
+					<p className="text-end mb-0 text-muted small">
+						<span>
+							{
+								(this.files_to_keep.length+this.file_list.length)
+								+"/"+
+								this.max_file_count+" fitxers"
+							}
+							&nbsp;&nbsp;&nbsp;
+							{
+								(this.files_to_keep_size_MB + ( this.file_list.reduce((sum,el)=>{
+			return sum+el.size}, 0) ) / (1024*1024)).toFixed(2).replace(".", ",")
+								+
+								"/"+this.max_size_MB+" MB"
+							}
+						</span>
+					</p>
+					
+					</Form.Label>
 					<Form.Control 
-					size="sm"
+						ref={this.inputRef}
+						size="sm"
 						type="file"
-						onChange={(e)=>{this.updateFileList(e); this.props.global_validity_action(true);}} 
+						onChange={(e)=>{
+							this.file_list_in_input = [];
+							for (let i=0; i<e.target.files.length; i++){
+								this.file_list_in_input.push(e.target.files[i]);
+							}
+							//console.log(this.file_list_in_input);
+							this.updateFileList(/*e*/);
+							this.props.global_validity_action(true);
+							}} 
 						multiple 
 						isInvalid={!this.state.valid}
 						disabled={!this.props.isStudent}
@@ -562,6 +676,57 @@ class FitxersInput extends React.Component {
 					{this.state.err_msg}
 				</Form.Control.Feedback>
 				</Form.Group>
+
+
+
+
+				<ListGroup className="fitxersDeleteList">
+					
+					{this.file_list.map((file/*, i*/) => {return (
+						<ListGroup.Item 
+							className={"pe-2 py-1"}
+							
+							onClick={()=>{
+								//console.log(i);
+								this.removeFileByIndex(file.name/*i*/);
+							}}
+						>
+							<span className="text-decoration-none d-flex align-items-center justify-content-between">
+
+
+								<span className="text-break me-2">
+									{iconForMIME(file.type)}&nbsp;{file.name}
+									<br/>
+									<span className="text-info small">
+									&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+										{humanReadableFileSize(file.size )}
+									</span>
+								</span>
+
+
+								<span 
+									className="individualDelete px-2" 
+									style={{whiteSpace:"nowrap"}}
+								>
+								<p className="text-end mb-1">
+									<span>
+										{"Elimina"}
+										&nbsp;
+									</span>
+									<h5 className="d-inline">
+										{"🗑"}
+									</h5>
+								</p>
+								</span>
+								
+							</span>
+							
+						</ListGroup.Item>
+					);})}
+					
+
+				</ListGroup>
+
 			</>
 
 		);
@@ -820,7 +985,7 @@ function ScreenTogglePostEdit({ children, eventKey, focusRef }){
 			className="interactiveTogglePostEdit"
 			onClick={()=>{
 				switchScreen();
-				
+
 				if (!window.isMobileOrTablet())
 				setTimeout(()=>{focusRef();},100);
 			}}
@@ -946,11 +1111,11 @@ class InitialScreen extends React.Component {
 		if (this.delFitxersInput_ref.current && this.fitxersInput_ref.current.file_list){
 			for (let i=0; i<this.delFitxersInput_ref.current.file_list.length; i++){
 				if (this.delFitxersInput_ref.current.file_list[i].deletion_flag){
-					files_to_delete.push(this.delFitxersInput_ref.current.file_list[i].filename);
+					files_to_delete.push(this.delFitxersInput_ref.current.file_list[i].name);
 				}
 			}
 		}
-		console.log(files_to_delete);
+		//console.log(files_to_delete);
 
 		createOrUpdatePostToAPI(
 			this.props.new_post,
@@ -965,6 +1130,11 @@ class InitialScreen extends React.Component {
 
 
 
+	componentDidMount(){
+		if (this.fitxersInput_ref.current){this.fitxersInput_ref.current.updateFileList();}
+	}
+
+
 
 	render(){
 
@@ -975,13 +1145,13 @@ class InitialScreen extends React.Component {
 
 		this.subjectInput = <SubjectInput subjectList={this.subjectList} current_assignatura={this.props.current_assignatura} ref={this.subjectInput_ref} new_post={this.props.new_post} post_info={this.props.post_info} isStudent={this.props.isStudent} />;
 
-		this.fitxersInput = <FitxersInput ref={this.fitxersInput_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} new_post={this.props.new_post} post_info={this.props.post_info} isStudent={this.props.isStudent} />;
+		this.fitxersInput = <FitxersInput ref={this.fitxersInput_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} new_post={this.props.new_post} post_info={this.props.post_info} isStudent={this.props.isStudent} delFitxersInput_ref={this.delFitxersInput_ref} />;
 
 		
 		if (!this.props.new_post){
 			this.file_list = (this.props.post_info.fitxers/* && this.props.isStudent*/) ? this.props.post_info.fitxers : [];
 
-			this.delFitxersInput = <DeleteFitxersInput ref={this.delFitxersInput_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} file_list={this.file_list} />;
+			this.delFitxersInput = <DeleteFitxersInput ref={this.delFitxersInput_ref} fitxersInput_ref={this.fitxersInput_ref} global_validity_action={(notify_invalid) => this.checkLocalValidity(notify_invalid)} file_list={this.file_list} />;
 		}
 
 		//<Card.Title>Card Title</Card.Title>

@@ -19,6 +19,7 @@ import '../css/IndividualPostView.css';
 import { Cookie } from '../libraries/cookie';
 import {BaseName} from "../libraries/basename";
 import {getUserData} from '../libraries/data_request';
+import {humanReadableFileSize, iconForMIME} from '../libraries/visual_helper_for_files';
 
 //IMPORTANTE PARA QUE NO SE VEA MAL AL ABRIR EL TECLADO EN MÓVIL
 //https://stackoverflow.com/questions/32963400/android-keyboard-shrinking-the-viewport-and-elements-using-unit-vh-in-css
@@ -268,20 +269,32 @@ class InitialScreen extends React.Component {
 								</div>
 								<ListGroup className="fitxersDownloadList mb-4">
 									
-									{file_list.map((filename, i, namelist) => {return (
+									{file_list.map((file, i, filelist) => {
+										let filename = file[0];
+										return (
 										<ListGroup.Item className="pe-2">
 											<span className="text-decoration-none d-flex align-items-center justify-content-between">
+											
 												<span className="text-break me-2">
-												{filename}
+													{iconForMIME(file[2])}&nbsp;{filename}
+													<br/>
+													<span className="text-info small">
+													&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+														{humanReadableFileSize(file[1])}
+													</span>
 												</span>
+
+
 												<span 
 													className="individualDownload px-2" 
 													style={{whiteSpace:"nowrap"}}
 													onClick={()=>{downloadFile(post_info._id, filename)}}
 												>
-												Descarrega
-												&nbsp;
-												<h5 className="d-inline my-0 text-decoration-underline">⇩</h5></span>
+													Descarrega
+													&nbsp;
+													<h5 className="d-inline my-0 text-decoration-underline">⇩</h5>
+												</span>
+												
 											</span>
 											
 										</ListGroup.Item>

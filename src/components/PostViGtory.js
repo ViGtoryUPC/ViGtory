@@ -447,10 +447,12 @@ class InitialScreen extends React.Component {
 								placement="bottom"
 								overlay={
 									<Tooltip className="tooltip_fitxers"><ol className="mt-1 mb-1">
-									{file_list.map((filename, i, namelist) => {return (
+									{file_list.map((file, i, filelist) => {
+										let filename = file[0];
+										return (
 										<li>
 											{filename}
-											{i<namelist.length-1 ? <Dropdown.Divider className="mt-1 mb-1" /> : ""}
+											{i<filelist.length-1 ? <Dropdown.Divider className="mt-1 mb-1" /> : ""}
 										</li>
 									);})}
 									</ol></Tooltip>
