@@ -3,19 +3,89 @@
 }*/
 
 
-.schedule_gen{
+.grade_calc{
 	overflow: visible;
 }
 
 
 .magic_input_read{
+	transition: 0.2s;
 	border-radius: 25%;
 	padding: 0.2rem;
 	cursor: pointer !important;
 }
 .magic_input_read:hover{
-	background-color: rgba(13, 110, 253, 0.1);
+	background-color: rgba(13, 110, 253, 0.2);
 }
+
+.result_read{
+	border-radius: 50%;
+	padding: 0.2rem;
+	color: white;
+	background-color: rgba(0, 150, 200, 0.8);
+}
+
+
+
+
+
+
+
+
+
+
+.grade_calc .dropdown-toggle{
+	color: inherit !important;
+	padding: 0;
+	padding-left: 0.2rem;
+	padding-right: 0.2rem;
+	width: fit-content !important;
+	background-color: rgba(13,110,253,0.2);
+}
+.grade_calc .dropdown-toggle:hover{
+	background-color: rgba(13,110,253,1);
+}
+
+.grade_calc .part_selector .dropdown-toggle{
+	border-color: rgba(13,110,253,0.2);
+	background-color: rgba(13,110,253,0.1);
+}
+.grade_calc .part_selector .dropdown-toggle:hover{
+	background-color: rgba(13,110,253,0.3);
+}
+.grade_calc .part_selector .dropdown-menu.show{
+	overflow-y: visible;
+}
+
+
+.grade_calc .dropdown-menu.show{
+	padding: 0;
+	overflow-y: scroll;
+	/*overflow-y: auto !important;*/
+}
+
+.grade_calc .dropdown-item{
+	white-space: normal;
+}
+.grade_calc .dropdown-item.current_selection{
+	color: rgb(240, 240, 240);
+	background-color: rgba(0,127,191,0.8);
+	/*background-image: linear-gradient(rgba(255,255,255,1), rgba(127,191,223,1));*/
+	background-size: cover;
+}
+.grade_calc .dropdown-item.current_selection:hover{
+	color: rgb(240, 240, 240);
+	background-color: rgba(0,127,191,1);
+}
+
+
+
+
+
+
+
+
+
 
 
 
@@ -28,11 +98,15 @@
 @media screen and (orientation:portrait) {
 
 
-	.schedule_gen{
+	.grade_calc{
 		width: 93vw;
 	}
-	.render_horari{
-		width: 93vw;
+	.grade_calc .dropdown-menu.show{
+		width: 75vw;
+		max-height: 60vh;
+	}
+	.grade_calc .part_selector .dropdown-menu.show{
+		width: fit-content !important;
 	}
 	
 	
@@ -43,12 +117,27 @@
 /* PANTALLA MÉS BAIXA QUE ALTA */
 @media screen and (orientation:landscape) {
 
-	.schedule_gen{
+	.grade_calc{
 		width: max(82vh, 315px);
 	}
-	.render_horari{
-		width: max(85vh, 325px);
+	.grade_calc .dropdown-menu.show{
+		width: max(73vh, 220px);
+		max-height: 70vh;
+	}
+	.grade_calc .part_selector .dropdown-menu.show{
+		width: fit-content !important;
 	}
 
 }
+
+
+
+
+
+
+
+
+
+
+
 

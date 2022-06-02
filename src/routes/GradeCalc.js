@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useImperativeHandle } from 'react';
 import { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import {API_address} from '../libraries/API_address';
 //import ReactDOM from 'react-dom';
 import { Routes, Route, Link, useHistory, useNavigate } from "react-router-dom";
 
-import { Accordion, Button, Form, FloatingLabel, Table } from 'react-bootstrap';
+import { Accordion, Button, Form, FloatingLabel, Table, Dropdown, DropdownButton } from 'react-bootstrap';
 import { useAccordionButton } from 'react-bootstrap/AccordionButton';
 
 import NavBar from "../components/NavBar";
@@ -16,6 +16,7 @@ import '../css/GradeCalc.css';
 
 import { Cookie } from '../libraries/cookie';
 import {BaseName} from "../libraries/basename";
+import {getSubjectList} from '../libraries/data_request';
 
 //IMPORTANTE PARA QUE NO SE VEA MAL AL ABRIR EL TECLADO EN MÓVIL
 //https://stackoverflow.com/questions/32963400/android-keyboard-shrinking-the-viewport-and-elements-using-unit-vh-in-css
@@ -50,13 +51,30 @@ class MagicInput extends React.Component {
 		this.max = this.props.max ? this.props.max : 100;
 		this.step = this.props.step ? this.props.step : 0.01;
 
-		this.value = this.props.original_value ? this.props.original_value : "";
+		this.value = (this.props.original_value!=undefined) ? this.props.original_value : "";
 		this.updateFunc = this.props.updateFunc ? this.props.updateFunc : (v)=>{};
 
-		this.showEditable = true;
+		this.showEditable = (this.props.showEditable!=undefined) ? this.props.showEditable : true;
 		this.editableIndicator = <span className="small" style={{fontSize:"0.60rem", position:"relative", bottom:"0.1rem"}}>✏️</span>;
 	}
 
+
+
+
+	
+	changeValueRemotely(value){
+		if (this.type == "number"){
+			value = Math.max(this.min, value);
+			value = Math.min(this.max, value);
+		}
+		if (this.type == "text"){
+			value = value.slice(0, this.max);
+		}
+		this.value = value;
+		this.updateFunc(this.value);
+		
+		//this.forceUpdate();
+	}
 
 
 
@@ -72,15 +90,17 @@ class MagicInput extends React.Component {
 		setTimeout(()=>{
 			this.readTeditF = false;
 			this.forceUpdate();
-		},50);
+		},10);
 
 		setTimeout(()=>{
 			this.focus();
-		},100);
+		},20);
 	}
 	changeToReadMode(){
-		this.readTeditF = true;
-		this.forceUpdate();
+		setTimeout(()=>{
+			this.readTeditF = true;
+			this.forceUpdate();
+		},30);
 	}
 
 	render(){
@@ -107,7 +127,7 @@ class MagicInput extends React.Component {
 			)//.toString()+"px"
 		);
 		//if (!this.readTeditF) console.log("Width:        "+width);
-		//if (!this.readTeditF) console.log("Parent width: "+this.inherited_width);
+		//if (!this.readTeditF) console.log("Parent width: "+this.inherited_width); 
 
 
 		return(<>
@@ -230,13 +250,145 @@ class TaulaCalcul extends React.Component {
 		this.state = {
 		};
 
+		this.taula_nom_ref = React.createRef();
+		let taula = this.props.main_ref.current.taules[this.props.index];
+
+
+		this.row_noms_refs = [];
+		for (let i=0; i<taula.calculs.length; i++){
+			this.row_noms_refs.push(React.createRef());
+		}
+		//this.title = <MagicInput ref={this.taula_nom_ref} key={taula.nom} original_value={taula.nom} max={16} updateFunc={(v)=>{taula.nom=v; this.forceUpdate()}} showEditable={false} />
 	}
+
+
+
+	alphabetize(json_list){
+		//return json_list;
+		if (!json_list) return [];
+		let prop = "sigles_ud";
+		return json_list.sort(
+			(a, b) => {
+				if (a[prop] > b[prop]) {return 1;}
+				else if (a[prop] < b[prop]) {return -1;}
+				return 0;
+			}
+		);
+	}
+
+	newTitle(){
+
+	}
+
+	title_selector(){
+		let taula = this.props.main_ref.current.taules[this.props.index];
+		let assignatures = this.alphabetize(this.props.main_ref.current.subjectList.assignatures);
+
+		return(<>
+
+		 
+			<DropdownButton
+				key={"dropdownbutton"}
+				className="d-inline"
+				size="sm"
+				title={""}
+				onSelect={(e)=>{
+					//taula.nom = e;
+					this.taula_nom_ref.current.changeValueRemotely(e);
+					//console.log(taula.nom);
+				}}
+			>
+
+				{ assignatures ? 
+					assignatures.map((v, k) => { 
+					return (
+						<>
+						{k==0 ? "" : <Dropdown.Divider className="my-0" key={k+"_"} /> }
+						<Dropdown.Item key={k}
+							eventKey={v.sigles_ud}
+							className={(taula.nom===v.sigles_ud)?"current_selection":""}
+						>
+							<b key={k+"b"}>{v.sigles_ud}</b>
+							{" "+
+							(v.tipus=="OB"?""/*"(obligatòria)"*/:
+								((v.tipus=="OP"?"(optativa)":""))
+							)}<br key={k+"br"}/>
+							&nbsp;&nbsp;&nbsp;
+							{"  ⤷ "+v.nom}
+						</Dropdown.Item>
+						</>
+					)
+				} ) : "" }
+
+			</DropdownButton>
+
+		</>);
+	}
+
+
+	
+	name_selector(index){
+		let taula = this.props.main_ref.current.taules[this.props.index];
+		let row = taula.calculs[index];
+
+		let parts = this.props.main_ref.current.partList;
+		/*parts = parts.map(part => {
+			if (part[part.length-1] == "X"){
+				taula.calculs.filter(r => {
+					return
+				})
+			}
+			else return part;
+		})*/
+
+
+		return(<span className="part_selector">
+
+			<DropdownButton
+				key={"dropdownbutton"}
+				className="d-inline"
+				size="sm"
+				title={""}
+				onSelect={(e)=>{
+					//row.nom = e;
+					//this.forceUpdate();
+					this.row_noms_refs[index].current.changeValueRemotely(e);
+				}}
+			>
+
+				{ parts ? 
+					parts.map((v, k) => { 
+					return (
+						<>
+						{k==0 ? "" : <Dropdown.Divider className="my-0" key={k+"_"} /> }
+						<Dropdown.Item key={k}
+							eventKey={v}
+							className={(row.nom===v)?"current_selection":""}
+						>
+							<span style={{whiteSpace:"nowrap"}}>
+								{((v!="Teoria") && (v!="Pràctica")?<>&nbsp;&nbsp;-&nbsp;</>:"")}{v}
+							</span>
+						</Dropdown.Item>
+						</>
+					)
+				} ) : "" }
+				
+			</DropdownButton>
+
+		</span>);
+	}
+
+
+
+
+
 
 
 
 	eliminaTaula(){
 		this.props.main_ref.current.taules.splice(this.props.index, 1);
 		this.props.main_ref.current.taules_ref.splice(this.props.index, 1);
+		this.props.main_ref.current.saveChanges();
 		this.props.main_ref.current.forceUpdate();
 	}
 
@@ -251,38 +403,72 @@ class TaulaCalcul extends React.Component {
 
 	render(){
 		let taula = this.props.main_ref.current.taules[this.props.index];
+
+
+
 		let header_style = {backgroundColor:"#3488bb", color:"white", width:"auto", /*border:"1px solid #30577b",*/ width:"75%"};
 
 		let nota_final = taula.smartTmanualF ? taula.notaFinal : taula.calculs.reduce((sum, val)=>{return sum+(val.nota*val.percentatge/100)}, 0);
 
+		if (!taula.smartTmanualF){
+			nota_final = (nota_final.toFixed(2)%1 > 0) ? nota_final.toFixed(2) : nota_final.toFixed(0);
+
+			taula.notaFinal = nota_final;
+		}
 
 
 		if (taula.smartTmanualF){
 
 			let assolit = taula.calculs.reduce(
 				(sum, row)=>
-					sum + (row.objectiuTassolitF ? 0 : row.nota*(row.percentatge/100))
+					sum + (row.objectiuTassolitF ? 0 : row.nota*(parseFloat(row.percentatge)/100))
 			, 0).toFixed(2);
 			//console.log(taula.calculs);
-			console.log(assolit);
+			//console.log(assolit);
 
 			let percentatge_no_assolit = taula.calculs.reduce(
 				(sum, row)=>
-					sum + (row.objectiuTassolitF ? row.percentatge : 0)
+					sum + (row.objectiuTassolitF ? parseFloat(row.percentatge) : 0)
 			, 0).toFixed(2);
 
 			taula.calculs.map((row, i) => {
 				if (row.objectiuTassolitF){
-					if(assolit >= taula.notaFinal) row.nota = 0;
+					if((assolit >= taula.notaFinal) || (row.percentatge==0)){
+						row.nota = 0;
+						return;
+					}
 
-					row.nota = (taula.notaFinal-assolit)*(row.percentatge/percentatge_no_assolit)/(row.percentatge/100)*(1+(1-row.confianca/100));
+					row.nota = Math.min(10, 
+						(taula.notaFinal-assolit)
+						*
+						(
+							(row.percentatge/(percentatge_no_assolit>0?percentatge_no_assolit:0.0001))
+							/
+							(row.percentatge/100)
+						)
+						*
+						(
+							100
+							/
+							( (row.confianca==0)? 0.0001 : row.confianca )
+						)
+					);
 
-					row.nota = row.nota.toFixed(2);
+					row.nota = (row.nota.toFixed(2)%1 != 0) ? row.nota.toFixed(2) : row.nota.toFixed(0);
 				}
 			})
 		}
 
+		let percentatge_total = taula.calculs.reduce(
+			(sum, row)=>
+				sum + parseFloat(row.percentatge)
+		, 0);
+		//console.log(percentatge_total);
+		percentatge_total = (percentatge_total.toFixed(2)%1 != 0) ? percentatge_total.toFixed(2) : percentatge_total.toFixed(0);
 
+
+
+		this.props.main_ref.current.saveChanges();
 		return(<>
 			<div className="d-flex justify-content-between">
 				<h5 className="mb-0 px-2 pt-1 pb-1" style={taula.nom.length>0 ? {backgroundColor:"rgba(11,94,215,1)", color:"white", borderTopLeftRadius:"0.5rem", borderTopRightRadius:"0.5rem"} : {}}>
@@ -300,7 +486,11 @@ class TaulaCalcul extends React.Component {
 
 
 					<b>
-						<MagicInput original_value={taula.nom} max={24} updateFunc={(v)=>{taula.nom = v; this.forceUpdate()}} />
+						{
+						<MagicInput ref={this.taula_nom_ref} /*key={taula.nom}*/ original_value={taula.nom} max={16} updateFunc={(v)=>{taula.nom=v; this.forceUpdate()}} />
+						//this.title
+						}
+						{this.title_selector()}
 					</b>
 				</h5>
 
@@ -321,7 +511,7 @@ class TaulaCalcul extends React.Component {
 			
 
 
-			<Table className="mb-0" style={{tableLayout:"fixed", width:"100%", borderCollapse:"collapse", borderStyle:"none !important", borderBottomLeftRadius:"0.75rem", borderTopRightRadius:"0.75rem !important", overflow:"hidden"}}>
+			<Table className="mb-0" style={{tableLayout:"fixed", width:"100%", borderCollapse:"collapse", borderStyle:"none !important", borderBottomLeftRadius:"0.75rem", borderTopRightRadius:"0.75rem !important", overflowX:"hidden"}}>
 
 				<thead>
 					<tr>
@@ -361,7 +551,7 @@ class TaulaCalcul extends React.Component {
 					{taula.calculs.map((row, i) => {return(<>
 
 						<tr style={{backgroundColor:"white"}}>
-							<td className="ps-1 align-middle" style={{wordWrap:"break-word", borderBottomLeftRadius:((i==(taula.calculs.length-1))?"0.75rem":"0")}}>
+							<td key={this.props.index+"_"+i+"_"+((i===(taula.calculs.length-1))?"last":"not_last")} className="ps-1 align-middle" style={{wordWrap:"break-word", borderBottomLeftRadius:((i===(taula.calculs.length-1))?"0.75rem":"0")}}>
 								<Button
 									className="me-1 py-0 px-1 btn-danger"
 									size="sm"
@@ -378,7 +568,7 @@ class TaulaCalcul extends React.Component {
 
 
 
-								<MagicInput original_value={row.nom} max={32} updateFunc={(v)=>{row.nom = v; this.forceUpdate()}} />
+								<MagicInput ref={this.row_noms_refs[i]} /*key={row.nom}*/ original_value={row.nom} max={32} updateFunc={(v)=>{row.nom = v; this.forceUpdate()}} showEditable={false} />{this.name_selector(i)}
 							</td>
 
 
@@ -414,7 +604,7 @@ class TaulaCalcul extends React.Component {
 									( (row.nota).toString().split(".")[0].length==1 ) ? <>&nbsp;</> : ""
 								}
 								{(row.objectiuTassolitF && taula.smartTmanualF) ? 
-									<>&nbsp;{row.nota}</>
+									<span className="result_read">&nbsp;{row.nota.toString().replace(".",",")}&nbsp;</span>
 								:
 									<MagicInput original_value={row.nota} type={"number"} updateFunc={(v)=>{row.nota = v; this.forceUpdate()}} max={10} />
 								}
@@ -434,7 +624,7 @@ class TaulaCalcul extends React.Component {
 
 
 					<tr style={{borderBottomStyle:"hidden"}}>
-						<td className="pt-0 text-center" colSpan={taula.smartTmanualF ? "3":"2"}>
+						<td className="pt-0 px-0 text-center" colSpan={taula.smartTmanualF ? "3":"2"}>
 							<Button
 								className="py-0"
 								style={{borderTopLeftRadius:"0", borderTopRightRadius:"0", width:"85%"}}
@@ -442,13 +632,15 @@ class TaulaCalcul extends React.Component {
 									taula.calculs.push(
 										{
 											nom: "???",
-											percentatge: 50,
+											percentatge: (percentatge_total < 100)?(100-percentatge_total).toFixed(2) : 0,
 											nota: 5,
 											confianca: 100,
 											objectiuTassolitF: true
 										}
 									);
+									this.row_noms_refs.push(React.createRef());
 									this.forceUpdate();
+									//this.row_noms_refs[taula.calculs.length-2].current.forceUpdate();
 								}}
 							>
 								<b>
@@ -457,6 +649,14 @@ class TaulaCalcul extends React.Component {
 									<span className="small" >{"Nova part"}</span>
 								</b>
 							</Button>
+
+							<br/>
+
+							<span
+								style={{color:"red"}}
+							>{(percentatge_total == 100) ? "" : <>
+								{"Els percentatges no sumen 100% ("+percentatge_total+"%)."}
+								</>}</span>
 						</td>
 
 
@@ -472,7 +672,9 @@ class TaulaCalcul extends React.Component {
 							<b>
 
 								{(!taula.smartTmanualF) ? 
-									<>{nota_final.toFixed(2).toString().replace(".",",")}</>
+									<span className="result_read">&nbsp;{nota_final.replace(".",",")
+										//((nota_final.toFixed(2)%1 != 0) ? nota_final.toFixed(2) : nota_final.toFixed(0)).toString().replace(".",",")
+										}&nbsp;</span>
 								:
 									<MagicInput 
 										original_value={nota_final} 
@@ -543,25 +745,74 @@ class InitialScreen extends React.Component {
 		this.taules = [];
 		this.taules_ref = [];
 
+		this.subjectList = [];
+		this.partList = [
+			"Teoria",
+			"Ex. Parcial X",
+			"Ex. Final",
+			"Pràctica",
+			"Pràctica X",
+		]
+	}
+
+
+	saveChanges(){
+
+	}
+
+	eliminaTotesLesTaules(){
+		for (let i=this.taules_ref.length-1; i>=0; i--){
+			this.taules_ref[i].current.eliminaTaula();
+		}
+	}
+
+	updateSubjectList(data){
+		this.subjectList = data;
+		this.forceUpdate();
 	}
 
 	
 	render(){
+
+
+		let btn_delete_all = ((this.taules.length==0) ? "" : 
+			<p className="text-center" style={{position:"sticky", top:"3.5rem"}}>
+				<Button
+					className="py-0 btn-danger"
+					onClick={()=>{
+						this.eliminaTotesLesTaules();
+					}}
+				>
+					<b>
+					<span style={{fontFamily: "monospace", fontSize: "1rem"}}>✖</span>
+					&nbsp;
+					{"Elimina-ho tot"}
+					</b>
+				</Button>
+				<br/><br/><br/>
+
+			</p>
+		);
+	
+
 		
 		return(
 			<>
 				<NavBar currentSection={this.props.currentSection} />
 				<br/><br/><br/><br/>
 
-				<div className="schedule_gen mx-auto" >
+				<div className="grade_calc mx-auto" >
 				
 					<h2 className="text-center mb-4">Calculadora de notes:</h2>
 
 
 
+					{btn_delete_all}
+
 
 
 					{this.taules.map((taula, i) => {
+						// saveChanges={()=>{this.saveChanges();}}
 						return(<>
 							<TaulaCalcul main_ref={this.props.main_ref} index={i} ref={this.taules_ref[i]} />
 							<br/>
@@ -598,6 +849,7 @@ class InitialScreen extends React.Component {
 									]
 								});
 								this.taules_ref.push(React.createRef());
+								this.saveChanges();
 								this.forceUpdate();
 							}}
 						>
@@ -611,6 +863,7 @@ class InitialScreen extends React.Component {
 
 					</p>
 
+					
 
 
 				</div>
@@ -643,16 +896,17 @@ function GradeCalc(props){
 		navigate(page);
 	}
 	useEffect(() => {
-
-
-
-
-	  }, []);
+		getSubjectList().then((data) => {
+			//console.log(data);
+			if (main_ref.current)
+			main_ref.current.updateSubjectList(data);
+		});
+	  }, [window.location.href && new Date()]);
 
 	let main_ref = React.createRef();
 
 	return(
-		<InitialScreen currentSection={props.currentSection} ref={main_ref} main_ref={main_ref} />
+		<InitialScreen currentSection={props.currentSection} key={"grade_calc_"+(new Date().toString())} ref={main_ref} main_ref={main_ref} />
 	)
 }
 export default GradeCalc;
