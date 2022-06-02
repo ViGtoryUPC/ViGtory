@@ -1,0 +1,54 @@
+/*:root {
+	--tooltip-color: rgba(0,127,191,1);
+}*/
+
+
+.schedule_gen{
+	overflow: visible;
+}
+
+
+.magic_input_read{
+	border-radius: 25%;
+	padding: 0.2rem;
+	cursor: pointer !important;
+}
+.magic_input_read:hover{
+	background-color: rgba(13, 110, 253, 0.1);
+}
+
+
+
+
+
+
+
+
+/* PANTALLA MÉS ALTA QUE BAIXA */
+@media screen and (orientation:portrait) {
+
+
+	.schedule_gen{
+		width: 93vw;
+	}
+	.render_horari{
+		width: 93vw;
+	}
+	
+	
+
+}
+
+
+/* PANTALLA MÉS BAIXA QUE ALTA */
+@media screen and (orientation:landscape) {
+
+	.schedule_gen{
+		width: max(82vh, 315px);
+	}
+	.render_horari{
+		width: max(85vh, 325px);
+	}
+
+}
+

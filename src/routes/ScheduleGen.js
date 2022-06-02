@@ -2381,6 +2381,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 
 				<div className="schedule_gen mx-auto" >
+				
+					<h2 className="text-center mb-4">Generador d'horaris:</h2>
 
 					<p className="text-center" >
 						{(rest_assig<=0?"No pots escollir cap ":"Escull fins a ")}{rest_assig!=0?rest_assig:""}{" assignatur"+(rest_assig<2?"a":"es")}{total_flagged_count>0?" més":""}{" a tenir en compte:"}
