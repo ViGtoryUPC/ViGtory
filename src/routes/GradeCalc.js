@@ -271,16 +271,11 @@ class TaulaCalcul extends React.Component {
 					sum + (row.objectiuTassolitF ? row.percentatge : 0)
 			, 0).toFixed(2);
 
-			let percentatge_no_assolit_confiança = taula.calculs.reduce(
-				(sum, row)=>
-					sum + (row.objectiuTassolitF ? row.confianca : 0)
-			, 0).toFixed(2);
-
 			taula.calculs.map((row, i) => {
 				if (row.objectiuTassolitF){
 					if(assolit >= taula.notaFinal) row.nota = 0;
 
-					row.nota = (taula.notaFinal-assolit)*(row.percentatge/percentatge_no_assolit)//*(row.confianca/100);
+					row.nota = (taula.notaFinal-assolit)*(row.percentatge/percentatge_no_assolit)/(row.percentatge/100)*(1+(1-row.confianca/100));
 
 					row.nota = row.nota.toFixed(2);
 				}
