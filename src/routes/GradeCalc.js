@@ -5,7 +5,7 @@ import {API_address} from '../libraries/API_address';
 //import ReactDOM from 'react-dom';
 import { Routes, Route, Link, useHistory, useNavigate } from "react-router-dom";
 
-import { Accordion, Button, Form, FloatingLabel, Table, Dropdown, DropdownButton } from 'react-bootstrap';
+import { Accordion, Button, Form, FloatingLabel, Table, Dropdown, DropdownButton, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { useAccordionButton } from 'react-bootstrap/AccordionButton';
 
 import NavBar from "../components/NavBar";
@@ -60,6 +60,13 @@ class MagicInput extends React.Component {
 
 
 
+	manageEditableIcon(){
+		let v = this.value;
+		if (this.type == "number") v = this.value.toString();
+		if (v.length == 0) this.showEditable = true;
+		else this.showEditable = (this.props.showEditable!=undefined) ? this.props.showEditable : true;
+	}
+
 
 	
 	changeValueRemotely(value){
@@ -71,6 +78,7 @@ class MagicInput extends React.Component {
 			value = value.slice(0, this.max);
 		}
 		this.value = value;
+		this.manageEditableIcon();
 		this.updateFunc(this.value);
 		
 		//this.forceUpdate();
@@ -84,7 +92,11 @@ class MagicInput extends React.Component {
 			this.edit_ref.current.focus();
 		}
 	}
-
+	/*select(){
+		if (this.edit_ref.current){
+			this.edit_ref.current.select();
+		}
+	}*/
 
 	changeToEditMode(){
 		setTimeout(()=>{
@@ -95,6 +107,10 @@ class MagicInput extends React.Component {
 		setTimeout(()=>{
 			this.focus();
 		},20);
+
+		/*setTimeout(()=>{
+			this.select();
+		},30);*/
 	}
 	changeToReadMode(){
 		setTimeout(()=>{
@@ -202,12 +218,14 @@ class MagicInput extends React.Component {
 							e.currentTarget.value = e.currentTarget.value.slice(0, this.max);
 						}
 						this.value = e.currentTarget.value;
+						this.manageEditableIcon();
 						this.updateFunc(this.value);
 						//this.forceUpdate();
 					}}
 					onBlur={()=>{
 						this.changeToReadMode();
 					}}
+					onFocus={(e)=>{e.currentTarget.select();}}
 				/>{this.extra_str}
 
 
@@ -249,14 +267,17 @@ class TaulaCalcul extends React.Component {
 		super(props);
 		this.state = {
 		};
+		
+		this.maxRows = 50;
 
 		this.taula_nom_ref = React.createRef();
 		let taula = this.props.main_ref.current.taules[this.props.index];
-
+		this.row_keys = [];
 
 		this.row_noms_refs = [];
 		for (let i=0; i<taula.calculs.length; i++){
 			this.row_noms_refs.push(React.createRef());
+			this.row_keys.push(this.props.index+"_"+i+"_"+new Date());
 		}
 		//this.title = <MagicInput ref={this.taula_nom_ref} key={taula.nom} original_value={taula.nom} max={16} updateFunc={(v)=>{taula.nom=v; this.forceUpdate()}} showEditable={false} />
 	}
@@ -276,9 +297,7 @@ class TaulaCalcul extends React.Component {
 		);
 	}
 
-	newTitle(){
-
-	}
+	
 
 	title_selector(){
 		let taula = this.props.main_ref.current.taules[this.props.index];
@@ -332,14 +351,39 @@ class TaulaCalcul extends React.Component {
 		let row = taula.calculs[index];
 
 		let parts = this.props.main_ref.current.partList;
-		/*parts = parts.map(part => {
+		parts = parts.map(part => {
+
 			if (part[part.length-1] == "X"){
-				taula.calculs.filter(r => {
-					return
+				let existing_parts = taula.calculs
+				.filter(ro => {
+					//return (ro.nom).match(".*\\d+$") ? true : false;
+					return (ro.nom).match(part.split("X")[0]+"\\d+$") ? true : false;
 				})
+				.map(ro => {
+					return parseInt(ro.nom.match("\\d+$")[0]);
+				})
+				existing_parts.push(0);
+				existing_parts = existing_parts.sort((a,b)=>a-b)
+				
+				//console.log(existing_parts);
+
+				let lowest = -1;
+				for (let i = 0;  i < existing_parts.length;  ++i) {
+					if (existing_parts[i] != i) {
+						lowest = i;
+						break;
+					}
+				}
+				if (lowest == -1) {
+					lowest = existing_parts[existing_parts.length - 1] + 1;
+				}
+
+				return part.split("X")[0]+lowest;
 			}
+
 			else return part;
-		})*/
+
+		})
 
 
 		return(<span className="part_selector">
@@ -382,14 +426,25 @@ class TaulaCalcul extends React.Component {
 
 
 
+	confirmDeleteTable(){
+		return(
+			window.confirm(
+				"Segur que vols eliminar la taula actual?"+
+				"\n  Taula "+//(this.props.index+1)+
+				(this.props.main_ref.current.taules[this.props.index].nom ? ": "+this.props.main_ref.current.taules[this.props.index].nom 
+				:"sense nom")
+			)
+		);
+	}
 
 
-
-	eliminaTaula(){
-		this.props.main_ref.current.taules.splice(this.props.index, 1);
-		this.props.main_ref.current.taules_ref.splice(this.props.index, 1);
-		this.props.main_ref.current.saveChanges();
-		this.props.main_ref.current.forceUpdate();
+	eliminaTaula(needConfirm){
+		if (!needConfirm || this.confirmDeleteTable()){
+			this.props.main_ref.current.taules.splice(this.props.index, 1);
+			this.props.main_ref.current.taules_ref.splice(this.props.index, 1);
+			this.props.main_ref.current.saveChanges();
+			this.props.main_ref.current.forceUpdate();
+		}
 	}
 
 
@@ -424,7 +479,8 @@ class TaulaCalcul extends React.Component {
 					sum + (row.objectiuTassolitF ? 0 : row.nota*(parseFloat(row.percentatge)/100))
 			, 0).toFixed(2);
 			//console.log(taula.calculs);
-			//console.log(assolit);
+			/*console.log(assolit);
+			console.log(taula.notaFinal);*/
 
 			let percentatge_no_assolit = taula.calculs.reduce(
 				(sum, row)=>
@@ -433,7 +489,7 @@ class TaulaCalcul extends React.Component {
 
 			taula.calculs.map((row, i) => {
 				if (row.objectiuTassolitF){
-					if((assolit >= taula.notaFinal) || (row.percentatge==0)){
+					if((parseFloat(assolit) >= parseFloat(taula.notaFinal)) || (row.percentatge==0)){
 						row.nota = 0;
 						return;
 					}
@@ -476,7 +532,7 @@ class TaulaCalcul extends React.Component {
 						className="me-1 py-0 px-1 btn-danger"
 						size="sm"
 						onClick={()=>{
-							this.eliminaTaula();
+							this.eliminaTaula(true);
 						}}
 					>
 						<b className="py-0">
@@ -487,7 +543,7 @@ class TaulaCalcul extends React.Component {
 
 					<b>
 						{
-						<MagicInput ref={this.taula_nom_ref} /*key={taula.nom}*/ original_value={taula.nom} max={16} updateFunc={(v)=>{taula.nom=v; this.forceUpdate()}} />
+						<MagicInput ref={this.taula_nom_ref} /*key={taula.nom}*/ original_value={taula.nom} max={16} updateFunc={(v)=>{taula.nom=v; this.forceUpdate()}} showEditable={false} />
 						//this.title
 						}
 						{this.title_selector()}
@@ -525,8 +581,27 @@ class TaulaCalcul extends React.Component {
 						</th>
 
 						{taula.smartTmanualF ? 
+
 							<th style={this.changeAttr(header_style, "width", "20%")}>
-								{"Confiança"}
+
+								<OverlayTrigger
+									overlay={
+										<Tooltip className="text-center mb-2">
+											{"La confiança que tens en treure exactament (o més) la nota que et proposem."}
+											<br/><br/>
+											{"Si, per exemple, amb la confiança al 100% necessitessis un 4; amb la confiança al 50% t'hauries d'esforçar com per a aconseguir un 8."}
+										</Tooltip>
+									}
+									>
+
+
+									<span style={{borderBottom:"1px dotted"}/*{textDecoration:"underline dotted"}*/} >
+										{"Confiança"}
+									</span>
+
+
+								</OverlayTrigger>
+
 							</th>
 						:""}
 						
@@ -550,14 +625,18 @@ class TaulaCalcul extends React.Component {
 				<tbody>
 					{taula.calculs.map((row, i) => {return(<>
 
-						<tr style={{backgroundColor:"white"}}>
+						<tr style={{backgroundColor:"white"}} key={this.row_keys[i]}>
 							<td key={this.props.index+"_"+i+"_"+((i===(taula.calculs.length-1))?"last":"not_last")} className="ps-1 align-middle" style={{wordWrap:"break-word", borderBottomLeftRadius:((i===(taula.calculs.length-1))?"0.75rem":"0")}}>
 								<Button
 									className="me-1 py-0 px-1 btn-danger"
 									size="sm"
 									onClick={()=>{
+										if ((taula.calculs.length-1) == 0)
+											if (!this.confirmDeleteTable()) return;
+
 										taula.calculs.splice(i, 1);
-										if (taula.calculs.length == 0) this.eliminaTaula();
+										this.row_keys.splice(i, 1);
+										if (taula.calculs.length == 0) this.eliminaTaula(false);
 										else this.forceUpdate();
 									}}
 								>
@@ -625,37 +704,40 @@ class TaulaCalcul extends React.Component {
 
 					<tr style={{borderBottomStyle:"hidden"}}>
 						<td className="pt-0 px-0 text-center" colSpan={taula.smartTmanualF ? "3":"2"}>
-							<Button
-								className="py-0"
-								style={{borderTopLeftRadius:"0", borderTopRightRadius:"0", width:"85%"}}
-								onClick={()=>{
-									taula.calculs.push(
-										{
-											nom: "???",
-											percentatge: (percentatge_total < 100)?(100-percentatge_total).toFixed(2) : 0,
-											nota: 5,
-											confianca: 100,
-											objectiuTassolitF: true
-										}
-									);
-									this.row_noms_refs.push(React.createRef());
-									this.forceUpdate();
-									//this.row_noms_refs[taula.calculs.length-2].current.forceUpdate();
-								}}
-							>
-								<b>
-									<span style={{fontFamily: "monospace", fontSize: "1rem"}}>+</span>
-									&nbsp;
-									<span className="small" >{"Nova part"}</span>
-								</b>
-							</Button>
+						{taula.calculs.length < this.maxRows ? <>
+								<Button
+									className="py-0"
+									style={{borderTopLeftRadius:"0", borderTopRightRadius:"0", width:"85%"}}
+									onClick={()=>{
+										taula.calculs.push(
+											{
+												nom: "???",
+												percentatge: (percentatge_total < 100)?(100-percentatge_total).toFixed(2) : 0,
+												nota: 5,
+												confianca: 100,
+												objectiuTassolitF: true
+											}
+										);
+										this.row_noms_refs.push(React.createRef());
+										this.row_keys.push(this.props.index+"_"+(taula.calculs.length-1)+"_"+new Date());
+										this.forceUpdate();
+										//this.row_noms_refs[taula.calculs.length-2].current.forceUpdate();
+									}}
+								>
+									<b>
+										<span style={{fontFamily: "monospace", fontSize: "1rem"}}>+</span>
+										&nbsp;
+										<span className="small" >{"Nova part"}</span>
+									</b>
+								</Button>
 
-							<br/>
+								<br/>
+							</>:""}
 
 							<span
 								style={{color:"red"}}
 							>{(percentatge_total == 100) ? "" : <>
-								{"Els percentatges no sumen 100% ("+percentatge_total+"%)."}
+								{"Els percentatges no sumen 100% ("+(percentatge_total.toString().replace(".",","))+"%)."}
 								</>}</span>
 						</td>
 
@@ -741,9 +823,12 @@ class InitialScreen extends React.Component {
 		this.state = {
 		};
 
+		this.maxTaules = 20;
 
+		
 		this.taules = [];
 		this.taules_ref = [];
+
 
 		this.subjectList = [];
 		this.partList = [
@@ -756,13 +841,39 @@ class InitialScreen extends React.Component {
 	}
 
 
-	saveChanges(){
 
+	componentDidMount(){
+		let local_saved_taules = JSON.parse(window.localStorage.getItem(
+			"grade_calc"+"___"+Cookie.get("jwt")
+			));
+		//console.log(local_saved_taules);
+		this.taules = local_saved_taules ? [...local_saved_taules.taules] : [];
+		//console.log(this.taules[0]);
+
+
+
+		this.taules_ref = [];
+		for (let i=0; i<this.taules.length; i++){
+			this.taules_ref.push(React.createRef());
+		}
+		//console.log(this.taules_ref);
+
+		this.forceUpdate();
+	}
+
+
+	saveChanges(){
+		//console.log(JSON.stringify(this.taules));
+		window.localStorage.setItem(
+			"grade_calc"+"___"+Cookie.get("jwt")
+			,
+			JSON.stringify({taules:this.taules})
+		)
 	}
 
 	eliminaTotesLesTaules(){
 		for (let i=this.taules_ref.length-1; i>=0; i--){
-			this.taules_ref[i].current.eliminaTaula();
+			this.taules_ref[i].current.eliminaTaula(false);
 		}
 	}
 
@@ -780,7 +891,10 @@ class InitialScreen extends React.Component {
 				<Button
 					className="py-0 btn-danger"
 					onClick={()=>{
-						this.eliminaTotesLesTaules();
+						if (window.confirm(
+							"Segur que vols eliminar totes les taules actuals?"
+						))
+							this.eliminaTotesLesTaules();
 					}}
 				>
 					<b>
@@ -822,47 +936,47 @@ class InitialScreen extends React.Component {
 
 
 
+					{this.taules.length < this.maxTaules ? 
+						<p className="text-center">
+							<Button
+								className="py-0"
+								onClick={()=>{
+									this.taules.push({
+										nom: "Assignatura",
+										smartTmanualF: (this.taules.length>0) ? this.taules[this.taules.length-1].smartTmanualF : true,
+										notaFinal: (this.taules.length>0) ? this.taules[this.taules.length-1].notaFinal : 5,
+										calculs: [
+											{
+												nom: "Teoria",
+												percentatge: 40,
+												confianca: 100,
+												nota: 7,
+												objectiuTassolitF: false
+											},
+											{
+												nom: "Pràctica",
+												percentatge: 60,
+												confianca: 100,
+												nota: 9,
+												objectiuTassolitF: true
+											}
+										]
+									});
+									this.taules_ref.push(React.createRef());
+									this.saveChanges();
+									this.forceUpdate();
+								}}
+							>
+								<b>
+									<span style={{fontFamily: "monospace", fontSize: "1.5rem"}}>+</span>
+									&nbsp;
+									{"Nova taula"}
+								</b>
+							</Button>
+							<br/><br/>
 
-					<p className="text-center">
-						<Button
-							className="py-0"
-							onClick={()=>{
-								this.taules.push({
-									nom: "Assignatura",
-									smartTmanualF: (this.taules.length>0) ? this.taules[this.taules.length-1].smartTmanualF : true,
-									notaFinal: (this.taules.length>0) ? this.taules[this.taules.length-1].notaFinal : 5,
-									calculs: [
-										{
-											nom: "Teoria",
-											percentatge: 40,
-											confianca: 100,
-											nota: 7,
-											objectiuTassolitF: false
-										},
-										{
-											nom: "Pràctica",
-											percentatge: 60,
-											confianca: 100,
-											nota: 9,
-											objectiuTassolitF: true
-										}
-									]
-								});
-								this.taules_ref.push(React.createRef());
-								this.saveChanges();
-								this.forceUpdate();
-							}}
-						>
-							<b>
-								<span style={{fontFamily: "monospace", fontSize: "1.5rem"}}>+</span>
-								&nbsp;
-								{"Nova taula"}
-							</b>
-						</Button>
-						<br/><br/>
-
-					</p>
-
+						</p>
+					:""}
 					
 
 
