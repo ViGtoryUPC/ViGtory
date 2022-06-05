@@ -736,7 +736,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		for (let i=0; i < conviccio_count; i++){pool_flagged.push(pool_flagged.pop());}
 
 
-		console.log(conviccio_count);
+		//console.log(conviccio_count);
 		
 		//},139);
 
@@ -751,17 +751,20 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 			setTimeout(()=>{
 
-			//Comprobamos los grupos de la asignatura. Si hay alguno con convicción, solo usaremos ese
-			grups = this.assig_grups[pool_flagged[i].sigles_ud].grups;
-			Object.keys(grups).some(key => {
-				if (grups[key].conviccio){
-					let grups_key = grups[key];
-					grups = {};
-					grups[key] = grups_key;
+			//Comprobamos los grupos de la asignatura. Si hay alguno con convicción, solo usaremos esos
+			let grups_orig = this.assig_grups[pool_flagged[i].sigles_ud].grups;
+			Object.keys(grups_orig).map(key => {
+				if (grups_orig[key].conviccio){
+					//let grups_key = grups_orig[key];
+					//grups = {};
+					//grups[key] = grups_key;
+					grups[key] = grups_orig[key];
 					return true;
 				}
 				return false;
 			});
+			if (!(Object.keys(grups).length>0)) grups = {...grups_orig};
+			console.log("GRUPS SELECCIONATS:")
 			console.log(grups);
 
 
@@ -2532,7 +2535,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 								)
 							)
-							+"i grups de la selecció que has fet tens per segur que vols cursar:"}
+							+"tens per segur que vols cursar i a quins grups preferiries pertànyer:"}
 						</p>
 					</>:""}
 
@@ -2604,12 +2607,12 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 											id={"select_assig_"+assig.sigles_ud}
 											style={{borderTop:"0"}}
 											onClick={()=>{
-												if (!grup_marcat){
+												/*if (!grup_marcat){
 													let keys = Object.keys(this.assig_grups[assig.sigles_ud].grups);
 													for (let i=0; i<keys.length; i++){
 														this.assig_grups[assig.sigles_ud].grups[keys[i]].conviccio = false;
 													}
-												}
+												}*/
 												this.assig_grups[assig.sigles_ud].grups[nom_grup].conviccio = !grup_marcat;
 
 												this.need_recompute = true;
@@ -2629,7 +2632,15 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 												>
 												<p className="text-end mb-1">
 													<span className="d-inline">
-														{grup_marcat ? "Definitiu 🔵":"No ho tinc clar ⚪"}
+														{grup_marcat ? "Preferent 🔵":
+														
+														"No "+(
+															((Object.keys(this.assig_grups[assig.sigles_ud].grups).filter(key=>{
+																return this.assig_grups[assig.sigles_ud].grups[key].conviccio
+															})).length>0)?"preferent":
+															"ho tinc clar"
+															)+" ⚪"
+														}
 													</span>
 												</p>
 												</span>

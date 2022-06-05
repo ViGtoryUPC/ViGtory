@@ -166,7 +166,8 @@ class MagicInput extends React.Component {
 		}
 		if (this.type == "text"){
 			//Limpieza de texto (eliminamos espaciados duplicados y finales)
-			e.currentTarget.value = e.currentTarget.value.replace(/(\r\n|\n|\r|\t|\s+)/gm, " ").replace(/\s*$/,"");
+			//...pues tampoco va a poder ser :))))) Porque Android hace cosas raras :)))))))))
+			//e.currentTarget.value = e.currentTarget.value.replace(/(\r\n|\n|\r|\t|\s+)/gm, " ").replace(/\s*$/,"");
 
 			e.currentTarget.value = e.currentTarget.value.slice(0, this.max);
 		}

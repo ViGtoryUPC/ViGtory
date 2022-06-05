@@ -61,7 +61,7 @@ class InitialScreen extends React.Component {
 
 		return(
 			<>
-			<Navbar className="global_navbar" bg="light" expand="md" fixed="top">
+			<Navbar className="global_navbar" bg="light" expand="md" fixed="top" style={{zIndex: "99999999"}}>
 				<Container fluid>
 					<Navbar.Brand onClick={()=>{
 						//this.props.navigate("/") //Con la nueva implementación de Home va mal xd
