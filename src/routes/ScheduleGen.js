@@ -239,6 +239,7 @@ class InitialScreen extends React.Component {
 
 		this.combinacions_possibles = [];
 		this.need_recompute = true;
+		this.need_reorder = true;
 	}
 
 
@@ -764,8 +765,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				return false;
 			});
 			if (!(Object.keys(grups).length>0)) grups = {...grups_orig};
-			console.log("GRUPS SELECCIONATS:")
-			console.log(grups);
+			//console.log("GRUPS SELECCIONATS:")
+			//console.log(grups);
 
 
 				this.render_horari_loading_status = "Computant les possibles combinacions per a "
@@ -1412,17 +1413,18 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		
 
 		if (this.need_recompute){
-		setTimeout(()=>{
-			this.combinacions_possibles = [];
-			this.total_combinations_count = 0;
-			this.discarded_not_enough_assigns = 0;
-			this.discarded_overlap_count = 0;
-		},129);
+			this.need_reorder = true;
+			setTimeout(()=>{
+				this.combinacions_possibles = [];
+				this.total_combinations_count = 0;
+				this.discarded_not_enough_assigns = 0;
+				this.discarded_overlap_count = 0;
+			},129);
 
-			//this.creaCombinacionsPossibles([], true);
-			//this.eliminaSolapaments();
+				//this.creaCombinacionsPossibles([], true);
+				//this.eliminaSolapaments();
 
-			this.creaCombinacionsPossiblesIteratiu();
+				this.creaCombinacionsPossiblesIteratiu();
 		}
 		this.need_recompute = false;
 		
@@ -1440,15 +1442,18 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		//},130);
 
 
-
-		setTimeout(()=>{
-			this.render_horari_loading_status = "Ordenant d'acord amb les preferencies seleccionades...";
-			this.updateLoadingStatus();
-		},180);
-			
-		setTimeout(()=>{
-		this.recopilaEstadistiquesIOrdena();
-		},200);
+		if (this.need_reorder){
+			setTimeout(()=>{
+				this.render_horari_loading_status = "Ordenant d'acord amb les preferencies seleccionades...";
+				this.updateLoadingStatus();
+			},180);
+				
+			setTimeout(()=>{
+			this.recopilaEstadistiquesIOrdena();
+			},200);
+		}
+		this.need_reorder = false;
+		//.log("NEED REORDER false");
 
 		/*
 		
@@ -2081,6 +2086,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 						defaultValue={this.preferencies[CA+"_tardT_aviatF_"+MT]==true?1:0}
 						onChange={(e)=>{
 							this.preferencies[CA+"_tardT_aviatF_"+MT] = e.currentTarget.value==1?true:false;
+							this.need_reorder = true;
+							//console.log("NEED REORDER true");
 							this.forceUpdate();
 						}}
 					>
@@ -2101,6 +2108,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 					min={0} max={10} 
 					defaultVal={this.preferencies[CA+"_tard_aviat_imp_"+MT]} 
 					onChangeFunc={(newVal)=>{
+						this.need_reorder = true;
 						this.preferencies[CA+"_tard_aviat_imp_"+MT] = newVal;
 						//this.forceUpdate();
 					}}
@@ -2190,7 +2198,12 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 			defaultVal={this.preferencies.max_horaris} 
 			onChangeFunc={(newVal, usedByUser)=>{
 				this.preferencies.max_horaris = newVal;
-				this.forceUpdate();
+				//this.need_reorder = true;
+				//console.log("NEED REORDER IMPORTANTE: "+(this.need_reorder?"true":"false"));
+				if ((this.need_recompute==false) && (this.need_reorder==false))
+					this.generaPossiblesHoraris();
+				else
+					this.forceUpdate();
 			}}
 			mostra_limits={true}
 		/>;
@@ -2211,6 +2224,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 						defaultValue={this.preferencies["hores_mortes"]}
 						onChange={(e)=>{
 							this.preferencies["hores_mortes"] = e.currentTarget.value;
+							this.need_reorder = true;
+							//console.log("NEED REORDER true");
 							this.forceUpdate();
 						}}
 					>
@@ -2245,6 +2260,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 					min={0} max={10} 
 					defaultVal={this.preferencies["hores_mortes_imp"]} 
 					onChangeFunc={(newVal)=>{
+						this.need_reorder = true;
 						this.preferencies["hores_mortes_imp"] = newVal;
 						//this.forceUpdate();
 					}}
@@ -2270,6 +2286,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 						defaultValue={this.preferencies["dies_lliures"]}
 						onChange={(e)=>{
 							this.preferencies["dies_lliures"] = e.currentTarget.value;
+							this.need_reorder = true;
+							//console.log("NEED REORDER true");
 							this.forceUpdate();
 						}}
 					>
@@ -2305,6 +2323,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 					min={0} max={10} 
 					defaultVal={this.preferencies["dies_lliures_imp"]} 
 					onChangeFunc={(newVal)=>{
+						this.need_reorder = true;
 						this.preferencies["dies_lliures_imp"] = newVal;
 						//this.forceUpdate();
 					}}
@@ -2331,6 +2350,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 						defaultValue={this.preferencies["prioritza_matiT_tardaF"]==true?1:0}
 						onChange={(e)=>{
 							this.preferencies["prioritza_matiT_tardaF"] = e.currentTarget.value==1?true:false;
+							this.need_reorder = true;
+							//console.log("NEED REORDER true");
 							this.forceUpdate();
 						}}
 					>
@@ -2350,6 +2371,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 					min={0} max={10} 
 					defaultVal={this.preferencies["prioritza_matiT_tardaF_imp"]} 
 					onChangeFunc={(newVal)=>{
+						this.need_reorder = true;
 						this.preferencies["prioritza_matiT_tardaF_imp"] = newVal;
 						//this.forceUpdate();
 					}}
