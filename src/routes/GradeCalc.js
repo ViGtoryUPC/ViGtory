@@ -454,7 +454,11 @@ class TaulaCalcul extends React.Component {
 		this.notaMax = 10;
 
 		this.taula_nom_ref = React.createRef();
-		let taula = this.props.main_ref.current.taules[this.props.index];
+		let taula = this.props.main_ref.current ? this.props.main_ref.current.taules[this.props.index] : 
+		{
+			nom:"???",
+			calculs:[]
+		};
 		this.row_keys = [];
 
 		this.row_noms_refs = [];
@@ -483,8 +487,13 @@ class TaulaCalcul extends React.Component {
 	
 
 	title_selector(){
-		let taula = this.props.main_ref.current.taules[this.props.index];
-		let assignatures = this.alphabetize(this.props.main_ref.current.subjectList.assignatures);
+		let taula = this.props.main_ref.current ? this.props.main_ref.current.taules[this.props.index] : 
+		{
+			nom:"???",
+			calculs:[]
+		};
+		//let assignatures = this.alphabetize(this.props.main_ref.current.subjectList.assignatures);
+		let assignatures = this.alphabetize(this.props.main_ref.current ? this.props.main_ref.current.subjectList.assignatures : []);
 
 		return(<>
 
@@ -530,7 +539,11 @@ class TaulaCalcul extends React.Component {
 
 	
 	name_selector(index){
-		let taula = this.props.main_ref.current.taules[this.props.index];
+		let taula = this.props.main_ref.current ? this.props.main_ref.current.taules[this.props.index] : 
+		{
+			nom:"???",
+			calculs:[]
+		};
 		let row = taula.calculs[index];
 
 		let parts = this.props.main_ref.current.partList;
@@ -625,13 +638,17 @@ class TaulaCalcul extends React.Component {
 		if (!needConfirm || this.confirmDeleteTable()){
 			this.props.main_ref.current.taules.splice(this.props.index, 1);
 			this.props.main_ref.current.taules_ref.splice(this.props.index, 1);
-			this.props.main_ref.current.saveChanges();
+			if (this.props.main_ref.current) this.props.main_ref.current.saveChanges();
 			this.props.main_ref.current.forceUpdate();
 		}
 	}
 
 	eliminaFila(i){
-		let taula = this.props.main_ref.current.taules[this.props.index];
+		let taula = this.props.main_ref.current ? this.props.main_ref.current.taules[this.props.index] : 
+		{
+			nom:"???",
+			calculs:[]
+		};
 		//let row = taula.calculs[index];
 
 		if ((taula.calculs.length-1) == 0)
@@ -644,7 +661,11 @@ class TaulaCalcul extends React.Component {
 	}
 
 	moveRowFromIndexToIndex(i_orig, i_dest){
-		let taula = this.props.main_ref.current.taules[this.props.index];
+		let taula = this.props.main_ref.current ? this.props.main_ref.current.taules[this.props.index] : 
+		{
+			nom:"???",
+			calculs:[]
+		};
 		let row = {...taula.calculs[i_orig]};
 
 		taula.calculs.splice(i_orig, 1);
@@ -660,7 +681,11 @@ class TaulaCalcul extends React.Component {
 
 
 	orderRowsByName(ascTdescF){
-		let taula = this.props.main_ref.current.taules[this.props.index];
+		let taula = this.props.main_ref.current ? this.props.main_ref.current.taules[this.props.index] : 
+		{
+			nom:"???",
+			calculs:[]
+		};
 		let orderator = ascTdescF ? 1 : -1;
 
 		taula.calculs = taula.calculs.sort((a,b)=>{
@@ -722,7 +747,11 @@ class TaulaCalcul extends React.Component {
 	}
 
 	render(){
-		let taula = this.props.main_ref.current.taules[this.props.index];
+		let taula = this.props.main_ref.current ? this.props.main_ref.current.taules[this.props.index] : 
+		{
+			nom:"???",
+			calculs:[]
+		};
 
 
 
@@ -789,7 +818,7 @@ class TaulaCalcul extends React.Component {
 
 
 
-		this.props.main_ref.current.saveChanges();
+		if (this.props.main_ref.current) this.props.main_ref.current.saveChanges();
 		return(<>
 			<div className="d-flex justify-content-between">
 				<h5 className="mb-0 px-2 pt-1 pb-1" style={taula.nom.length>0 ? {backgroundColor:"rgba(11,94,215,1)", color:"white", borderTopLeftRadius:"0.5rem", borderTopRightRadius:"0.5rem"} : {}}>

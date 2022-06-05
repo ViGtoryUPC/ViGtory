@@ -199,7 +199,55 @@ class InitialScreen extends React.Component {
 		this.cursos = {};
 		this.assig_grups = {};
 
-		this.preferencies = {
+		/*this.preferencies = {
+			max_assignatures_used_by_user: false,
+			max_assignatures: 1,
+			max_horaris: 10,
+
+
+			hores_mortes: "min", //"min", "max", "ignore"
+			hores_mortes_imp: 8,
+
+			dies_lliures: "prin", //"prin", "mitj", "final"
+			dies_lliures_imp: 8,
+
+			prioritza_matiT_tardaF: true,
+			prioritza_matiT_tardaF_imp: 8,
+
+			comencar_tardT_aviatF_mati: true,
+			comencar_tard_aviat_imp_mati: 5,
+			acabar_tardT_aviatF_mati: false,
+			acabar_tard_aviat_imp_mati: 2,
+
+			comencar_tardT_aviatF_tarda: true,
+			comencar_tard_aviat_imp_tarda: 5,
+			acabar_tardT_aviatF_tarda: false,
+			acabar_tard_aviat_imp_tarda: 2
+		}*/
+		this.setDefaultPreferencies(true);
+
+		this.total_combinations_count = 0;
+		this.discarded_overlap_count = 0;
+		this.discarded_not_enough_assigns = 0;
+
+		this.combinacions_a_mostrar = [];
+		this.horaris_render = <></>;
+		
+		this.temps_inici_render_horari = new Date();
+		this.render_horari_loading_status = "";
+		this.statusInterval = null;
+
+
+		this.combinacions_possibles = [];
+		this.need_recompute = true;
+		this.need_reorder = true;
+	}
+
+
+
+
+	setDefaultPreferencies(setTreturnF){
+		let preferencies = {
 			max_assignatures_used_by_user: false,
 			max_assignatures: 1,
 			max_horaris: 10,
@@ -224,23 +272,35 @@ class InitialScreen extends React.Component {
 			acabar_tardT_aviatF_tarda: false,
 			acabar_tard_aviat_imp_tarda: 2
 		}
-
-		this.total_combinations_count = 0;
-		this.discarded_overlap_count = 0;
-		this.discarded_not_enough_assigns = 0;
-
-		this.combinacions_a_mostrar = [];
-		this.horaris_render = <></>;
-		
-		this.temps_inici_render_horari = new Date();
-		this.render_horari_loading_status = "";
-		this.statusInterval = null;
-
-
-		this.combinacions_possibles = [];
-		this.need_recompute = true;
-		this.need_reorder = true;
+		if (setTreturnF){
+			this.preferencies = {...preferencies};
+			//this.savePreferencies();
+		}
+		else return preferencies;
 	}
+	componentDidMount(){
+		let local_saved_preferencies = JSON.parse(window.localStorage.getItem(
+			"schedule_gen"+"___"+Cookie.get("jwt")
+			));
+		//console.log(local_saved_taules);
+		this.preferencies = local_saved_preferencies ? {...local_saved_preferencies.preferencies} : this.setDefaultPreferencies(false);
+		//console.log(this.preferencies);
+
+		this.preferencies["max_assignatures_used_by_user"] = false;
+		//this.savePreferencies();
+
+		this.forceUpdate();
+	}
+	savePreferencies(){
+		window.localStorage.setItem(
+			"schedule_gen"+"___"+Cookie.get("jwt")
+			,
+			JSON.stringify({preferencies:this.preferencies})
+			);
+	}
+
+
+
 
 
 
@@ -2080,6 +2140,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 					<span>{"Prefereixo "+(comencaTacabaF?"començar":"acabar")+" "}</span>
 
 					<Form.Select 
+						key = {MT+"_"+CA+"_select_"+JSON.stringify(this.preferencies)+"_"+(new Date().toString())}
 						className="mx-1 py-0"
 						size="sm"
 						style={{width:"fit-content"}}
@@ -2088,6 +2149,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 							this.preferencies[CA+"_tardT_aviatF_"+MT] = e.currentTarget.value==1?true:false;
 							this.need_reorder = true;
 							//console.log("NEED REORDER true");
+							this.savePreferencies();
 							this.forceUpdate();
 						}}
 					>
@@ -2105,11 +2167,13 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				</span>
 				<br/>
 				<NumInput 
+					key = {MT+"_"+CA+"_"+JSON.stringify(this.preferencies)+"_"+(new Date().toString())}
 					min={0} max={10} 
 					defaultVal={this.preferencies[CA+"_tard_aviat_imp_"+MT]} 
 					onChangeFunc={(newVal)=>{
 						this.need_reorder = true;
 						this.preferencies[CA+"_tard_aviat_imp_"+MT] = newVal;
+						this.savePreferencies();
 						//this.forceUpdate();
 					}}
 					mostra_limits={true}
@@ -2173,7 +2237,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		this.preferencies.max_assignatures = this.preferencies.max_assignatures_used_by_user ? Math.min(this.preferencies.max_assignatures, max) : max;
 		
 		let numInput_assigs = <NumInput 
-			key={"numInput_assigs_"+min+"_"+max}
+			key={"numInput_assigs_"+min+"_"+max+"_"+JSON.stringify(this.preferencies)+"_"+(new Date().toString())}
 			min={min} 
 			max={max} 
 			defaultVal={this.preferencies.max_assignatures} 
@@ -2182,6 +2246,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				this.preferencies.max_assignatures = newVal; 
 				if (usedByUser){
 					this.preferencies.max_assignatures_used_by_user = true;
+					this.savePreferencies();
 					//console.log("CLICKED!!!");
 				}
 			}}
@@ -2192,12 +2257,13 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		min = this.min_horaris_result;
 		max = this.max_horaris_result;
 		let numInput_resultats = <NumInput 
-			key={"numInput_resultats_"+min+"_"+max}
+			key={"numInput_resultats_"+min+"_"+max+"_"+JSON.stringify(this.preferencies)+"_"+(new Date().toString())}
 			min={min} 
 			max={max} 
 			defaultVal={this.preferencies.max_horaris} 
 			onChangeFunc={(newVal, usedByUser)=>{
 				this.preferencies.max_horaris = newVal;
+				this.savePreferencies();
 				//this.need_reorder = true;
 				//console.log("NEED REORDER IMPORTANTE: "+(this.need_reorder?"true":"false"));
 				if ((this.need_recompute==false) && (this.need_reorder==false))
@@ -2218,6 +2284,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				<div className="d-flex align-items-center justify-content-center">
 					<span>{"Prefereixo"}</span>
 					<Form.Select 
+						key = {"hores_mortes_select_"+JSON.stringify(this.preferencies)+"_"+(new Date().toString())}
 						className="mx-1 py-0"
 						size="sm"
 						style={{width:"fit-content"}}
@@ -2226,6 +2293,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 							this.preferencies["hores_mortes"] = e.currentTarget.value;
 							this.need_reorder = true;
 							//console.log("NEED REORDER true");
+							this.savePreferencies();
 							this.forceUpdate();
 						}}
 					>
@@ -2257,11 +2325,13 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				</span>
 				<br/>
 				<NumInput 
+					key = {"hores_mortes_"+JSON.stringify(this.preferencies)+"_"+(new Date().toString())}
 					min={0} max={10} 
 					defaultVal={this.preferencies["hores_mortes_imp"]} 
 					onChangeFunc={(newVal)=>{
 						this.need_reorder = true;
 						this.preferencies["hores_mortes_imp"] = newVal;
+						this.savePreferencies();
 						//this.forceUpdate();
 					}}
 					mostra_limits={true}
@@ -2280,6 +2350,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				<div className="d-flex align-items-center justify-content-center">
 					<span>{"Prefereixo dies lliures a "}</span>
 					<Form.Select 
+						key = {"dies_lliures_select_"+JSON.stringify(this.preferencies)+"_"+(new Date().toString())}
 						className="mx-1 py-0"
 						size="sm"
 						style={{width:"fit-content"}}
@@ -2288,6 +2359,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 							this.preferencies["dies_lliures"] = e.currentTarget.value;
 							this.need_reorder = true;
 							//console.log("NEED REORDER true");
+							this.savePreferencies();
 							this.forceUpdate();
 						}}
 					>
@@ -2320,11 +2392,13 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				</span>
 				<br/>
 				<NumInput 
+					key = {"dies_lliures_"+JSON.stringify(this.preferencies)+"_"+(new Date().toString())}
 					min={0} max={10} 
 					defaultVal={this.preferencies["dies_lliures_imp"]} 
 					onChangeFunc={(newVal)=>{
 						this.need_reorder = true;
 						this.preferencies["dies_lliures_imp"] = newVal;
+						this.savePreferencies();
 						//this.forceUpdate();
 					}}
 					mostra_limits={true}
@@ -2344,6 +2418,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				<div className="d-flex align-items-center justify-content-center">
 					<span>{"Prefereixo fer classe "+((this.preferencies["prioritza_matiT_tardaF"]==true) ? "pel " : "per la ")}</span>
 					<Form.Select 
+						key = {"prioritza_matiT_tardaF_select_"+JSON.stringify(this.preferencies)+"_"+(new Date().toString())}
 						className="mx-1 py-0"
 						size="sm"
 						style={{width:"fit-content"}}
@@ -2352,6 +2427,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 							this.preferencies["prioritza_matiT_tardaF"] = e.currentTarget.value==1?true:false;
 							this.need_reorder = true;
 							//console.log("NEED REORDER true");
+							this.savePreferencies();
 							this.forceUpdate();
 						}}
 					>
@@ -2368,11 +2444,13 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				</span>
 				<br/>
 				<NumInput 
+					key = {"prioritza_matiT_tardaF_"+JSON.stringify(this.preferencies)+"_"+(new Date().toString())}
 					min={0} max={10} 
 					defaultVal={this.preferencies["prioritza_matiT_tardaF_imp"]} 
 					onChangeFunc={(newVal)=>{
 						this.need_reorder = true;
 						this.preferencies["prioritza_matiT_tardaF_imp"] = newVal;
+						this.savePreferencies();
 						//this.forceUpdate();
 					}}
 					mostra_limits={true}
@@ -2691,7 +2769,26 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 							<ListGroup.Item 
 									className={"ps-2 pe-2 py-1 paramSelectAll"}
 							>
-							<h3 className="mb-0"><b>{"Altres paràmetres"}</b></h3>
+							<div className="d-flex justify-content-between">
+								<h3 className="mb-0"><b>{"Altres paràmetres"}</b></h3>
+
+
+								<Button
+									className="py-0 px-1 me-1 mb-1 small align-self-end shadow"
+									size="sm"
+									style={{height:"fit-content"}}
+									onClick={()=>{
+										this.setDefaultPreferencies(true);
+										this.need_recompute = true;
+										this.need_reorder = true;
+										this.savePreferencies();
+										this.forceUpdate();
+									}}
+								>
+										<span className="small" >{"Reinicia"}</span>
+								</Button>
+							</div>
+
 							</ListGroup.Item>
 
 
@@ -3021,7 +3118,7 @@ function ScheduleGen(props){
 			screen_ref.current.initialitzaHoraris(horaris);
 
 		});
-	}, []);
+	}, [window.location.href && new Date()]);
 
 
 	return(

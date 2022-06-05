@@ -545,7 +545,7 @@ function Home(props){
 		});
 	}, 25);
 
-	}, [window.location.href]);//[window.location.search]); //Seguramente haya alguna alternativa mejor, pero por el momento me quedo con esta (window.location.search) (para que se actualice el objeto que contiene la página al cargar nuevas publicaciones)
+	}, [window.location.href && new Date()]);//[window.location.search]); //Seguramente haya alguna alternativa mejor, pero por el momento me quedo con esta (window.location.search) (para que se actualice el objeto que contiene la página al cargar nuevas publicaciones)
 
 
 
