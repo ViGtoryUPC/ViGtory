@@ -11,7 +11,7 @@
 .magic_input_read{
 	transition: 0.2s;
 	border-radius: 25%;
-	padding: 0.2rem;
+	padding-right: 0.2rem;
 	cursor: pointer !important;
 }
 .magic_input_read:hover{
@@ -86,8 +86,27 @@
 
 
 
+.grade_calc .btn-check:focus+.btn-light.up_down, .btn-light:focus {
+    box-shadow: none !important;
+	background-color: rgba(0,0,0,0.1) !important;
+}
+.grade_calc .btn-light.up_down:hover {
+   	background-color: rgba(0,0,0,0.1) !important;
+}
 
 
+.grade_calc .btn-light.up_down_order{
+	background-color: rgba(0,0,0,0);
+	border-color: rgba(0,0,0,0);
+	color: white;
+}
+.grade_calc .btn-check:focus+.btn-light.up_down_order, .btn-light:focus {
+    box-shadow: none !important;
+	background-color: rgba(0,0,0,0.1) !important;
+}
+.grade_calc .btn-light.up_down_order:hover {
+   	background-color: rgba(0,0,0,0.1) !important;
+}
 
 
 

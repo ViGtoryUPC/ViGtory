@@ -52,6 +52,7 @@ function logError(...parameters) {
         // Another error to filter because of YYYY
         || parameter.includes('cannot appear as a descendant of')
 		|| parameter.includes("Using UNSAFE_componentWillReceiveProps in strict mode is not recommended and may indicate bugs in your code")
+		|| parameter.includes("Warning: validateDOMNesting(...)")
         );
     });
     if(!filter) error(...parameters);
