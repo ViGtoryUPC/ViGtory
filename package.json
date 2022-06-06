@@ -16,6 +16,7 @@
     "react-rating": "^2.0.5",
     "react-router-dom": "^6.0.2",
     "react-scripts": "4.0.3",
+    "react-twitter-widgets": "^1.10.0",
     "thread-js": "^0.1.16",
     "web-vitals": "^1.1.2"
   },
