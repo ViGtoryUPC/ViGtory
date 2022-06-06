@@ -532,14 +532,16 @@ function Home(props){
 
 	setTimeout(()=>{
 		getUserData().then((UserData) => {
+			if (screen_ref.current)
 			screen_ref.current.isStudent = UserData.emailStudentConfirmed;
 			
-			let search_fields_data = screen_ref.current.getSearchFieldsData();
+			let search_fields_data = screen_ref.current ? screen_ref.current.getSearchFieldsData() : ()=>{};
 			//console.log(search_fields_data);
 			getPosts(search_fields_data).then((data) => {
 				//console.log(data);
 				//console.log("screen_ref.current: "+screen_ref.current)
 				//if (screen_ref.current)
+				if (screen_ref.current)
 				screen_ref.current.updatePageContent(data);//Algo se rompe al usar esto; puede que tenga que ver con las peticiones recursivas //SE HA SOLUCIONADO AÑADIENDO <React.StrictMode> EN index.js???????? O puede que no...
 			});
 		});

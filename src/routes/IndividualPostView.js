@@ -396,7 +396,7 @@ function IndividualPostView(props){
 			});
 		});
 
-	}, []);
+	}, [window.location.href && new Date()]);
 
 
 

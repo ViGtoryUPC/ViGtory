@@ -92,6 +92,8 @@ class InitialScreen extends React.Component {
 
 							<Nav.Link eventKey="/schedule_gen" className="d-flex justify-content-center align-items-center" >Generador d'horaris</Nav.Link>
 
+							<Nav.Link eventKey="/news_feed" className="d-flex justify-content-center align-items-center" >Notícies</Nav.Link>
+
 
 
 

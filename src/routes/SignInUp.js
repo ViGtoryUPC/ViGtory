@@ -341,8 +341,11 @@ class DegreeInput extends React.Component {
 					{/*this.props.degreeList.map((deg_name, i) => { return (
 						<option value={i} key={i}>{deg_name}</option>
 					)})*/
-					this.props.degreeList.map((deg) => { return (
-						<option value={deg.codi_programa} key={deg.codi_programa}>{deg.nom}</option>
+					this.props.degreeList.map((deg) => { 
+						let deg_nom = deg.nom.split("GRAU EN ");
+						deg_nom = deg_nom[deg_nom.length-1];
+						return (
+						<option value={deg.codi_programa} key={deg.codi_programa}>{deg_nom}</option>
 					)})
 					}
 
@@ -369,7 +372,7 @@ class DegreeInput extends React.Component {
 
 function ScreenToggleLoginRegister({ children, eventKey, focusRefLogin, focusRefRegister }){
 	const switchScreen = useAccordionButton(eventKey, ()=>{
-		console.log("Accordion "+eventKey+" triggered!");
+		//console.log("Accordion "+eventKey+" triggered!");
 		changeURLandTitle(eventKey.split("_")[1] === "login");
 	});
 	

@@ -9,6 +9,7 @@ import Home from "./routes/Home";
 import IndividualPostView from "./routes/IndividualPostView";
 import GradeCalc from "./routes/GradeCalc";
 import ScheduleGen from "./routes/ScheduleGen";
+import NewsFeed from "./routes/NewsFeed";
 //import NavBar from "./components/NavBar";
 import {BaseName} from "./libraries/basename";
 import { init_mobile_check } from './libraries/mobile_check';
@@ -123,6 +124,8 @@ ReactDOM.render(
 			<Route path="grade_calc" element={<GradeCalc currentSection="/grade_calc" />} />
 
 			<Route path="schedule_gen" element={<ScheduleGen currentSection="/schedule_gen" />} />
+
+			<Route path="news_feed" element={<NewsFeed currentSection="/news_feed" />} />
 
 
 

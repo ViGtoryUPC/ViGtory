@@ -122,7 +122,7 @@ async function submitUpdateDataToAPI(event, route, navigate, method){
 	)
 	.then(
 		data => {
-			console.log(data);
+			//console.log(data);
 
 			if (data === undefined) return;
 
@@ -478,9 +478,13 @@ class MailInput extends React.Component {
 
 class DegreeInput extends React.Component {
 
-	/*constructor(props) {
+	
+	constructor(props) {
 		super(props);
-	}*/
+		this.defaultValue = this.props.defaultValue ? this.props.defaultValue : "";
+		//console.log(this.defaultValue);
+	}
+	
 
 	render(){
 		//return(<Form.Select field_name="Grau d'estudis" form_field_name="degree"/>);
@@ -488,11 +492,16 @@ class DegreeInput extends React.Component {
 		let degreeList = this.props.degreeList ? this.props.degreeList : [];
 		
 		//defaultValue={this.props.defaultValue}
+		//key={"deg_input_"+(new Date().toString())}
+		//value={this.value}
+		//onChange={(e)=>{this.value = e.currentTarget.value; this.forceUpdate()}}
+		//onChange={(e)=>{console.log(e.currentTarget.value);}}
 		return(
 
 			<FloatingLabel className="mt-3 mb-2" label="Grau d'estudis d'interès">
 				<Form.Select 
-					name={"grau"} 
+					name={"grau"}
+					defaultValue={this.defaultValue}
 				>
 
 					{/*this.props.degreeList.map((deg_name, i) => { return (
@@ -503,10 +512,19 @@ class DegreeInput extends React.Component {
 							{deg_name} {(i===this.props.defaultValue)?"[ACTUALMENT]":""}
 						</option>
 					)})*/
-					degreeList.map((deg) => { return (
-						<option value={deg.codi_programa} key={deg.codi_programa} selected={deg.codi_programa===this.props.defaultValue} className={(deg.codi_programa===this.props.defaultValue)?"fw-bold":""}>
+						//selected={deg.codi_programa===this.props.defaultValue} 
+					degreeList.map((deg) => { 
+						let deg_nom = deg.nom.split("GRAU EN ");
+						deg_nom = deg_nom[deg_nom.length-1];
+						return (
+						<option 
+						key={deg.codi_programa} 
+						value={deg.codi_programa}
+						
+						 
+						className={(deg.codi_programa===this.props.defaultValue)?"fw-bold":""}>
 
-							{deg.nom} {(deg.codi_programa===this.props.defaultValue)?"[actualment]":""}
+							{deg_nom} {(deg.codi_programa===this.props.defaultValue)?"[actualment]":""}
 						</option>
 
 					)})
@@ -954,9 +972,9 @@ class DegreeForm extends React.Component {
 		}*/
 		//console.log("TOT CORRECTE!");
 		//console.log(new FormData(event.currentTarget));
-
+		console.log(event.currentTarget.value);
 		submitUpdateDataToAPI(event, "/user/modificarGrau", this.props.navigate, "PUT");
-
+		//this.forceUpdate();
 	}
 
 
@@ -965,7 +983,7 @@ class DegreeForm extends React.Component {
 
 		//console.log(this.props.defaultValue);
 
-		let degree = <DegreeInput form_field_name="settings_degree" degreeList={this.props.degreeList} defaultValue={this.props.defaultValue} />;
+		let degree = <DegreeInput form_field_name="settings_degree" degreeList={this.props.degreeList} key={this.props.degreeList} defaultValue={this.props.defaultValue} />;
 
 		return(
 			<Form noValidate method="post" action="http://httpbin.org/post" onSubmit={(e) => this.submitButtonAction(e)} >
@@ -1384,7 +1402,7 @@ function ProfileSettings(props){
 		
 
 
-	}, []);
+	}, [window.location.href && new Date()]);
 	
 	
 
