@@ -16,6 +16,7 @@ import '../css/GradeCalc.css';
 
 import { Cookie } from '../libraries/cookie';
 import {BaseName} from "../libraries/basename";
+import { user_validity_check_per_route } from "../libraries/user_validity_check_per_route"
 import {getSubjectList} from '../libraries/data_request';
 
 //IMPORTANTE PARA QUE NO SE VEA MAL AL ABRIR EL TECLADO EN MÓVIL
@@ -759,6 +760,9 @@ class TaulaCalcul extends React.Component {
 
 		let nota_final = taula.smartTmanualF ? taula.notaFinal : taula.calculs.reduce((sum, val)=>{return sum+(val.nota*val.percentatge/100)}, 0);
 
+		//Capamos la nota a 10 porque aunque se pueda sacar más (si el profesor lo permite), en el expediente quedará a 10 como máximo
+		nota_final = Math.min(10, nota_final);
+
 		if (!taula.smartTmanualF){
 			nota_final = (nota_final.toFixed(2)%1 > 0) ? nota_final.toFixed(2) : nota_final.toFixed(0);
 
@@ -1217,7 +1221,7 @@ class InitialScreen extends React.Component {
 
 	componentDidMount(){
 		let local_saved_taules = JSON.parse(window.localStorage.getItem(
-			"grade_calc"+"___"+Cookie.get("jwt")
+			"grade_calc"+"___"+Cookie.get("username")//Cookie.get("jwt")
 			));
 		//console.log(local_saved_taules);
 		this.taules = local_saved_taules ? [...local_saved_taules.taules] : [];
@@ -1238,7 +1242,7 @@ class InitialScreen extends React.Component {
 	saveChanges(){
 		//console.log(JSON.stringify(this.taules));
 		window.localStorage.setItem(
-			"grade_calc"+"___"+Cookie.get("jwt")
+			"grade_calc"+"___"+Cookie.get("username")//Cookie.get("jwt")
 			,
 			JSON.stringify({taules:this.taules})
 		)
@@ -1367,12 +1371,12 @@ class InitialScreen extends React.Component {
 
 function GradeCalc(props){
 	//ESTE TROZO DE CÓDIGO EXPULSA AL USUARIO SI INTENTA CARGAR UNA PÁGINA SIN ESTAR LOGUEADO
-	if (!Cookie.get("jwt")){
+	/*if (!Cookie.get("jwt")){
 		window.location.href = 
 			window.location.protocol+"//"+window.location.host+
 			(BaseName==="/"?"":BaseName) + "/signin";
-	}
-
+	}*/
+	user_validity_check_per_route();
 
 
 	document.title = "ViGtory! Calculadora de notes";

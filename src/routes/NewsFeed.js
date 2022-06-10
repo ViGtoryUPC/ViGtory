@@ -17,6 +17,7 @@ import '../css/NewsFeed.css';
 
 import { Cookie } from '../libraries/cookie';
 import {BaseName} from "../libraries/basename";
+import { user_validity_check_per_route } from "../libraries/user_validity_check_per_route"
 
 import Twitter_logo from '../assets/images/Twitter_logo.png';
 
@@ -189,12 +190,12 @@ class InitialScreen extends React.Component {
 
 function NewsFeed(props){
 	//ESTE TROZO DE CÓDIGO EXPULSA AL USUARIO SI INTENTA CARGAR UNA PÁGINA SIN ESTAR LOGUEADO
-	if (!Cookie.get("jwt")){
+	/*if (!Cookie.get("jwt")){
 		window.location.href = 
 			window.location.protocol+"//"+window.location.host+
 			(BaseName==="/"?"":BaseName) + "/signin";
-	}
-
+	}*/
+	user_validity_check_per_route();
 
 
 	document.title = "ViGtory! Notícies";
@@ -215,7 +216,7 @@ function NewsFeed(props){
 		if (main_ref.current)
 			main_ref.current.forceUpdate();
 
-		console.log("re-render");
+		//console.log("re-render");
 	  }, [window.location.href && new Date()]);
 
 

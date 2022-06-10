@@ -7,11 +7,11 @@
 	overflow: visible;
 }
 
-/*
+
 .timeline-Tweet-text{
-	font-size: 10px;
+	font-size: 10px !important;
 }
-*/
+
 
 /* PANTALLA MÉS ALTA QUE BAIXA */
 @media screen and (orientation:portrait) {
@@ -28,7 +28,7 @@
 @media screen and (orientation:landscape) {
 
 	.news_feed{
-		width: max(70vh, 300px);
+		width: max(60vh, 300px);
 	}
 
 }

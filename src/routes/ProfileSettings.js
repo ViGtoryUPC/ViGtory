@@ -22,6 +22,7 @@ import {getDegreeList, getValidationRegexAndErrorMessages, getUserData} from '..
 import { waitFor } from '@testing-library/dom';
 
 import {BaseName} from "../libraries/basename";
+import { user_validity_check_per_route } from "../libraries/user_validity_check_per_route"
 
 
 //IMPORTANTE PARA QUE NO SE VEA MAL AL ABRIR EL TECLADO EN MÓVIL
@@ -1338,12 +1339,12 @@ class InitialScreen extends React.Component {
 
 function ProfileSettings(props){
 	//ESTE TROZO DE CÓDIGO EXPULSA AL USUARIO SI INTENTA CARGAR UNA PÁGINA SIN ESTAR LOGUEADO
-	if (!Cookie.get("jwt")){
+	/*if (!Cookie.get("jwt")){
 		window.location.href = 
 			window.location.protocol+"//"+window.location.host+
 			(BaseName==="/"?"":BaseName) + "/signin";
-	}
-
+	}*/
+	user_validity_check_per_route();
 
 	
 	//document.title = "ViGtory! Configura el teu perfil";

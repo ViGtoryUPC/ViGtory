@@ -7,13 +7,13 @@
 
 	//export const API_address = 'http://localhost:4000'; //esta solo sirve para la propia máquina que hostea el frontend, es decir pruebas locales
 
-	//export const API_address = 'http://nekoworld.dynu.net:4000'; //esta sirve para pruebas con dominio
+	export const API_address = 'http://nekoworld.dynu.net:4000'; //esta sirve para pruebas con dominio
 	//export const API_address = 'http://nekoworld.changeip.co:4000'; //esta sirve para pruebas con dominio
 
 
 
 
-
+/*
 	//esto hay que usarlo en casa de Enric porque su router no tiene NAT Loopback
 	//let addr = 'http://77.226.82.109:4000';
 	let addr = 'http://nekoworld.dynu.net:4000';
@@ -22,7 +22,7 @@
 		addr = 'http://192.168.0.13:4000';
 	}
 	export const API_address = addr;
-
+*/
 
 
 	export default { API_address: API_address }

@@ -17,6 +17,7 @@ import '../css/ScheduleGen.css';
 
 import { Cookie } from '../libraries/cookie';
 import {BaseName} from "../libraries/basename";
+import { user_validity_check_per_route } from "../libraries/user_validity_check_per_route"
 
 //IMPORTANTE PARA QUE NO SE VEA MAL AL ABRIR EL TECLADO EN MÓVIL
 //https://stackoverflow.com/questions/32963400/android-keyboard-shrinking-the-viewport-and-elements-using-unit-vh-in-css
@@ -280,7 +281,7 @@ class InitialScreen extends React.Component {
 	}
 	componentDidMount(){
 		let local_saved_preferencies = JSON.parse(window.localStorage.getItem(
-			"schedule_gen"+"___"+Cookie.get("jwt")
+			"schedule_gen"+"___"+Cookie.get("username")//Cookie.get("jwt")
 			));
 		//console.log(local_saved_taules);
 		this.preferencies = local_saved_preferencies ? {...local_saved_preferencies.preferencies} : this.setDefaultPreferencies(false);
@@ -293,7 +294,7 @@ class InitialScreen extends React.Component {
 	}
 	savePreferencies(){
 		window.localStorage.setItem(
-			"schedule_gen"+"___"+Cookie.get("jwt")
+			"schedule_gen"+"___"+Cookie.get("username")//Cookie.get("jwt")
 			,
 			JSON.stringify({preferencies:this.preferencies})
 			);
@@ -3094,11 +3095,12 @@ console.log(clone_json);
 
 function ScheduleGen(props){
 	//ESTE TROZO DE CÓDIGO EXPULSA AL USUARIO SI INTENTA CARGAR UNA PÁGINA SIN ESTAR LOGUEADO
-	if (!Cookie.get("jwt")){
+	/*if (!Cookie.get("jwt")){
 		window.location.href = 
 			window.location.protocol+"//"+window.location.host+
 			(BaseName==="/"?"":BaseName) + "/signin";
-	}
+	}*/
+	user_validity_check_per_route();
 
 
 	

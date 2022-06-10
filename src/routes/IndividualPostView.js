@@ -18,6 +18,7 @@ import '../css/IndividualPostView.css';
 
 import { Cookie } from '../libraries/cookie';
 import {BaseName} from "../libraries/basename";
+import { user_validity_check_per_route } from "../libraries/user_validity_check_per_route"
 import {getUserData} from '../libraries/data_request';
 import {humanReadableFileSize, iconForMIME} from '../libraries/visual_helper_for_files';
 
@@ -356,11 +357,12 @@ class InitialScreen extends React.Component {
 
 function IndividualPostView(props){
 	//ESTE TROZO DE CÓDIGO EXPULSA AL USUARIO SI INTENTA CARGAR UNA PÁGINA SIN ESTAR LOGUEADO
-	if (!Cookie.get("jwt")){
+	/*if (!Cookie.get("jwt")){
 		window.location.href = 
 			window.location.protocol+"//"+window.location.host+
 			(BaseName==="/"?"":BaseName) + "/signin";
-	}
+	}*/
+	user_validity_check_per_route();
 
 
 	

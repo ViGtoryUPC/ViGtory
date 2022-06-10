@@ -24,6 +24,7 @@ import '../css/Home.css';
 
 import { Cookie } from '../libraries/cookie';
 import {BaseName} from "../libraries/basename";
+import { user_validity_check_per_route } from "../libraries/user_validity_check_per_route"
 import {getUserData} from '../libraries/data_request';
 
 //IMPORTANTE PARA QUE NO SE VEA MAL AL ABRIR EL TECLADO EN MÓVIL
@@ -482,12 +483,13 @@ class InitialScreen extends React.Component {
 function Home(props){
 	//ESTE TROZO DE CÓDIGO EXPULSA AL USUARIO SI INTENTA CARGAR UNA PÁGINA SIN ESTAR LOGUEADO
 	setTimeout(()=>{
-		if (!Cookie.get("jwt")){
+		/*if (!Cookie.get("jwt")){
 			window.location.href = 
 				window.location.protocol+"//"+window.location.host+
 				(BaseName==="/"?"":BaseName) + "/signin";
 			//return <></>;
-		}
+		}*/
+		user_validity_check_per_route();
 
 	}, 10);
 	//...sin los timeouts que hay en esta función, se cuelga en Firefox al intentar entrar desde esta ruta directamente sin estar logueado. La razón es desconocida; se teoriza que puede deberse a la forma en que la cache es manejada.
