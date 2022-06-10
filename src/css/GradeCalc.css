@@ -9,9 +9,9 @@
 
 
 .magic_input_read{
-	transition: 0.2s;
+	/*transition: 0.2s;*/
 	border-radius: 25%;
-	padding-right: 0.2rem;
+	/*padding-right: 0.2rem;*/
 	cursor: pointer !important;
 }
 .magic_input_read:hover{
@@ -54,13 +54,15 @@
 	background-color: rgba(13,110,253,0.3);
 }
 .grade_calc .part_selector .dropdown-menu.show{
-	overflow-y: visible;
+	/*overflow-y: visible;*/
+	overflow-y: scroll;
 }
 
 
 .grade_calc .dropdown-menu.show{
 	padding: 0;
 	overflow-y: scroll;
+	z-index: 9999;
 	/*overflow-y: auto !important;*/
 }
 
@@ -126,6 +128,7 @@
 	}
 	.grade_calc .part_selector .dropdown-menu.show{
 		width: fit-content !important;
+		max-height: 50vh;
 	}
 	
 	
@@ -145,6 +148,7 @@
 	}
 	.grade_calc .part_selector .dropdown-menu.show{
 		width: fit-content !important;
+		max-height: 40vh;
 	}
 
 }

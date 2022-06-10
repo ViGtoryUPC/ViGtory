@@ -51,7 +51,7 @@ class MagicInput extends React.Component {
 
 		this.min = this.props.min ? this.props.min : 0;
 		this.max = this.props.max ? this.props.max : 100;
-		this.step = this.props.step ? this.props.step : 0.01;
+		this.step = this.props.step ? this.props.step : 0.1;
 
 		this.value = (this.props.original_value!=undefined) ? this.props.original_value : "";
 		this.updateFunc = this.props.updateFunc ? this.props.updateFunc : (v)=>{};
@@ -64,6 +64,8 @@ class MagicInput extends React.Component {
 		this.text_height = 0;
 		this.text_width = 0;
 		this.gotSizesFirstTime = false;
+
+		this.isTitle = this.props.isTitle ? this.props.isTitle : false;
 
 	}
 
@@ -126,6 +128,16 @@ class MagicInput extends React.Component {
 		},30);*/
 	}
 	changeToReadMode(){
+		if (this.value == ""){
+			setTimeout(()=>{
+				//if (e.currentTarget.value == ""){e.currentTarget.value = "???"}
+					this.value = "???";
+					this.manageEditableIcon();
+					this.getTextSpanSizes();
+					this.updateFunc(this.value);
+			},10);
+		}
+		
 		setTimeout(()=>{
 			this.readTeditF = true;
 			this.forceUpdate();
@@ -135,7 +147,11 @@ class MagicInput extends React.Component {
 
 	getTextSpanSizes(){
 		setTimeout(()=>{
-			if (this.read_ref.current) this.read_ref.current.style.display = "inline";
+			if (this.read_ref.current){
+				//this.read_ref.current.style.display = "inline";
+				this.read_ref.current.style.visibility = "visible";
+				this.read_ref.current.style.position = "static";
+			}
 			this.forceUpdate();
 		},1);
 
@@ -153,7 +169,11 @@ class MagicInput extends React.Component {
 		},2);
 
 		setTimeout(()=>{
-			if (this.read_ref.current) this.read_ref.current.style.display = "none";
+			if (this.read_ref.current){
+				//this.read_ref.current.style.display = "none";
+				this.read_ref.current.style.visibility = "hidden";//
+				this.read_ref.current.style.position = "absolute";//
+			}
 			//console.log(this.text_height, this.text_width);
 			this.forceUpdate();
 		},3);
@@ -173,7 +193,7 @@ class MagicInput extends React.Component {
 			e.currentTarget.value = e.currentTarget.value.slice(0, this.max);
 		}
 
-		if (e.currentTarget.value == ""){e.currentTarget.value = "???"}
+		//if (e.currentTarget.value == ""){e.currentTarget.value = "???"}
 
 		this.value = e.currentTarget.value;
 		this.manageEditableIcon();
@@ -247,14 +267,26 @@ class MagicInput extends React.Component {
 				width = this.text_width;
 			}
 		}
+		let max_span_width = 0;
+		if (this.props.colwidth_ref && this.props.colwidth_ref.current){
+			//console.log(this.props.colwidth_ref.current.offsetWidth);
+			//FORMA ALTERNATIVA DE CONSEGUIR LA ANCHURA ***MÁXIMA*** DE LA COLUMNA
+			max_span_width = this.props.colwidth_ref.current.offsetWidth;
+		}
+		if (max_span_width == 0){max_span_width = width;}
+		//if (max_span_width > 5){max_span_width -= 5;}
+
+
 		let plusPX = (this.type == "number") ? 15 : 5;
-		height+=plusPX;
+		//height+=plusPX;
 		width+=plusPX;
 
+
+
 		return(<>
-			<span
+			<div
 				ref={this.read_ref}
-				className="magic_input_read"
+				className="magic_input_read d-inline"
 				style={this.readTeditF ?
 						{
 							//visibility: "visible",////
@@ -264,10 +296,13 @@ class MagicInput extends React.Component {
 						}
 					:
 						{
-							//visibility: "hidden",
-							//position: "relative",
-							display: "none",
+							//display: "none",
+
 							opacity: "0%",
+							visibility: "hidden",
+							position: "absolute",
+
+
 
 							/*position: "absolute",
 							top:"0",
@@ -297,6 +332,7 @@ class MagicInput extends React.Component {
 				<span ref={this.text_ref} className="d-inline" 
 					style={{
 						minWidth: "200px !important",
+						maxWidth: max_span_width.toString()+"px !important",
 						lineHeight: lineHeight,
 						whiteSpace: "pre-wrap",
 						zIndex: "33"
@@ -305,8 +341,8 @@ class MagicInput extends React.Component {
 					{(this.type == "number") ? this.value.toString().replace(".",",") : this.value}
 				</span>
 				{this.extra_str}
-				{this.showEditable?this.editableIndicator:""}
-			</span>
+				{this.showEditable?this.editableIndicator:""}&nbsp;
+			</div>
 
 
 			{this.readTeditF ? <></>:<>
@@ -315,7 +351,7 @@ class MagicInput extends React.Component {
 				<Form.Control
 					autoFocus
 					size="sm"
-					className="m-0 px-0 pb-0 pt-1 d-inline shadow-none"
+					className="m-0 px-0 pb-0 pt-0 d-inline shadow-none"
 					style={{
 						textAlign:"inherit",
 						//wordWrap:"break-word",
@@ -323,13 +359,17 @@ class MagicInput extends React.Component {
 
 						//minWidth:"0",
 						//width:"75%",
-						minWidth:(Math.max(width, "25")).toString()+"px",
 						//maxWidth:this.inherited_width.toString()+"px",
-						width:width.toString()+"px",
+						//width:width.toString()+"px",
 						//width:Math.min(width, this.inherited_width).toString()+"px",
 						//maxWidth:"10px",
-						width:width.toString()+"px",////
 						//width:"fit-content",
+						//width:width.toString()+"px",////
+						//minWidth:(Math.max(width, "25")).toString()+"px",///////
+						maxWidth:(this.type=="number" ? width.toString()+"px" : (Math.max(max_span_width, "25")).toString()+"px"),
+						minWidth:(this.type=="number" ? width.toString()+"px" : (Math.max(width, "25")).toString()+"px"),
+						//width:max_span_width.toString()+"px",///////
+						width:(this.type=="number" ? width.toString()+"px" : max_span_width.toString()+"px"),
 
 						minHeight:"10px",
 						//height:"inherit",
@@ -359,7 +399,7 @@ class MagicInput extends React.Component {
 					ref={this.focusRef}
 
 					type={this.type}
-					as={this.type=="text" ? "textarea" : "input"}
+					as={this.type=="text" ? (this.isTitle ? "input" : "textarea") : "input"}
 
 					min={this.min}
 					max={this.max}
@@ -468,6 +508,8 @@ class TaulaCalcul extends React.Component {
 			this.row_keys.push(this.props.index+"_"+i+"_"+new Date());
 		}
 		//this.title = <MagicInput ref={this.taula_nom_ref} key={taula.nom} original_value={taula.nom} max={16} updateFunc={(v)=>{taula.nom=v; this.forceUpdate()}} showEditable={false} />
+
+		this.colwidth_refs = [...Array(5)].map(_=>React.createRef());
 	}
 
 
@@ -545,10 +587,13 @@ class TaulaCalcul extends React.Component {
 			nom:"???",
 			calculs:[]
 		};
-		let row = taula.calculs[index];
+		let row_name = (index>=0) ? taula.calculs[index] : "";
+		//let row = taula.calculs[index];
 
 		let parts = this.props.main_ref.current.partList;
-		parts = parts.map(part => {
+		parts = parts.map(p => {
+
+			let part = p[0];
 
 			if (part[part.length-1] == "X"){
 				let existing_parts = taula.calculs
@@ -575,10 +620,12 @@ class TaulaCalcul extends React.Component {
 					lowest = existing_parts[existing_parts.length - 1] + 1;
 				}
 
-				return part.split("X")[0]+lowest;
+				let new_p = [...p];
+				new_p[0] = part.split("X")[0]+lowest;
+				return new_p;
 			}
 
-			else return part;
+			else return p;
 
 		})
 
@@ -587,13 +634,26 @@ class TaulaCalcul extends React.Component {
 
 			<DropdownButton
 				key={"dropdownbutton"}
-				className="d-inline"
+				className="d-inline align-top"
 				size="sm"
 				title={""}
 				onSelect={(e)=>{
+					let v = JSON.parse(e);
 					//row.nom = e;
 					//this.forceUpdate();
-					this.row_noms_refs[index].current.changeValueRemotely(e);
+					if (index >= 0)
+						this.row_noms_refs[index].current.changeValueRemotely(v[0]);
+					else{
+						this.addRowAndUpdate(
+							{
+								nom: v[0],
+								percentatge: v[2] ? v[2] : 0,
+								nota: 5,
+								confianca: 100,
+								objectiuTassolitF: true
+							}
+						);
+					}
 				}}
 			>
 
@@ -603,11 +663,11 @@ class TaulaCalcul extends React.Component {
 						<>
 						{k==0 ? "" : <Dropdown.Divider className="my-0" key={k+"_"} /> }
 						<Dropdown.Item key={k}
-							eventKey={v}
-							className={(row.nom===v)?"current_selection":""}
+							eventKey={JSON.stringify(v)}
+							className={(row_name===v[0])?"current_selection":""}
 						>
-							<span style={{whiteSpace:"nowrap"}}>
-								{((v!="Teoria") && (v!="Pràctica")?<>&nbsp;&nbsp;-&nbsp;</>:"")}{v}
+							<span style={{whiteSpace:"nowrap", fontWeight:(v[1]?"bold":"normal")}}>
+								{((!v[1])?<>&nbsp;&nbsp;-&nbsp;</>:"")}{v[0]}
 							</span>
 						</Dropdown.Item>
 						</>
@@ -619,7 +679,18 @@ class TaulaCalcul extends React.Component {
 		</span>);
 	}
 
+	addRowAndUpdate(row_info){
+		let taula = this.props.main_ref.current ? this.props.main_ref.current.taules[this.props.index] : 
+		{
+			nom:"???",
+			calculs:[]
+		};
 
+		taula.calculs.push(row_info);
+		this.row_noms_refs.push(React.createRef());
+		this.row_keys.push(this.props.index+"_"+(taula.calculs.length-1)+"_"+new Date());
+		this.forceUpdate();
+	}
 
 
 
@@ -842,7 +913,7 @@ class TaulaCalcul extends React.Component {
 
 					<b>
 						{
-						<MagicInput ref={this.taula_nom_ref} /*key={taula.nom}*/ original_value={taula.nom} max={16} updateFunc={(v)=>{taula.nom=v; this.forceUpdate()}} showEditable={false} />
+						<MagicInput ref={this.taula_nom_ref} /*key={taula.nom}*/ original_value={taula.nom} max={16} updateFunc={(v)=>{taula.nom=v; this.forceUpdate()}} showEditable={false} isTitle={true} />
 						//this.title
 						}
 						{this.title_selector()}
@@ -871,7 +942,7 @@ class TaulaCalcul extends React.Component {
 
 				<thead>
 					<tr>
-						<th className="pe-0" style={this.changeAttr(header_style, "width", taula.smartTmanualF ?"28%":"48%")}>
+						<th className="pe-0" style={this.changeAttr(header_style, "width", taula.smartTmanualF ?"28%":"48%")} ref={this.colwidth_refs[0]}>
 							<div className="d-flex justify-content-between align-items-end">
 								<span>{"Part"}</span>
 
@@ -911,13 +982,13 @@ class TaulaCalcul extends React.Component {
 						</th>
 
 
-						<th className="text-center" style={this.changeAttr(header_style, "width", "20%")}>
+						<th className="text-center" style={this.changeAttr(header_style, "width", "20%")} ref={this.colwidth_refs[1]}>
 							{"Percent"}
 						</th>
 
 						{taula.smartTmanualF ? 
 
-							<th className="text-center" style={this.changeAttr(header_style, "width", "17%")}>
+							<th className="text-center" style={this.changeAttr(header_style, "width", "17%")} ref={this.colwidth_refs[2]}>
 
 								<OverlayTrigger
 									overlay={
@@ -941,7 +1012,7 @@ class TaulaCalcul extends React.Component {
 						:""}
 						
 
-						<th className="text-center" style={this.changeAttr(header_style, "width", "20%")}>
+						<th className="text-center" style={this.changeAttr(header_style, "width", "20%")} ref={this.colwidth_refs[4]}>
 							{"Objectiu"}
 						</th>
 
@@ -949,7 +1020,7 @@ class TaulaCalcul extends React.Component {
 						<th style={this.changeAttr(
 									this.changeAttr(header_style, "width", "15%")
 									,"borderTopRightRadius", "0.75rem"
-									)}>
+									)} ref={this.colwidth_refs[5]}>
 							{"Nota"}
 						</th>
 
@@ -1020,13 +1091,13 @@ class TaulaCalcul extends React.Component {
 
 
 
-								<MagicInput ref={this.row_noms_refs[i]} /*key={row.nom}*/ original_value={row.nom} max={32} updateFunc={(v)=>{row.nom = v; this.forceUpdate()}} showEditable={false} />{this.name_selector(i)}
+								<MagicInput ref={this.row_noms_refs[i]} /*key={row.nom}*/ original_value={row.nom} max={32} updateFunc={(v)=>{row.nom = v; this.forceUpdate()}} showEditable={false} colwidth_ref={this.colwidth_refs[0]} />{this.name_selector(i)}
 							</td>
 
 
 							<td className="text-center align-middle px-0">
 								<b>
-								<MagicInput original_value={row.percentatge} type={"number"} updateFunc={(v)=>{row.percentatge = v; this.forceUpdate()}} extra_str="%" />
+								<MagicInput original_value={row.percentatge} type={"number"} updateFunc={(v)=>{row.percentatge = v; this.forceUpdate()}} extra_str="%" colwidth_ref={this.colwidth_refs[1]}  />
 								</b>
 							</td>
 
@@ -1034,7 +1105,7 @@ class TaulaCalcul extends React.Component {
 							{taula.smartTmanualF ? 
 								<td className="text-center align-middle px-0">
 									{row.objectiuTassolitF ? 
-										<MagicInput original_value={row.confianca} type={"number"} updateFunc={(v)=>{row.confianca = v; this.forceUpdate()}} extra_str="%" />
+										<MagicInput original_value={row.confianca} type={"number"} updateFunc={(v)=>{row.confianca = v; this.forceUpdate()}} extra_str="%" colwidth_ref={this.colwidth_refs[2]}  />
 									:
 										<>{"100%"}</>
 									}
@@ -1062,7 +1133,7 @@ class TaulaCalcul extends React.Component {
 								{(row.objectiuTassolitF && taula.smartTmanualF) ? 
 									<span className="result_read">&nbsp;{row.nota.toString().replace(".",",")}&nbsp;</span>
 								:
-									<MagicInput original_value={row.nota} type={"number"} updateFunc={(v)=>{row.nota = v; this.forceUpdate()}} max={this.notaMax} />
+									<MagicInput original_value={row.nota} type={"number"} updateFunc={(v)=>{row.nota = v; this.forceUpdate()}} max={this.notaMax} colwidth_ref={this.colwidth_refs[4]}  />
 								}
 								</b>
 							</td>
@@ -1086,7 +1157,7 @@ class TaulaCalcul extends React.Component {
 									className="py-0"
 									style={{borderTopLeftRadius:"0", borderTopRightRadius:"0", width:"85%"}}
 									onClick={()=>{
-										taula.calculs.push(
+										this.addRowAndUpdate(
 											{
 												nom: "???",
 												percentatge: (percentatge_total < 100)?(100-percentatge_total).toFixed(2) : 0,
@@ -1095,9 +1166,6 @@ class TaulaCalcul extends React.Component {
 												objectiuTassolitF: true
 											}
 										);
-										this.row_noms_refs.push(React.createRef());
-										this.row_keys.push(this.props.index+"_"+(taula.calculs.length-1)+"_"+new Date());
-										this.forceUpdate();
 										//this.row_noms_refs[taula.calculs.length-2].current.forceUpdate();
 									}}
 								>
@@ -1107,6 +1175,7 @@ class TaulaCalcul extends React.Component {
 										<span className="small" >{"Nova part"}</span>
 									</b>
 								</Button>
+										{this.name_selector(-1)}
 
 								<br/>
 							</>:""}
@@ -1126,7 +1195,7 @@ class TaulaCalcul extends React.Component {
 						</td>
 
 
-						<td className="align-middle mx-0" style={{whiteSpace:"nowrap", backgroundColor:"white", borderBottomRightRadius:"0.75rem"}}>
+						<td className="align-middle mx-0 px-0" style={{whiteSpace:"nowrap", backgroundColor:"white", borderBottomRightRadius:"0.75rem"}}>
 							<h6 className="mb-0">
 							<b>
 
@@ -1143,6 +1212,7 @@ class TaulaCalcul extends React.Component {
 											this.forceUpdate()
 										}} 
 										max={this.notaMax} 
+										colwidth_ref={this.colwidth_refs[4]} 
 									/>
 								}
 
@@ -1200,7 +1270,7 @@ class InitialScreen extends React.Component {
 		this.state = {
 		};
 
-		this.maxTaules = 20;
+		this.maxTaules = 50;
 
 		
 		this.taules = [];
@@ -1209,11 +1279,16 @@ class InitialScreen extends React.Component {
 
 		this.subjectList = [];
 		this.partList = [
-			"Teoria",
-			"Ex. Parcial X",
-			"Ex. Final",
-			"Pràctica",
-			"Pràctica X",
+			["Teoria", true, 50],
+			["Examen Parcial X", false, 20],
+			["Examen Final", false, 30],
+			["Pràctica", true, 50],
+			["Pràctica X", false, 10],
+			["Exercicis", true, 20],
+			["Exercici X", false, 10],
+			["Actitud", true, 10],
+			["Assistència", true, 10],
+			["Participació", true, 10],
 		]
 	}
 
