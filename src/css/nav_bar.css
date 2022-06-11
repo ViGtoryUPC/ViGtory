@@ -57,6 +57,29 @@
 
 
 
+
+/*.navbar-toggler:not(.navbar-expand-md) .navbar-nav .nav-link {
+	min-width: 100% !important;
+	width:100% !important;
+	overflow-x: visible;
+}
+
+.navbar-toggler:not(.navbar-expand-md) .navlinks_container{
+	align-items: center;
+	min-width: 100% !important;
+	width:100% !important;
+	overflow-x: visible;
+}*/
+#navbarScroll > div.w-100.d-flex.justify-content-center > div{
+	width: 100%;
+}
+.navbar-toggler{
+	margin-top: 0.5rem;
+}
+
+
+
+
 .user_access_icon{
 	width: 30px;
 	padding-right: 0.3vw;

@@ -74,23 +74,26 @@ class InitialScreen extends React.Component {
 					<Navbar.Toggle aria-controls="navbarScroll" />
 
 					<Navbar.Collapse id="navbarScroll">
-						{
-						//<div className="w-100 d-flex justify-content-center align-content-end">
-						}
+						<div className="w-100 d-flex justify-content-center">
+						
 
 						<Nav 
 							variant="pills"
 							activeKey={this.props.currentSection}
-							className="m-auto my-2 my-md-0"
+							className={"m-auto my-2 my-md-0 justify-content-center"/*navlinks_container*/}
 							style={{ maxHeight: '50%' }}
 							navbarScroll 
 							onSelect={(eventKey) => this.props.navigate(eventKey)}
 						>
+
 							<Nav.Link eventKey="/" className="d-flex justify-content-center align-items-center" >Publicacions</Nav.Link>
+
 
 							<Nav.Link eventKey="/grade_calc" className="d-flex justify-content-center align-items-center" >Calculadora de notes</Nav.Link>
 
+
 							<Nav.Link eventKey="/schedule_gen" className="d-flex justify-content-center align-items-center" >Generador d'horaris</Nav.Link>
+
 
 							<Nav.Link eventKey="/news_feed" className="d-flex justify-content-center align-items-center" >Notícies</Nav.Link>
 
@@ -102,8 +105,7 @@ class InitialScreen extends React.Component {
 
 
 						</Nav>
-
-
+</div>
 
 
 						<NavDropdown 
@@ -139,7 +141,6 @@ class InitialScreen extends React.Component {
 								</NavDropdown.Item>
 
 						</NavDropdown>
-
 
 						{
 						//</div>

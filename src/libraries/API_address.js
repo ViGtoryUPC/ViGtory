@@ -25,4 +25,17 @@
 */
 
 
+/*
+/////////////IMPORTANTE//////////////
+//USAR ESTA CUANDO TOQUE HACER LA EXPO:
+//let private_ip = http://192.168.43.251:3001/ViGtory/signin
+let private_ip = "192.168.43.251"
+
+export const API_address = "http://"+private_ip+":4000";
+*/
+
+
+
+
+
 	export default { API_address: API_address }
