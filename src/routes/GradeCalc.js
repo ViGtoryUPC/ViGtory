@@ -537,7 +537,7 @@ class MagicInput extends React.Component {
 					}}
 					onFocus={(e)=>{
 						//e.currentTarget.select(); //Con currentTarget no selecciona el texto en Android
-						e.target.select();
+						setTimeout(()=>{e.target.select();}, 50); //El timeout es necesario por si una pantalla táctil detecta 2 pulsaciones muy seguidas que el usuario consideraría una sola
 					}}
 				/>{this.extra_str}
 
@@ -1034,7 +1034,7 @@ class TaulaCalcul extends React.Component {
 					<tr>
 						<th className="pe-0" style={this.changeAttr(header_style, "width", taula.smartTmanualF ?"28%":"48%")} ref={this.colwidth_refs[0]}>
 							<div className="d-flex justify-content-between align-items-end">
-								<span>{"Part"}</span>
+								<span>{"Part" /*"Criteri"*/ /*"Activitat"*/ /*"Avaluable"*/ }</span>
 
 
 								<ButtonGroup >
