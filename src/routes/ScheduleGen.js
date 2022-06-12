@@ -6,7 +6,7 @@ import * as html2canvas from 'html2canvas';
 //import ReactDOM from 'react-dom';
 import { Routes, Route, Link, useHistory, useNavigate } from "react-router-dom";
 
-import { Accordion, Button, Form, FloatingLabel, ListGroup, Card, Table, Spinner, ProgressBar } from 'react-bootstrap';
+import { Accordion, Button, Form, FloatingLabel, ListGroup, Card, Table, Spinner, ProgressBar, OverlayTrigger, Tooltip, ButtonGroup } from 'react-bootstrap';
 import { useAccordionButton } from 'react-bootstrap/AccordionButton';
 
 import NavBar from "../components/NavBar";
@@ -1457,7 +1457,12 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 			//this.updateLoadingStatus();
 		//},120);
 		
-
+		if (!((this.need_recompute==false) && (this.need_reorder==false))){
+			setTimeout(()=>{
+				this.horaris_render = <></>;
+				this.forceUpdate();
+			},110);
+		}
 		
 		setTimeout(()=>{
 			if (this.need_recompute) {
@@ -1474,6 +1479,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		
 
 		if (this.need_recompute){
+			//console.log("need_reorder: true");
 			this.need_reorder = true;
 			setTimeout(()=>{
 				this.combinacions_possibles = [];
@@ -1486,34 +1492,43 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				//this.eliminaSolapaments();
 
 				this.creaCombinacionsPossiblesIteratiu();
+				this.need_recompute = false;
 		}
-		this.need_recompute = false;
 		
 		setTimeout(()=>{
-		console.log(this.combinacions_possibles);
+		//console.log(this.combinacions_possibles);
+		//console.log(this.combinacions_possibles.length);
 
 		console.log("      Total combinacions provades:  "+(this.discarded_not_enough_assigns+this.discarded_overlap_count+this.combinacions_possibles.length));
 
 		console.log("--------------Poques assignatures: -"+this.discarded_not_enough_assigns);
-		console.log("          Combinacions resultants:  "+(this.discarded_overlap_count+this.combinacions_possibles.length));
+		//console.log("          Combinacions resultants:  "+(this.discarded_overlap_count+this.combinacions_possibles.length));
 		console.log("-----------------------Solapament: -"+this.discarded_overlap_count);
 		
 		console.log("Combinacions possibles resultants:  "+this.combinacions_possibles.length);
+
+			if (this.need_reorder){
+				this.render_horari_loading_status = "Ordenant d'acord amb les preferencies seleccionades...";
+				this.updateLoadingStatus();
+			}
 		},170);
 		//},130);
 
 
+		setTimeout(()=>{
 		if (this.need_reorder){
-			setTimeout(()=>{
+			/*setTimeout(()=>{
 				this.render_horari_loading_status = "Ordenant d'acord amb les preferencies seleccionades...";
 				this.updateLoadingStatus();
-			},180);
+			},180);*/
 				
-			setTimeout(()=>{
+			//setTimeout(()=>{
 			this.recopilaEstadistiquesIOrdena();
-			},200);
+			this.need_reorder = false;
+			//console.log("need_reorder: false");
+			//},200);
 		}
-		this.need_reorder = false;
+		},180);
 		//.log("NEED REORDER false");
 
 		/*
@@ -2148,6 +2163,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 						defaultValue={this.preferencies[CA+"_tardT_aviatF_"+MT]==true?1:0}
 						onChange={(e)=>{
 							this.preferencies[CA+"_tardT_aviatF_"+MT] = e.currentTarget.value==1?true:false;
+							//console.log("need_reorder: true");
 							this.need_reorder = true;
 							//console.log("NEED REORDER true");
 							this.savePreferencies();
@@ -2171,8 +2187,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 					key = {MT+"_"+CA+"_"+JSON.stringify(this.preferencies)+"_"+(new Date().toString())}
 					min={0} max={10} 
 					defaultVal={this.preferencies[CA+"_tard_aviat_imp_"+MT]} 
-					onChangeFunc={(newVal)=>{
-						this.need_reorder = true;
+					onChangeFunc={(newVal, usedByUser)=>{
+						if (usedByUser) this.need_reorder = true;
 						this.preferencies[CA+"_tard_aviat_imp_"+MT] = newVal;
 						this.savePreferencies();
 						//this.forceUpdate();
@@ -2243,9 +2259,10 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 			max={max} 
 			defaultVal={this.preferencies.max_assignatures} 
 			onChangeFunc={(newVal, usedByUser)=>{
-				this.need_recompute = true;
 				this.preferencies.max_assignatures = newVal; 
 				if (usedByUser){
+					//console.log("need_recompute: true");
+					this.need_recompute = true;
 					this.preferencies.max_assignatures_used_by_user = true;
 					this.savePreferencies();
 					//console.log("CLICKED!!!");
@@ -2267,8 +2284,9 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				this.savePreferencies();
 				//this.need_reorder = true;
 				//console.log("NEED REORDER IMPORTANTE: "+(this.need_reorder?"true":"false"));
+				//console.log("need_recompute: "+(this.need_recompute)+"     need_reorder: "+(this.need_reorder))
 				if ((this.need_recompute==false) && (this.need_reorder==false))
-					this.generaPossiblesHoraris();
+					if (usedByUser) this.generaPossiblesHoraris();
 				else
 					this.forceUpdate();
 			}}
@@ -2292,6 +2310,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 						defaultValue={this.preferencies["hores_mortes"]}
 						onChange={(e)=>{
 							this.preferencies["hores_mortes"] = e.currentTarget.value;
+							//console.log("need_reorder: true");
 							this.need_reorder = true;
 							//console.log("NEED REORDER true");
 							this.savePreferencies();
@@ -2329,8 +2348,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 					key = {"hores_mortes_"+JSON.stringify(this.preferencies)+"_"+(new Date().toString())}
 					min={0} max={10} 
 					defaultVal={this.preferencies["hores_mortes_imp"]} 
-					onChangeFunc={(newVal)=>{
-						this.need_reorder = true;
+					onChangeFunc={(newVal, usedByUser)=>{
+						if (usedByUser) this.need_reorder = true;
 						this.preferencies["hores_mortes_imp"] = newVal;
 						this.savePreferencies();
 						//this.forceUpdate();
@@ -2358,6 +2377,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 						defaultValue={this.preferencies["dies_lliures"]}
 						onChange={(e)=>{
 							this.preferencies["dies_lliures"] = e.currentTarget.value;
+							//console.log("need_reorder: true");
 							this.need_reorder = true;
 							//console.log("NEED REORDER true");
 							this.savePreferencies();
@@ -2396,8 +2416,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 					key = {"dies_lliures_"+JSON.stringify(this.preferencies)+"_"+(new Date().toString())}
 					min={0} max={10} 
 					defaultVal={this.preferencies["dies_lliures_imp"]} 
-					onChangeFunc={(newVal)=>{
-						this.need_reorder = true;
+					onChangeFunc={(newVal, usedByUser)=>{
+						if (usedByUser) this.need_reorder = true;
 						this.preferencies["dies_lliures_imp"] = newVal;
 						this.savePreferencies();
 						//this.forceUpdate();
@@ -2426,6 +2446,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 						defaultValue={this.preferencies["prioritza_matiT_tardaF"]==true?1:0}
 						onChange={(e)=>{
 							this.preferencies["prioritza_matiT_tardaF"] = e.currentTarget.value==1?true:false;
+							//console.log("need_reorder: true");
 							this.need_reorder = true;
 							//console.log("NEED REORDER true");
 							this.savePreferencies();
@@ -2448,8 +2469,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 					key = {"prioritza_matiT_tardaF_"+JSON.stringify(this.preferencies)+"_"+(new Date().toString())}
 					min={0} max={10} 
 					defaultVal={this.preferencies["prioritza_matiT_tardaF_imp"]} 
-					onChangeFunc={(newVal)=>{
-						this.need_reorder = true;
+					onChangeFunc={(newVal, usedByUser)=>{
+						if (usedByUser) this.need_reorder = true;
 						this.preferencies["prioritza_matiT_tardaF_imp"] = newVal;
 						this.savePreferencies();
 						//this.forceUpdate();
@@ -2573,6 +2594,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 										onClick={()=>{
 											let simulated = (total_flagged_count+((!assig.pool_flag)?1:-1));
 											if (simulated <= this.max_assignatures_select){
+												//console.log("need_recompute: true");
 												this.need_recompute = true;
 												assig.pool_flag = !assig.pool_flag;
 												total_flagged_count = simulated;
@@ -2658,6 +2680,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 										if ( ((!assig_marcada) && total_conviccio_assig_count<this.max_assignatures_result) || assig_marcada)
 											this.assig_grups[assig.sigles_ud].conviccio = !assig_marcada;
 
+										//console.log("need_recompute: true");
 										this.need_recompute = true;
 										
 										this.forceUpdate();
@@ -2716,6 +2739,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 												}*/
 												this.assig_grups[assig.sigles_ud].grups[nom_grup].conviccio = !grup_marcat;
 
+												//console.log("need_recompute: true");
 												this.need_recompute = true;
 
 												this.forceUpdate();
@@ -2766,12 +2790,20 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 					{this.pool_flagged.length ?<>
 						<br/><br/>
 
+						<p className="text-center" >
+							{"Adjusta els paràmetres segons les teves necessitats:"}
+						</p>
+
+
 						<ListGroup className="paramSelectList">
 							<ListGroup.Item 
 									className={"ps-2 pe-2 py-1 paramSelectAll"}
 							>
 							<div className="d-flex justify-content-between">
-								<h3 className="mb-0"><b>{"Altres paràmetres"}</b></h3>
+								<h3 className="mb-0"><b>{
+									//"Altres Paràmetres"
+									"Paràmetres"
+									}</b></h3>
 
 
 								<Button
@@ -2887,6 +2919,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 						<br/><br/>
 						<p className="text-center">
+							<ButtonGroup>
 							<Button
 								onClick={()=>{
 									/*window.document.getElementsByClassName("render_horari")[0].innerHTML =
@@ -3042,10 +3075,48 @@ console.log(clone_json);
 //}
 //func();
 
+								//className="pe-0"
 								}}
+								className="pe-1"
 							>
 								<b>{"Genera el"+((this.preferencies.max_horaris==1)?" millor horari possible" : ("s "+this.preferencies.max_horaris+" millors horaris possibles") )}</b>
+
+
+
 							</Button>
+							<Button className="ps-1 pe-1">
+								<OverlayTrigger
+									placement="top"
+									overlay={
+										<Tooltip style={{zIndex:"999999999"}}>
+										{"Depenent de la quantitat d'assignatures seleccionades i dels grups existents per a aquestes, la generació podria ser immediata o bé trigar fins a un parell de minuts."}
+										<br/><br/>
+										{"Recomanem seleccionar algun grup (no massa) com a preferent per a reduir el temps d'execució del generador."}
+										</Tooltip>
+									}
+									>
+									<p 
+										className="d-inline my-0 p-0"
+										style={{color:"white", backgroundColor:"#0d6efd", borderRadius:"1rem", cursor:"default"}}
+									>
+										<b><small 
+											style={{border:"2px solid white", borderRadius:"1rem", paddingLeft:"0.37rem", paddingRight:"0.37rem"}}
+										>
+											{"i"}
+										</small></b>
+										{
+											//"ⓘ" //Este no porque se ve pixelado...
+										}
+									</p>
+								</OverlayTrigger>
+
+							</Button>
+							</ButtonGroup>
+
+
+
+
+
 							<br/><br/>
 							{
 							//"Si has escollit una gran quantitat d'assignatures, podria trigar..."
@@ -3081,7 +3152,6 @@ console.log(clone_json);
 				</p>
 
 
-				<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 				<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 				<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>
 
