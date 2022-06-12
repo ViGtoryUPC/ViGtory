@@ -762,12 +762,19 @@ class IndividualComment extends React.Component {
 							<OverlayTrigger
 								placement="top"
 								overlay={
-									<Tooltip>
-									{date.toLocaleDateString('ca-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + ", a les " + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+									<Tooltip style={{zIndex:"999999999"}}>
+									{date.toLocaleDateString('ca-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) 
+									+ ", a les " +
+									 date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
 									</Tooltip>
 								}
 								><p className="text-muted float-end my-0"><small>
-									{date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + " - " + date.toLocaleDateString('ca-ES', {year: '2-digit', month: 'numeric', day: 'numeric' })}
+									{
+										date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+										//+ " - " +
+										+ " • " +
+									 	date.toLocaleDateString('ca-ES', {year: '2-digit', month: 'numeric', day: 'numeric' })
+									 }
 								</small></p>
 							</OverlayTrigger>
 
