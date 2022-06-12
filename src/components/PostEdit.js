@@ -931,6 +931,7 @@ class TextAreaInput extends React.Component {
 					ref={this.focusRef}
 					readOnly={false}
 					className={this.titleTbodyF ? "new_title" : "new_body mt-3"} 
+					maxLength={this.titleTbodyF ? "500" : "10000"}
 					type="text" 
 					as="textarea" 
 					name={this.titleTbodyF ? "titol" : "body"} 

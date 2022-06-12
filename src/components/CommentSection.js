@@ -410,13 +410,14 @@ class TextAreaInput extends React.Component {
 					readOnly={(!this.props.isStudent)
 					//false
 					}
-					type="text" 
+					type="text"
+					maxLength="5000"
 					as="textarea" 
 					name="body"
 					placeholder="Opino que... Afegeixo..."
 					onChange={(e) => {this.content_txt=e.currentTarget.value; this.validate_content_clientside(); this.props.global_validity_action();}}
 					required 
-					rows={this.props.parentTreplyF ? "5" : "3"}
+					rows={this.props.parentTreplyF ? "7" : "5"}
 					size="sm"
 					isInvalid={(!this.props.isStudent) || (!this.state.valid)}
 					style={{zIndex:"0", position:"relative"}}
