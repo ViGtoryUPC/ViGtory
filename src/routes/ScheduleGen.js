@@ -1498,14 +1498,17 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		setTimeout(()=>{
 		//console.log(this.combinacions_possibles);
 		//console.log(this.combinacions_possibles.length);
-
-		console.log("      Total combinacions provades:  "+(this.discarded_not_enough_assigns+this.discarded_overlap_count+this.combinacions_possibles.length));
-
-		console.log("--------------Poques assignatures: -"+this.discarded_not_enough_assigns);
-		//console.log("          Combinacions resultants:  "+(this.discarded_overlap_count+this.combinacions_possibles.length));
-		console.log("-----------------------Solapament: -"+this.discarded_overlap_count);
 		
-		console.log("Combinacions possibles resultants:  "+this.combinacions_possibles.length);
+			if (!((this.need_recompute==false) && (this.need_reorder==false))){
+				console.log("");
+				console.log("      Total combinacions provades:  "+(this.discarded_not_enough_assigns+this.discarded_overlap_count+this.combinacions_possibles.length));
+
+				console.log("--------------Poques assignatures: -"+this.discarded_not_enough_assigns);
+				//console.log("          Combinacions resultants:  "+(this.discarded_overlap_count+this.combinacions_possibles.length));
+				console.log("-----------------------Solapament: -"+this.discarded_overlap_count);
+				
+				console.log("Combinacions possibles resultants:  "+this.combinacions_possibles.length);
+			}
 
 			if (this.need_reorder){
 				this.render_horari_loading_status = "Ordenant d'acord amb les preferencies seleccionades...";
@@ -2287,6 +2290,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				//console.log("need_recompute: "+(this.need_recompute)+"     need_reorder: "+(this.need_reorder))
 				if ((this.need_recompute==false) && (this.need_reorder==false))
 					if (usedByUser) this.generaPossiblesHoraris();
+					else this.forceUpdate();
 				else
 					this.forceUpdate();
 			}}
