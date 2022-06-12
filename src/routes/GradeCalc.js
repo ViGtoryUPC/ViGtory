@@ -128,7 +128,7 @@ class MagicInput extends React.Component {
 		},30);*/
 	}
 	changeToReadMode(){
-		if (this.value == ""){
+		if (this.value === ""){
 			setTimeout(()=>{
 				//if (e.currentTarget.value == ""){e.currentTarget.value = "???"}
 					this.value = "???";
@@ -142,6 +142,12 @@ class MagicInput extends React.Component {
 			this.readTeditF = true;
 			this.forceUpdate();
 		},30);
+	}
+	cleanTrailingSpace(e){
+		//Limpieza de texto (eliminamos espacios finales que sobren)
+
+		e.currentTarget.value = e.currentTarget.value.replace(/\s+$/,"");
+		this.value = e.currentTarget.value;
 	}
 
 
@@ -180,16 +186,42 @@ class MagicInput extends React.Component {
 	}
 
 
+	spacingCleanup(e){
+		//Limpieza de texto (eliminamos espaciados duplicados; finales no porque el user debería poder separar sus palabras con espacios)
+
+		if (this.type == "text"){
+			if (
+				e.currentTarget.value.match(/(\r\n|\n|\r|\t|\s+)/gm)
+				||
+				e.currentTarget.value.match(/\s+$/)
+			){
+				let previous_value = e.currentTarget.value;
+				let selectionStart = e.currentTarget.selectionStart;
+
+				e.currentTarget.value = 
+					e.currentTarget.value
+						.replace(/(\r\n|\n|\r|\t|\s+)/gm, " ")
+						.replace(/\s+$/," ");
+						
+				let previous_char_code = previous_value.charAt(selectionStart-1).charCodeAt();
+				let new_char_code = e.currentTarget.value.charAt(selectionStart-1).charCodeAt();
+				console.log(new_char_code);
+				/*if (need_recoil && (char_code == 32)) selectionStart-=1;*/
+				if (previous_value.match(/(\r\n|\n|\r|\t|\s+)/gm) && (new_char_code != 32) && (previous_char_code != new_char_code)) selectionStart-=1;
+
+				e.currentTarget.selectionStart = selectionStart;
+				e.currentTarget.selectionEnd = e.currentTarget.selectionStart;
+			}
+		}
+	}
+
 	changeValueLocally(e){
 		if (this.type == "number"){
 			e.currentTarget.value = Math.max(this.min, e.currentTarget.value);
 			e.currentTarget.value = Math.min(this.max, e.currentTarget.value);
 		}
 		if (this.type == "text"){
-			//Limpieza de texto (eliminamos espaciados duplicados y finales)
-			//...pues tampoco va a poder ser :))))) Porque Android hace cosas raras :)))))))))
-			//e.currentTarget.value = e.currentTarget.value.replace(/(\r\n|\n|\r|\t|\s+)/gm, " ").replace(/\s*$/,"");
-
+			this.spacingCleanup(e);
 			e.currentTarget.value = e.currentTarget.value.slice(0, this.max);
 		}
 
@@ -383,6 +415,7 @@ class MagicInput extends React.Component {
 						fontWeight: "inherit",
 						//overflowX: "visible",
 						overflowY: "hidden",
+						//overflowY: "visible",
 						//lineHeight: (lineHeight/2)+"px"
 						//lineHeight: lineHeight.toString()
 						lineHeight: lineHeight,
@@ -410,12 +443,22 @@ class MagicInput extends React.Component {
 					defaultValue={this.value}
 
 					onKeyUp={(e)=>{
+							//console.log(e.target.value)
+							//console.log(e)
 						//alert(e.key + "_" + e.keyCode)
 						//229 es el código que equivaldría en Android al Shift+Enter de PC
 						//Como hace cosas raras, haremos que los users solo puedan introducirlo mediante copia-pega (total, tampoco lo deberían a necesitar)
 						//LO RETIRO :)))) 229 viene delante de todos y cada uno de los carácteres que se pulsen en android :))))))))
 						//if (e.keyCode === 229) return;
-						if ((e.key === 'Enter' || e.keyCode === 13 /*|| e.keyCode === 229*/) && (!e.shiftKey)/* && (e.key !== "Unidentified")*/){
+
+
+
+						/*
+						if ((e.key === 'Enter' || e.keyCode === 13 
+							//|| e.keyCode === 229
+						) && (!e.shiftKey)
+							// && (e.key !== "Unidentified")
+						){
 							this.gotSizesFirstTime = false;
 							this.changeToReadMode();
 						}
@@ -423,11 +466,50 @@ class MagicInput extends React.Component {
 						else{
 							this.changeValueLocally(e);
 						}
+						*/
+
+						if (this.type == "number" || (this.isTitle) || ((this.type == "text" && (e.currentTarget.value.length >= this.max)))){
+							if (e.key === 'Enter'){
+								this.gotSizesFirstTime = false;
+								this.changeToReadMode();
+							}
+						}
 					}}
 					onPaste={(e)=>{
 						this.changeValueLocally(e);
 					}}
-					onChange={(e)=>{/*
+					onChange={(e)=>{
+						
+						//Estos inputs son monolínea y no necesitan más que este tratado
+						if (this.type == "number" || (this.isTitle)){
+							this.changeValueLocally(e);
+							return;
+						}
+
+						//if (this.type == "text" || (!this.isTitle))
+						//console.log(e.target.value.charAt(e.target.selectionStart-1).charCodeAt())
+						let key_code = e.currentTarget.value.charAt(e.currentTarget.selectionStart-1).charCodeAt();
+						//console.log(key_code);
+
+						if (key_code === 10){
+							e.currentTarget.value = this.value;
+							this.gotSizesFirstTime = false;
+							this.cleanTrailingSpace(e);
+							this.changeToReadMode();
+						}
+						else{
+							this.changeValueLocally(e);
+						}
+
+						/*this.value = e.currentTarget.value;
+						this.manageEditableIcon();
+						this.getTextSpanSizes();
+						this.updateFunc(this.value);*/
+
+
+
+
+						/*
 							if (this.type == "number"){
 								e.currentTarget.value = Math.max(this.min, e.currentTarget.value);
 								e.currentTarget.value = Math.min(this.max, e.currentTarget.value);
@@ -441,14 +523,22 @@ class MagicInput extends React.Component {
 							this.updateFunc(this.value);
 							//this.forceUpdate();
 					*/
-						if (this.type == "number") this.changeValueLocally(e);
+						//if (this.type == "number") this.changeValueLocally(e);//////////
+
+						/*else{
+							console.log(e.target.value)
+						}*/
 					
 					}}
-					onBlur={()=>{
+					onBlur={(e)=>{
 						this.gotSizesFirstTime = false;
+						this.cleanTrailingSpace(e);
 						this.changeToReadMode();
 					}}
-					onFocus={(e)=>{e.currentTarget.select();}}
+					onFocus={(e)=>{
+						//e.currentTarget.select(); //Con currentTarget no selecciona el texto en Android
+						e.target.select();
+					}}
 				/>{this.extra_str}
 
 
@@ -1051,37 +1141,45 @@ class TaulaCalcul extends React.Component {
 
 
 								<ButtonGroup >
-									{i>0 ?
+									{//i>0 ?
 										<Button
 											className="py-0 px-1 btn-light up_down"
 											size="sm"
+											disabled={!(i>0)}
 											onClick={()=>{
-												this.moveRowFromIndexToIndex(i, i-1);
-												this.forceUpdate();
+												if (i>0){
+													this.moveRowFromIndexToIndex(i, i-1);
+													this.forceUpdate();
+												}
 											}}
 										>
 											<b className="py-0">
 												<span style={{fontFamily: "monospace", fontSize: "1rem"}}>▲</span>
 											</b>
 										</Button>
-									:""}
+									//:""
+									}
 									
 
 									
-									{i<taula.calculs.length-1 ?
+									{//i<taula.calculs.length-1 ?
 										<Button
 											className="py-0 px-1 btn-light up_down"
 											size="sm"
+											disabled={!(i<taula.calculs.length-1)}
 											onClick={()=>{
-												this.moveRowFromIndexToIndex(i, i+1);
-												this.forceUpdate();
+												if (i<taula.calculs.length-1){
+													this.moveRowFromIndexToIndex(i, i+1);
+													this.forceUpdate();
+												}
 											}}
 										>
 											<b className="py-0">
 												<span style={{fontFamily: "monospace", fontSize: "1rem"}}>▼</span>
 											</b>
 										</Button>
-									:""}
+									//:""
+									}
 								</ButtonGroup >
 
 								</div>
@@ -1091,7 +1189,7 @@ class TaulaCalcul extends React.Component {
 
 
 
-								<MagicInput ref={this.row_noms_refs[i]} /*key={row.nom}*/ original_value={row.nom} max={32} updateFunc={(v)=>{row.nom = v; this.forceUpdate()}} showEditable={false} colwidth_ref={this.colwidth_refs[0]} />{this.name_selector(i)}
+								<MagicInput ref={this.row_noms_refs[i]} /*key={row.nom}*/ original_value={row.nom} max={48} updateFunc={(v)=>{row.nom = v; this.forceUpdate()}} showEditable={false} colwidth_ref={this.colwidth_refs[0]} />{this.name_selector(i)}
 							</td>
 
 
@@ -1160,7 +1258,7 @@ class TaulaCalcul extends React.Component {
 										this.addRowAndUpdate(
 											{
 												nom: "???",
-												percentatge: (percentatge_total < 100)?(100-percentatge_total).toFixed(2) : 0,
+												percentatge: (percentatge_total < 100) ? parseFloat((100-percentatge_total).toFixed(2)) : 0,
 												nota: 5,
 												confianca: 100,
 												objectiuTassolitF: true

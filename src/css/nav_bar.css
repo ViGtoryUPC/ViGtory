@@ -1,4 +1,8 @@
 
+.global_navbar{
+	padding-top: 0.75rem !important;
+}
+
 .global_navbar.navbar{
 	margin-top: -15px;
 	padding-bottom: 0px;
@@ -76,6 +80,10 @@
 .navbar-toggler{
 	margin-top: 0.5rem;
 }
+/*#navbarScroll > div.w-100.d-flex.justify-content-center > div > a{
+	max-width: 40%;
+	display: inline-flex;
+}*/
 
 
 
