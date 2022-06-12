@@ -896,8 +896,7 @@ class IndividualComment extends React.Component {
 										<p className="text-center mb-0">
 										<Button
 											size="sm"
-											variant="light"
-											className="py-0 border-0"
+											className="py-0 border-0 open_reply_button"
 											onClick={()=>{
 												this.ReadMore = true;
 												this.forceUpdate();
