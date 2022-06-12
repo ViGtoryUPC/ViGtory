@@ -675,6 +675,11 @@ class IndividualComment extends React.Component {
 		this.deleted = props.comm_info.esborrat ? props.comm_info.esborrat : false;
 		this.edited = props.comm_info.editat ? props.comm_info.editat : false;
 		this.edited_now = false;
+
+
+		this.ReadMore_threshold = 500; //chars
+		this.need_ReadMore = this.body.length > this.ReadMore_threshold;
+		this.ReadMore = false;
 	}
 
 
@@ -879,7 +884,34 @@ class IndividualComment extends React.Component {
 								</span>
 								{this.deleted ? "" : 
 									<>{this.edited?<br/>:""}
-									{this.body}
+
+
+
+
+									{(this.need_ReadMore && (!this.ReadMore)) ? 
+										<>
+										{this.body.slice(0, this.ReadMore_threshold)}
+										{"..."}
+										<br/>
+										<p className="text-center mb-0">
+										<Button
+											size="sm"
+											variant="light"
+											className="py-0 border-0"
+											onClick={()=>{
+												this.ReadMore = true;
+												this.forceUpdate();
+											}}
+										>
+											Llegeix més
+										</Button>
+										</p>
+										</>
+										:
+										this.body
+									}
+
+
 									</>
 								}
 							</Card.Text>

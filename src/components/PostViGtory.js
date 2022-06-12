@@ -178,6 +178,11 @@ class InitialScreen extends React.Component {
 		this.showPost = true;
 		this.postedit_ref = React.createRef();
 		this.edited = props.post_info.editat ? props.post_info.editat : false;
+
+		
+		this.ReadMore_threshold = 1000; //chars
+		this.need_ReadMore = this.props.post_info.body.length > this.ReadMore_threshold;
+		this.ReadMore = false;
 	}
 
 
@@ -431,7 +436,31 @@ class InitialScreen extends React.Component {
 									<>{"<contingut editat>"}<br/></>
 								:""}
 							</span>
-							{this.props.post_info.body}
+
+
+
+							{(this.need_ReadMore && (!this.ReadMore)) ? 
+								<>
+								{this.props.post_info.body.slice(0, this.ReadMore_threshold)}
+								{"..."}
+								<br/>
+								<p className="text-center mb-0">
+								<Button
+									size="sm"
+									variant="light"
+									className="py-0 border-0"
+									onClick={()=>{
+										this.ReadMore = true;
+										this.forceUpdate();
+									}}
+								>
+									Llegeix més
+								</Button>
+								</p>
+								</>
+								:
+								this.props.post_info.body
+							}
 
 
 
