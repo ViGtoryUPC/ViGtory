@@ -777,6 +777,11 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 	creaCombinacionsPossiblesIteratiu(){
 
+		this.combinacions_possibles = [];
+		this.total_combinations_count = 0;
+		this.discarded_not_enough_assigns = 0;
+		this.discarded_overlap_count = 0;
+
 		//let pool_flagged = [];
 
 		//setTimeout(()=>{
@@ -795,10 +800,14 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 			else i = 0;
 		}
 		//Con esto, los que tengan conviccio quedan al principio del todo, y su orden original queda restablecido
-		for (let i=0; i < conviccio_count; i++){pool_flagged.push(pool_flagged.pop());}
+		for (let i=0; i < conviccio_count; i++){
+			//console.log("push pop "+i.toString());
+			pool_flagged.unshift(pool_flagged.pop());
+		}
 
 
 		//console.log(conviccio_count);
+		//console.log(pool_flagged);
 		
 		//},139);
 
@@ -806,28 +815,28 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		let combinacions_possibles = [[]]; //Auxiliar
 
 
-		let iteracions_status = 0;
+		//let iteracions_status = 0;
 		for (let i=0; i < pool_flagged.length; i++){
 
 			let grups = {};
 
 			setTimeout(()=>{
 
-			//Comprobamos los grupos de la asignatura. Si hay alguno con convicción, solo usaremos esos
-			let grups_orig = this.assig_grups[pool_flagged[i].sigles_ud].grups;
-			Object.keys(grups_orig).map(key => {
-				if (grups_orig[key].conviccio){
-					//let grups_key = grups_orig[key];
-					//grups = {};
-					//grups[key] = grups_key;
-					grups[key] = grups_orig[key];
-					return true;
-				}
-				return false;
-			});
-			if (!(Object.keys(grups).length>0)) grups = {...grups_orig};
-			//console.log("GRUPS SELECCIONATS:")
-			//console.log(grups);
+				//Comprobamos los grupos de la asignatura. Si hay alguno con convicción, solo usaremos esos
+				let grups_orig = this.assig_grups[pool_flagged[i].sigles_ud].grups;
+				Object.keys(grups_orig).map(key => {
+					if (grups_orig[key].conviccio){
+						//let grups_key = grups_orig[key];
+						//grups = {};
+						//grups[key] = grups_key;
+						grups[key] = grups_orig[key];
+						return true;
+					}
+					return false;
+				});
+				if (!(Object.keys(grups).length>0)) grups = {...grups_orig};
+				//console.log("GRUPS SELECCIONATS:")
+				//console.log(grups);
 
 
 				this.render_horari_loading_status = "Computant les possibles combinacions per a "
@@ -848,33 +857,48 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 			setTimeout(()=>{
 
-			let combinacions_possibles_length = combinacions_possibles.length;
-
-			//PRUNING
-			//Ejecutamos el bucle hacia atrás para poder eliminar lo antes posible las combinaciones que no van a llegar a la cantidad deseada de asignaturas sin temer por que cambien los índices (j) de la lista.
-			for (let j = combinacions_possibles_length-1; j >= 0; j--){
-			//for (let j=0;   j < combinacions_possibles_length; j++){
+				//let combinacions_possibles_length = combinacions_possibles.length;
 
 				//PRUNING
-				//Si la cantidad de asignaturas que todavía se pueden añadir no conseguirían ni tan solo en su totalidad hacer que la combinación actual llegase a la cantidad de asignaturas elegida por el usuario, eliminamos la combinación
-				if ((combinacions_possibles[j].length+(pool_flagged.length-i)) < this.preferencies.max_assignatures){
-					combinacions_possibles.splice(j,1);
-					//this.discarded_not_enough_assigns++;
-				}
-				else{
+				//Ejecutamos el bucle hacia atrás para poder eliminar lo antes posible las combinaciones que no van a llegar a la cantidad deseada de asignaturas sin temer por que cambien los índices (j) de la lista.
+				for (let j = combinacions_possibles.length-1; j >= 0; j--){
+				//for (let j = combinacions_possibles_length-1; j >= 0; j--){
+				//for (let j=0;   j < combinacions_possibles_length; j++){
 
-					//Si hay convicción, la asignatura se añadirá siempre. Si no la hay, se añadirá una iteración adicional en la que esta asignatura no se haya añadido
-
-					if (!this.assig_grups[pool_flagged[i].sigles_ud].conviccio){
-						//Añadimos una entrada duplicada para simular un caso en el que no se añade la asignatura
-						combinacions_possibles.push([...combinacions_possibles[j]]);
+					//PRUNING
+					//Si la cantidad de asignaturas que todavía se pueden añadir no conseguirían ni tan solo en su totalidad hacer que la combinación actual llegase a la cantidad de asignaturas elegida por el usuario, eliminamos la combinación
+					if ((combinacions_possibles[j].length+(pool_flagged.length-i)) < this.preferencies.max_assignatures){
+						combinacions_possibles.splice(j,1);
+						//this.discarded_not_enough_assigns++;
 					}
+					else{
 
-					//Si todavía se puede añadir alguna asignatura
-					if (combinacions_possibles[j].length < this.preferencies.max_assignatures){
+						//Si hay convicción, la asignatura se añadirá siempre. Si no la hay, se añadirá una iteración adicional en la que esta asignatura no se haya añadido
+/*
+						if (this.assig_grups[pool_flagged[i].sigles_ud].conviccio == false){
+							//Añadimos una entrada duplicada para simular un caso en el que no se añade la asignatura
 
-						
 
+							console.log("entrada fantasma para "+pool_flagged[i].sigles_ud);
+							console.log("aplicada a "+combinacions_possibles.length+" combinaciones");
+							//console.log(JSON.stringify(combinacions_possibles,null,2));
+							console.log(JSON.stringify(combinacions_possibles).replaceAll("],","],\n\t").replaceAll("[[","[\n\t[").replaceAll("]]","]\n]"));
+							
+
+
+							//PRUNING (mirroreado de otra acción de pruning)
+							//Si la cantidad de asignaturas que todavía se podría añadir en la siguiente iteración no conseguirían ni tan solo en su totalidad hacer que la combinación adicional llegase a la cantidad de asignaturas elegida por el usuario, no añadimos la iteración adicional
+							if (!((combinacions_possibles[j].length+(pool_flagged.length-(i+1))) < this.preferencies.max_assignatures)){
+								combinacions_possibles.push([...combinacions_possibles[j]]);
+							}
+
+						}
+*/
+						//Si todavía se puede añadir alguna asignatura a esta combinación
+						//if (combinacions_possibles[j].length < this.preferencies.max_assignatures){
+
+					//	
+						//Por cada grupo de la asignatura a añadir
 						for (let k=0; k < Object.keys(grups).length; k++){
 
 							//PRUNING
@@ -889,21 +913,39 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 							}
 
-							if ((combinacions_possibles[j].length+1) == this.preferencies.max_assignatures){
-								if (solapa) this.discarded_overlap_count++;
+							//Si la combinación tendría la cantidad adecuada de asignaturas pero solapa, la descartamos
+							//if ((combinacions_possibles[j].length+1) == this.preferencies.max_assignatures){
+								//if (solapa) this.discarded_overlap_count++;
+							//}
+
+
+
+							if (solapa){
+								//Si la combinación tendría la cantidad adecuada de asignaturas pero solapa, la contamos como descartada
+								if ((combinacions_possibles[j].length+1) == this.preferencies.max_assignatures){
+									this.discarded_overlap_count++;
+								}
 							}
-
-
-							if (!solapa){
+							//Si el nuevo grupo no solapa con la combinación actual
+							//if (!solapa){
+							else{
 								this.total_combinations_count++;
 
+								//Copiamos la combinación actual y añadimos el grupo de la asignatura nueva
 								let nova_entrada = [...combinacions_possibles[j]];
 								nova_entrada.push({
 									sigles_ud: pool_flagged[i].sigles_ud,
-									nom_grup: Object.keys(grups)[k] //pool_flagged[i].nom_grup
+									nom_grup: Object.keys(grups)[k]
 								});
+
+								//PRUNING (exit-condition)
+								//Si la entrada tiene el tamaño que el usuario ha pedido, la guardamos en la lista de combinaciones definitivas, y no continuamos esta rama
 								if (nova_entrada.length == this.preferencies.max_assignatures)
 									this.combinacions_possibles.push(nova_entrada);
+
+								//El else significa
+								//if (nova_entrada.length < this.preferencies.max_assignatures)
+								//porque el anterior if ya se asegura de que no haya entradas más largas
 								else{
 									combinacions_possibles.push(nova_entrada);
 									this.discarded_not_enough_assigns++;
@@ -913,29 +955,41 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 						}
 						
 						
-						
-
+						//PRUNING
+						//Si la asignatura para la que hemos añadido una combinación adicional por cada grupo suyo tiene convicción, significa que esta debería incluirse en todas las combinaciones, por lo que eliminamos la combinación original a la que esta asignatura ha sido añadida, ya que originalmente no contenía ningún grupo de esta asignatura
+						//Si todos sus grupos solapaban y esta asignatura no ha podido ser añadida, esta rama acaba aquí 
+						if (this.assig_grups[pool_flagged[i].sigles_ud].conviccio == true){
+							combinacions_possibles.splice(j,1);
+						}
+							
+					//
+						//}
+						/*else{
+							this.discarded_not_enough_assigns++;
+						}*/	
 					}
-					/*else{
-						this.discarded_not_enough_assigns++;
-					}*/	
+
+					//Si es la primera iteración de todas (1a iteración aplicada a combinacions_possibles = [[]] ), significará que se ha añadido por lo menos 1 entrada, y que ya podemos eliminar la entrada auxiliar que pusimos al principio
+					
+					//if ((i==0) && (j==0) /*&& (combinacions_possibles_length==1) && (combinacions_possibles[0]==[])*/ ){
+					//if ( (i==0) && (j == (combinacions_possibles_length-1)) ){
+
+					//Siempre vamos a querer hacer esto en la primera iteración de todas, tras haber añadido la primera asignatura
+					/*if ( (i==0)  ){////////////////////////////////////
+						//combinacions_possibles.pop(); //NO!!! ESTO ELIMINA EL ÚLTIMO, NO EL PRIMERO!!! No sé cómo ha podido estar funcionando así hasta ahora
+
+						combinacions_possibles.shift(); //ESTO elimina el primer elemento!!!
+					}*/
+
+					
+					//Nope, no puede hacerse así; añade demasiado delay
+					//iteracions_status++;
+					//setTimeout(()=>{this.updateLoadingStatus()}, iteracions_status * 10);
+					//this.updateLoadingStatus();
 				}
 
-				//Si es la primera iteración de todas (1a iteración aplicada a combinacions_possibles = [[]] ), significará que se ha añadido por lo menos 1 entrada, y que ya podemos eliminar la entrada auxiliar que pusimos al principio
-				
-				//if ((i==0) && (j==0) /*&& (combinacions_possibles_length==1) && (combinacions_possibles[0]==[])*/ ){
-				if ( (i==0) && (j == (combinacions_possibles_length-1)) ){
-					combinacions_possibles.pop();
-				}
 
-				
-				//Nope, no puede hacerse así; añade demasiado delay
-				//iteracions_status++;
-				//setTimeout(()=>{this.updateLoadingStatus()}, iteracions_status * 10);
-				//this.updateLoadingStatus();
-			}
-
-
+			//console.log(JSON.stringify(combinacions_possibles)); //Este console.log no dice lo que debería decir
 			},140+i*2+1);
 		}
 		//this.total_combinations_count = combinacions_possibles.length; //Puesto aquí no sirve xd
@@ -1413,7 +1467,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		//Console.log para verificar métricas
 		for(let i=0; i < Math.min(this.preferencies.max_horaris, this.combinacions_possibles.length); i++){
 			console.log("\n\n\nESTADÍSTIQUES #"+(i+1)+" (puntuació "+this.computaPuntuacio(this.combinacions_possibles[i].puntuacions, max_estadistiques)+"):")
-			console.log(this.combinacions_possibles[i]["puntuacions"]);
+			console.log(JSON.stringify(this.combinacions_possibles[i]["puntuacions"],null,2).replaceAll("{\n","").replaceAll("\n}","").replaceAll("\"","").replaceAll("_"," "));
 		}
 
 
@@ -1481,12 +1535,12 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		if (this.need_recompute){
 			//console.log("need_reorder: true");
 			this.need_reorder = true;
-			setTimeout(()=>{
+			/*setTimeout(()=>{
 				this.combinacions_possibles = [];
 				this.total_combinations_count = 0;
 				this.discarded_not_enough_assigns = 0;
 				this.discarded_overlap_count = 0;
-			},129);
+			},129);*/
 
 				//this.creaCombinacionsPossibles([], true);
 				//this.eliminaSolapaments();
@@ -2262,13 +2316,45 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 			max={max} 
 			defaultVal={this.preferencies.max_assignatures} 
 			onChangeFunc={(newVal, usedByUser)=>{
-				this.preferencies.max_assignatures = newVal; 
+				this.preferencies.max_assignatures = newVal;
+
+
 				if (usedByUser){
+
+/*
+					//Math.min(this.max_assignatures_result, this.preferencies.max_assignatures)
+					if (Math.min(this.max_assignatures_result, this.preferencies.max_assignatures) < total_conviccio_assig_count){
+
+						let counter = total_conviccio_assig_count - Math.min(this.max_assignatures_result, this.preferencies.max_assignatures);
+
+						for (let i=this.pool_flagged.length-1; (i>=0)&&(counter>0); i--){
+							let assig = this.pool_flagged[i];
+
+							let assig_marcada = this.assig_grups[assig.sigles_ud].conviccio;
+								
+							if (assig_marcada){
+								this.assig_grups[assig.sigles_ud].conviccio = !assig_marcada;
+								counter--;
+							}
+
+							//console.log("need_recompute: true");
+							//this.need_recompute = true;
+							
+							//this.forceUpdate();
+						}
+
+					}
+*/
+
+
+
+
 					//console.log("need_recompute: true");
 					this.need_recompute = true;
 					this.preferencies.max_assignatures_used_by_user = true;
 					this.savePreferencies();
 					//console.log("CLICKED!!!");
+					this.forceUpdate();
 				}
 			}}
 			mostra_limits={true}
@@ -2647,17 +2733,17 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 					{this.pool_flagged.length ?<>
 						<br/><br/>
-						<p className="text-center" >
+						<p className="text-center" key={"marca_assigs_"+new Date().toString()} >
 							{"Marca quines assignatures "+
 
 							(
-								((this.max_assignatures_result-total_conviccio_assig_count)<=0)?"(no pots marcar cap més) ":("(fins a "+
+								((Math.min(this.max_assignatures_result, this.preferencies.max_assignatures)-total_conviccio_assig_count)<=0)?"(no pots marcar cap més) ":("(fins a "+
 
 									(
-										((this.max_assignatures_result-total_conviccio_assig_count) < this.max_assignatures_result) ? 
-											((this.max_assignatures_result-total_conviccio_assig_count)+" més") 
+										((Math.min(this.max_assignatures_result, this.preferencies.max_assignatures)-total_conviccio_assig_count) < Math.min(this.max_assignatures_result, this.preferencies.max_assignatures)) ? 
+											((Math.min(this.max_assignatures_result, this.preferencies.max_assignatures)-total_conviccio_assig_count)+" més") 
 										: 
-											this.max_assignatures_result
+										Math.min(this.max_assignatures_result, this.preferencies.max_assignatures)
 									)+") "
 
 								)
@@ -2681,7 +2767,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 									className={"ps-2 pe-2 py-1 assigSelectAll"+(assig_marcada?" flagged":"")}
 									
 									onClick={()=>{
-										if ( ((!assig_marcada) && total_conviccio_assig_count<this.max_assignatures_result) || assig_marcada)
+										if ( ((!assig_marcada) && total_conviccio_assig_count<Math.min(this.max_assignatures_result, this.preferencies.max_assignatures)) || assig_marcada)
 											this.assig_grups[assig.sigles_ud].conviccio = !assig_marcada;
 
 										//console.log("need_recompute: true");
@@ -2728,6 +2814,12 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 									//let grup = this.assig_grups[assig.sigles_ud].grups[nom_grup];
 									let grup_marcat = this.assig_grups[assig.sigles_ud].grups[nom_grup].conviccio;
 
+									let conviccio_count = 
+										(Object.keys(this.assig_grups[assig.sigles_ud].grups).filter(key=>{
+											return this.assig_grups[assig.sigles_ud].grups[key].conviccio
+										})).length
+									;
+
 									return(<>
 
 										<ListGroup.Item 
@@ -2761,14 +2853,21 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 												>
 												<p className="text-end mb-1">
 													<span className="d-inline">
-														{grup_marcat ? "Preferent 🔵":
+														{grup_marcat ? 
+
+														(conviccio_count>1 ? "Preferent" : "Hi participaré segur")+" 🔵"
+
+														:
 														
-														"No "+(
-															((Object.keys(this.assig_grups[assig.sigles_ud].grups).filter(key=>{
-																return this.assig_grups[assig.sigles_ud].grups[key].conviccio
-															})).length>0)?"preferent":
-															"ho tinc clar"
-															)+" ⚪"
+														"No "
+														+
+														(
+															(conviccio_count>0)
+															? /*((conviccio_count==1)? */
+															"hi participaré"
+															/*:"preferent")*/
+															: "ho tinc clar"
+														)+" ⚪"
 														}
 													</span>
 												</p>
