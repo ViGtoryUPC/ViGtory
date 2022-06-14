@@ -119,31 +119,57 @@ async function sendComentari(newTeditF, post_id, text, _id, postEditAct){
 			if (resp.ok){
 
 				response = resp.json();
+
 				
+				/*
 				if (newTeditF){
 				//window.location.reload();
+				//console.log(response.IdComentari);
+				//response.IdComentari; //puede ser interesante; requeriría usar el padre y podríamos intentar añadirlo artificialmente desde el front sin re-cargar la página
+*/
+
+
+				/*
 				window.location.href = 
 						window.location.protocol+"//"+window.location.host+
 						(BaseName==="/"?"":BaseName) + "/post/"+post_id+"?ord=-1&cri=0" //Secció de comentaris de l'aportació actual, amb vista als comentaris més recents
+				*/
+					/*
+					//placeCommentAsChild
+					postEditAct(_id?_id:null, response.IdComentari, text);
 				}
+
 				else{postEditAct(text);}
+			*/
 			
 			
-			
-					}
+			}
 			
 			return response;
 		}, 
 		resp => { //NO ha sido posible conectar con la API
+			//console.log(resp);
 			window.alert(err_mssg);
 			return;
 		}
 	)
-	/*.then(
+	.then(
 		data => {
 			//console.log(data);
+
+			if (newTeditF){
+				//placeCommentAsChild
+				postEditAct(_id?_id:null, data.IdComentari, text);
+			}
+
+			else{
+				//markAsEdited
+				postEditAct(text);
+			}
+
+
 		}
-	);*/
+	);
 }
 
 
@@ -531,7 +557,11 @@ class CommentEdit extends React.Component{
 			return;
 		}
 		
-		let postEditAct = this.props.postEditAct ? (n_b)=>{this.props.postEditAct(n_b)} : ()=>{};
+		let postEditAct = this.props.postEditAct ? 
+		(n_b)=>{this.props.postEditAct(n_b)}
+		:
+		(parent_id, comment_id, text)=>{this.props.placeCommentAsChild(parent_id, comment_id, text)};
+
 		sendComentari(this.props.newTeditF, this.props.post_id, this.new_body_ref.current.content_txt, this.props.comm_id, postEditAct);
 
 	}
@@ -674,6 +704,7 @@ class IndividualComment extends React.Component {
 
 		this.body = props.comm_info.body ? props.comm_info.body : "";
 		this.deleted = props.comm_info.esborrat ? props.comm_info.esborrat : false;
+		this.deleted_now = false;
 		this.edited = props.comm_info.editat ? props.comm_info.editat : false;
 		this.edited_now = false;
 
@@ -688,6 +719,7 @@ class IndividualComment extends React.Component {
 	hideComment(){
 		//this.showComment = false;
 		this.deleted = true;
+		this.deleted_now = true;
 		this.forceUpdate();
 	}
 	markAsEdited(new_body){
@@ -703,7 +735,9 @@ class IndividualComment extends React.Component {
 
 	render(){
 		this.body = this.edited_now ? this.body : (this.props.comm_info.body ? this.props.comm_info.body : "");
-		this.deleted = this.props.comm_info.esborrat ? this.props.comm_info.esborrat : false;
+
+		this.deleted = this.deleted_now ? this.deleted_now : (this.props.comm_info.esborrat ? this.props.comm_info.esborrat : false);
+
 		this.edited = this.edited_now ? this.edited_now : (this.props.comm_info.editat ? this.props.comm_info.editat : false);
 
 
@@ -755,7 +789,7 @@ class IndividualComment extends React.Component {
 								<strong className="text-muted d-inline">
 									<Link to={this.props.comm_info.esborrat?"/post/"+this.props.post_id:"/user/"+this.props.comm_info.userName} className="text-reset text-decoration-none username_nav px-1">
 										{false ? <img src="aaa" className="user_access_icon d-inline" /> : <></>}
-										<b>{this.props.comm_info.esborrat?"???":this.props.comm_info.userName}</b>
+										<b>{this.deleted/*this.props.comm_info.esborrat*/?"???":this.props.comm_info.userName}</b>
 									</Link>
 								</strong>
 								<span className="text-muted">
@@ -958,8 +992,10 @@ class IndividualComment extends React.Component {
 			</div>
 			
 
-			<CommentEdit newTeditF={false} comm_id={this.props.comm_info._id} post_id={this.props.post_id} parentTreplyF={false} depth={this.depth+1} body={this.body} postEditAct={(n_b)=>{this.markAsEdited(n_b)}} isStudent={this.props.isStudent} />
-			<CommentEdit newTeditF={true} comm_id={this.props.comm_info._id} post_id={this.props.post_id} parentTreplyF={false} depth={this.depth+1} isStudent={this.props.isStudent} />
+			<CommentEdit newTeditF={false} key={"edit_"+this.props.post_id+"_"+this.props.comm_info._id+"_"+(new Date().toString())} comm_id={this.props.comm_info._id} post_id={this.props.post_id} parentTreplyF={false} depth={this.depth+1} body={this.body} postEditAct={(n_b)=>{this.markAsEdited(n_b)}} isStudent={this.props.isStudent} placeCommentAsChild={(parent_id, comment_id, text)=>{this.props.placeCommentAsChild(parent_id, comment_id, text)}} />
+
+			
+			<CommentEdit newTeditF={true} key={"edit_new_"+this.props.post_id+"_"+this.props.comm_info._id+"_"+(new Date().toString())} comm_id={this.props.comm_info._id} post_id={this.props.post_id} parentTreplyF={false} depth={this.depth+1} isStudent={this.props.isStudent} placeCommentAsChild={(parent_id, comment_id, text)=>{this.props.placeCommentAsChild(parent_id, comment_id, text)}} />
 
 			</Accordion>
 
@@ -1047,6 +1083,43 @@ class InitialScreen extends React.Component {
 		}
 	}
 
+	placeCommentAsChild(parent_id, comment_id, text){
+		let comment = {
+			aportacio: this.props.post_id,
+			body: text,
+			createdAt: new Date(),
+			depth: 0,
+			editat: false,
+			esborrat: false,
+			replies: [],
+			userName: Cookie.get("username"),
+			votUsuari: 0,
+			votes: 0,
+			_id: comment_id
+		}
+		//console.log(parent_id);
+		//console.log(comment_id);
+
+		let searchParent = (tree, depth)=>{
+			if (parent_id == null){
+				tree.replies.unshift(comment);
+				return;
+			}
+			for (let i=0; i<tree.replies.length; i++){
+				if (tree.replies[i]._id == parent_id){
+					comment.depth = depth+1;
+					tree.replies[i].replies.unshift(comment);
+					return;
+				}
+				else searchParent(tree.replies[i], depth+1);
+			}
+		}
+
+		searchParent(this.comment_tree, 0);
+
+		this.forceUpdate();
+	}
+
 
 	renderLinearizedTree(tree){
 		
@@ -1057,7 +1130,7 @@ class InitialScreen extends React.Component {
 					//<br/><br/>
 			return (
 				<>
-					<IndividualComment comm_info={comment} post_id={this.props.post_id} isStudent={this.isStudent} />
+					<IndividualComment key={this.props.post_id+"_"+comment._id+"_"+(new Date().toString())} comm_info={comment} post_id={this.props.post_id} isStudent={this.isStudent} placeCommentAsChild={(parent_id, comment_id, text)=>{this.placeCommentAsChild(parent_id, comment_id, text)}} />
 					{this.renderLinearizedTree(comment)}
 				</>
 			);
@@ -1085,6 +1158,7 @@ class InitialScreen extends React.Component {
 				//console.log(data.comentaris[i].createdAt);
 				this.placeCommentInTree(data.comentaris[i], base_tree, 0);
 			}
+			//console.log(base_tree);
 
 			if (ord==1 && cri==0){
 				this.comment_tree = base_tree;
@@ -1110,6 +1184,15 @@ class InitialScreen extends React.Component {
 	
 	render(){
 		
+		let new_comm_edit = 
+			<Accordion className={"m-0"+((this.comment_tree.replies.length > 0)?"mb-2":"")} defaultActiveKey={""}>
+				<p className="text-center" style={{marginBottom: "-0.5rem", zIndex: "6", position: "relative"}} >
+					<ScreenToggleNewCommEdit eventKey={"accord_new_comment_"+this.props.post_id} parentTreplyF={true}/>
+				</p>
+				<CommentEdit key={"edit_"+this.props.post_id+"_"+(new Date().toString())} newTeditF={true} comm_id={null} post_id={this.props.post_id} parentTreplyF={true} isStudent={this.isStudent} placeCommentAsChild={(parent_id, comment_id, text)=>{this.placeCommentAsChild(parent_id, comment_id, text)}} />
+			</Accordion>
+		;
+
 
 		return(
 			<>
@@ -1120,7 +1203,7 @@ class InitialScreen extends React.Component {
 					<h5 className="align-self-end mb-0 fw-bold">Comentaris:</h5>
 
 					<div className="my_dropdown_selector ordre_dropdown align-self-end">
-						<OrdreDropdown current_ordre={this.props.current_ordre} current_criteri={this.props.current_criteri} reoder_comments={() => {this.reoder_comments();}} ref={this.ordcriDrop_ref} location={this.props.location} />
+						<OrdreDropdown current_ordre={this.props.current_ordre} current_criteri={this.props.current_criteri} reoder_comments={() => {this.reoder_comments();}} ref={this.ordcriDrop_ref} location={this.props.location} placeCommentAsChild={(parent_id, comment_id, text)=>{this.placeCommentAsChild(parent_id, comment_id, text)}} />
 					</div>
 				</div>
 
@@ -1142,14 +1225,12 @@ class InitialScreen extends React.Component {
 						<>
 
 
-							<Accordion className="m-0 mb-2" defaultActiveKey={""}>
-								<p className="text-center" style={{marginBottom: "-0.5rem", zIndex: "6", position: "relative"}} >
-									<ScreenToggleNewCommEdit eventKey={"accord_new_comment_"+this.props.post_id} parentTreplyF={true}/>
-								</p>
-								<CommentEdit newTeditF={true} comm_id={null} post_id={this.props.post_id} parentTreplyF={true} isStudent={this.isStudent} />
-							</Accordion>
+
+							{new_comm_edit}
 
 							{this.renderLinearizedTree(this.comment_tree)}
+
+
 
 						</>:<>
 
@@ -1163,13 +1244,11 @@ class InitialScreen extends React.Component {
 								<br/>
 							</p>
 
-							<Accordion className="m-0" defaultActiveKey={""}>
-								<p className="text-center" style={{marginBottom: "-0.5rem", zIndex: "6", position: "relative"}} >
-									<ScreenToggleNewCommEdit eventKey={"accord_new_comment_"+this.props.post_id} parentTreplyF={true}/>
-								</p>
-								<CommentEdit newTeditF={true} comm_id={null} post_id={this.props.post_id} parentTreplyF={true} isStudent={this.isStudent} />
-							</Accordion>
+							{new_comm_edit}
+
 							<br/>
+
+
 
 						</>
 					}
