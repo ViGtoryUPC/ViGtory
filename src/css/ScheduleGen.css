@@ -30,7 +30,16 @@
 
 
 
-
+.setmanes_tooltip.tooltip.show {
+	opacity: 1;
+	white-space: pre-wrap !important;
+	/*max-width: 100% !important;*/
+}
+.setmanes_tooltip .tooltip-inner {
+	/*background-color: red !important;*/
+    max-width: none; 
+	text-align: left !important;
+}
 
 
 
@@ -124,7 +133,11 @@
 }
 
 
-
+.manual_hover{
+	/*color: #fff;*/
+	background-color: #0b5ed7 !important;
+	border-color: #0a58ca !important;
+}
 
 
 

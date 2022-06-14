@@ -6,7 +6,7 @@ import * as html2canvas from 'html2canvas';
 //import ReactDOM from 'react-dom';
 import { Routes, Route, Link, useHistory, useNavigate } from "react-router-dom";
 
-import { Accordion, Button, Form, FloatingLabel, ListGroup, Card, Table, Spinner, ProgressBar, OverlayTrigger, Tooltip, ButtonGroup } from 'react-bootstrap';
+import { Accordion, Button, Form, FloatingLabel, ListGroup, Card, Table, Spinner, ProgressBar, OverlayTrigger, Tooltip, ButtonGroup, Dropdown } from 'react-bootstrap';
 import { useAccordionButton } from 'react-bootstrap/AccordionButton';
 
 import NavBar from "../components/NavBar";
@@ -1681,6 +1681,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 				<br/>
 
 
+
 				{
 					this.combinacions_a_mostrar.map((combinacio, i) => {
 						return(<>
@@ -2065,7 +2066,64 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 							<th className="px-0" style={i==0?{borderLeft:"none", borderTop:"none", width:"15%"}:{backgroundColor:"#3488bb", color:"white", width:"auto", border:"1px solid #30577b"}}>
 								{i==0 ?
 									<span id={"span_posicio_horari_"+(i+1)}>
-										{dia}
+									<div className="d-flex justify-content-between">
+									
+
+										<p className="d-inline mb-0" style={{position:"relative", left:"-0.5rem", top:"-0.5rem"}}>
+											<OverlayTrigger
+												placement="top"
+												overlay={
+												<Tooltip style={{zIndex:"999999999"}} className="setmanes_tooltip">
+
+													<b>
+													{"La notació \":sXY\", si és present, representa la setmana (X), i l'ordre (Y)."}
+													</b>
+
+													<br/>
+													
+													{[
+														"\ts1: Només es fa classe la 1a i la 3a setmana de cada mes.", 
+														"\ts2: Només es fa classe la 2a i la 4a setmana de cada mes.", 
+														"\tsX1: Només es fa classe la 1a o la 2a setmana de cada mes, segons X.", 
+														"\tsX2: Només es fa classe la 3a o la 4a setmana de cada mes, segons X.",
+
+													].map((text, i, textlist) => {
+														return (
+														<>
+															<b>{text.split(":")[0]}{":"}</b>
+															{text.split(":")[1]}
+															{i<textlist.length-1 ? <Dropdown.Divider className="mt-1 mb-1" /> : ""}
+														</>
+													);})}
+
+
+												</Tooltip>
+												}
+												>
+												<p 
+													className="d-inline my-0 p-0"
+													style={{color:"white", backgroundColor:"#0d6efd", borderRadius:"1rem", cursor:"default"}}
+												>
+													<b><small 
+														style={{border:"2px solid white", borderRadius:"1rem", paddingLeft:"0.37rem", paddingRight:"0.37rem"}}
+													>
+														{"i"}
+													</small></b>
+													{
+														//"ⓘ" //Este no porque se ve pixelado...
+													}
+												</p>
+											</OverlayTrigger>
+										</p>
+
+
+										<span>{dia}&nbsp;</span>
+										
+										<span></span>
+										<span></span>
+										<span></span>
+
+									</div>
 									</span>
 									:
 									dia
@@ -3180,14 +3238,32 @@ console.log(clone_json);
 
 								//className="pe-0"
 								}}
-								className="pe-1"
+
+
+								className="pe-1 shadow-none"
+
+								onMouseOver={()=>{
+									let btn = window.document.querySelector("#sched_gen_info_btn");
+
+									if (!(btn.classList.contains("manual_hover")))
+										btn.classList.add("manual_hover");
+								}}
+
+								onMouseOut={()=>{//onMouseOut//onBlur
+									let btn = window.document.querySelector("#sched_gen_info_btn");
+
+									if (btn.classList.contains("manual_hover"))
+										btn.classList.remove("manual_hover");
+								}}
+
+								
 							>
 								<b>{"Genera el"+((this.preferencies.max_horaris==1)?" millor horari possible" : ("s "+this.preferencies.max_horaris+" millors horaris possibles") )}</b>
 
 
 
 							</Button>
-							<Button className="ps-1 pe-1">
+							<Button id="sched_gen_info_btn" className="ps-1 pe-1 shadow-none">
 								<OverlayTrigger
 									placement="top"
 									overlay={
