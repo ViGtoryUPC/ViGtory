@@ -13,6 +13,7 @@ import NewsFeed from "./routes/NewsFeed";
 //import NavBar from "./components/NavBar";
 import {BaseName} from "./libraries/basename";
 import { init_mobile_check } from './libraries/mobile_check';
+import { init_modals } from './libraries/modal_window';
 
 
 
@@ -79,6 +80,7 @@ console.warn = logWarn;
 
 
 init_mobile_check();
+init_modals();
 
 
 

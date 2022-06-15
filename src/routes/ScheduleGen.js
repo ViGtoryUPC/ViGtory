@@ -255,23 +255,23 @@ class InitialScreen extends React.Component {
 
 
 			hores_mortes: "min", //"min", "max", "ignore"
-			hores_mortes_imp: 8,
+			hores_mortes_imp: 7,
 
-			dies_lliures: "prin", //"prin", "mitj", "final"
-			dies_lliures_imp: 8,
+			dies_lliures: "quan_s", //"prin", "mitj", "final", "quan_s", "prop_cap"
+			dies_lliures_imp: 9,
 
 			prioritza_matiT_tardaF: true,
-			prioritza_matiT_tardaF_imp: 8,
+			prioritza_matiT_tardaF_imp: 5,
 
 			comencar_tardT_aviatF_mati: true,
-			comencar_tard_aviat_imp_mati: 5,
+			comencar_tard_aviat_imp_mati: 2,
 			acabar_tardT_aviatF_mati: false,
-			acabar_tard_aviat_imp_mati: 2,
+			acabar_tard_aviat_imp_mati: 0,
 
 			comencar_tardT_aviatF_tarda: true,
-			comencar_tard_aviat_imp_tarda: 5,
+			comencar_tard_aviat_imp_tarda: 2,
 			acabar_tardT_aviatF_tarda: false,
-			acabar_tard_aviat_imp_tarda: 2
+			acabar_tard_aviat_imp_tarda: 0
 		}
 		if (setTreturnF){
 			this.preferencies = {...preferencies};
@@ -1078,17 +1078,18 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		//Normalizamos las puntuaciones en base a las máximas:
 		let norm = {};
 		for (let i=0; i<Object.keys(max).length; i++){
-			if (max[Object.keys(max)[i]] == 0)
-				norm[Object.keys(max)[i]] = 0;
+			let key = Object.keys(max)[i];
+			if (max[key] == 0)
+				norm[key] = 0;
 			else
-				norm[Object.keys(max)[i]] = estadistica[Object.keys(max)[i]] / max[Object.keys(max)[i]];
+				norm[key] = estadistica[key] / max[key];
 		}
 
 		//Hacemos el tratamiento de las puntuaciones normalizadas según las preferencias del usuario.
 
 		puntuacio += 
 
-			+ (  this.preferencies.hores_mortes_imp * ( 
+			(  this.preferencies.hores_mortes_imp * ( 
 				(this.preferencies.hores_mortes == "min") ?
 					(1-norm.hores_mortes)
 				:
@@ -1113,7 +1114,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 							case("quan_s"):
 								return norm.dies_lliures_total;
 							case("prop_cap"):
-								return (
+								let prop_cap = 
+								(
 									estadistica.dies_lliures_principi_setmana
 										+
 									estadistica.dies_lliures_final_setmana
@@ -1123,22 +1125,66 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 									max.dies_lliures_principi_setmana
 										+
 									max.dies_lliures_final_setmana
-								);
+								)
+								return isNaN(prop_cap) ? 0 : prop_cap;
 						}
 					})()
-				
-				 )
+				)
 
 
 
-			+ ( this.preferencies.prioritza_matiT_tardaF_imp * (
-				(this.preferencies.prioritza_matiT_tardaF == true) ? 
-					//norm.hores_classe_mati
-					estadistica.hores_classe_mati
-				:
-					//norm.hores_classe_tarda
-					estadistica.hores_classe_tarda
-			)/(estadistica.hores_classe_mati+estadistica.hores_classe_tarda) )
+			+ (()=>{
+				let percent_mati_tarda = 
+				( 
+					this.preferencies.prioritza_matiT_tardaF_imp 
+					* 
+						/*(
+							(this.preferencies.prioritza_matiT_tardaF == true) ? 
+								//norm.hores_classe_mati
+								estadistica.hores_classe_mati
+							:
+								//norm.hores_classe_tarda
+								estadistica.hores_classe_tarda
+						)
+					/
+						(
+							max.hores_classe_mati
+							+
+							max.hores_classe_tarda
+						)*/
+
+						(
+							(this.preferencies.prioritza_matiT_tardaF == true) ? 
+								//Restem la quantitat d'hores oposada a la que ens interessa a mode de penalització
+
+								//norm.hores_classe_mati
+								(max.hores_classe_mati>0 ?
+									(
+										estadistica.hores_classe_mati
+											-
+										estadistica.hores_classe_tarda
+									)
+									/ max.hores_classe_mati
+
+									: 0
+								)
+							:
+								//norm.hores_classe_tarda
+								(max.hores_classe_tarda>0 ?
+									(
+										estadistica.hores_classe_tarda
+											-
+										estadistica.hores_classe_mati
+									)
+									/ max.hores_classe_tarda
+
+									: 0
+								)
+						)
+				);
+				//console.log(percent_mati_tarda);
+				return isNaN(percent_mati_tarda) ? 0 : percent_mati_tarda;
+			})()
 
 
 
@@ -1178,7 +1224,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 		;
 
 
-
+		estadistica["FINAL"] = puntuacio;
 
 		return puntuacio;
 	}
@@ -1454,20 +1500,35 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 		}
 
+		//Computamos todas las puntuaciones 1 vez para no tener que repetir la operación durante el proceso de ordenación
+		this.combinacions_possibles.forEach(c => {
+			this.computaPuntuacio(c.puntuacions, max_estadistiques);
+		});
+
 		//Ordenamos de mayor a menor puntuación
 		this.combinacions_possibles = this.combinacions_possibles.sort((c1,c2)=>{
-			let val_1 = this.computaPuntuacio(c1.puntuacions, max_estadistiques);
+			/*let val_1 = this.computaPuntuacio(c1.puntuacions, max_estadistiques);
 			let val_2 = this.computaPuntuacio(c2.puntuacions, max_estadistiques);
 
 			if (val_1 < val_2) return 1;
-			if (val_1 > val_2) return -1;
+			if (val_1 > val_2) return -1;*/
+
+			if (c1.puntuacions.FINAL < c2.puntuacions.FINAL) return 1;
+			if (c1.puntuacions.FINAL > c2.puntuacions.FINAL) return -1;
 			return 0;
 		});
 
 		//Console.log para verificar métricas
 		for(let i=0; i < Math.min(this.preferencies.max_horaris, this.combinacions_possibles.length); i++){
-			console.log("\n\n\nESTADÍSTIQUES #"+(i+1)+" (puntuació "+this.computaPuntuacio(this.combinacions_possibles[i].puntuacions, max_estadistiques)+"):")
-			console.log(JSON.stringify(this.combinacions_possibles[i]["puntuacions"],null,2).replaceAll("{\n","").replaceAll("\n}","").replaceAll("\"","").replaceAll("_"," "));
+			/*console.log("\n\n\nESTADÍSTIQUES #"+(i+1)+" (puntuació "+this.computaPuntuacio(this.combinacions_possibles[i].puntuacions, max_estadistiques)+"):")
+
+			console.log(JSON.stringify(this.combinacions_possibles[i]["puntuacions"],null,2).replaceAll("{\n","").replaceAll("\n}","").replaceAll("\"","").replaceAll("_"," "));*/
+
+			console.log("\n\n\nESTADÍSTIQUES #"+(i+1)+" (puntuació: "+this.combinacions_possibles[i].puntuacions.FINAL+"):")
+
+			console.log(JSON.stringify(this.combinacions_possibles[i]["puntuacions"],null,2).replaceAll("{\n","").replaceAll("\n}","").replaceAll("\"","").replaceAll("_"," ")
+			.replace(/^.*FINAL:.*$/mg, ""));
+
 		}
 
 
