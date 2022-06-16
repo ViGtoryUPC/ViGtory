@@ -986,7 +986,7 @@ class TaulaCalcul extends React.Component {
 		if (this.props.main_ref.current) this.props.main_ref.current.saveChanges();
 		return(<>
 			<div className="d-flex justify-content-between">
-				<h5 className="mb-0 px-2 pt-1 pb-1" style={taula.nom.length>0 ? {backgroundColor:"rgba(11,94,215,1)", color:"white", borderTopLeftRadius:"0.5rem", borderTopRightRadius:"0.5rem"} : {}}>
+				<h5 className="mb-0 px-2 pt-1 pb-1" style={/*taula.nom.length>0 ?*/ {backgroundColor:"rgba(11,94,215,1)", color:"white", borderTopLeftRadius:"0.5rem", borderTopRightRadius:"0.5rem"} /*: {}*/}>
 					<Button
 						className="me-1 py-0 px-1 btn-danger"
 						size="sm"
@@ -999,7 +999,10 @@ class TaulaCalcul extends React.Component {
 						</b>
 					</Button>
 
-					{taula.nom ? <br/>:""}
+					{
+						//taula.nom ? <br/>:""
+						<br/>
+					}
 
 					<b>
 						{
@@ -1082,7 +1085,7 @@ class TaulaCalcul extends React.Component {
 
 								<OverlayTrigger
 									overlay={
-										<Tooltip className="text-center mb-2" style={{zIndex: "99999"}}>
+										<Tooltip className="text-center mb-2" style={{zIndex: "999999999"}}>
 											{"La confiança que tens en treure exactament (o més) la nota que et proposem."}
 											<br/><br/>
 											{"Si, per exemple, amb la confiança al 100% necessitessis un 4; amb la confiança al 50% t'hauries d'esforçar com per a aconseguir un 8."}
