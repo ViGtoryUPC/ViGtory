@@ -62,6 +62,7 @@ class InitialScreen extends React.Component {
 			Cookie.delete("jwt");
 			this.props.navigate("/signin");
 		}
+		else this.props.navigate(eventKey);
 	}
 
 	/*updateData(data){
@@ -204,7 +205,7 @@ class InitialScreen extends React.Component {
 						>
 
 								<Link to={"/user/"+nom_usuari} className="text-reset text-decoration-none d-flex align-items-center">
-									<NavDropdown.Item>
+									<NavDropdown.Item eventKey={"/user/"+nom_usuari} >
 										<img src={profile_img} className="user_access_icon d-inline" />
 										El teu perfil
 									</NavDropdown.Item>
@@ -212,7 +213,7 @@ class InitialScreen extends React.Component {
 
 
 								<Link to="/settings/password" className="text-reset text-decoration-none d-flex align-items-center">
-									<NavDropdown.Item>
+									<NavDropdown.Item eventKey={"/settings/password"}>
 										<img src={settings_img} className="user_access_icon d-inline" />
 										Configuració d'usuari
 									</NavDropdown.Item>

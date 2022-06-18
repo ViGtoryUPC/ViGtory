@@ -584,7 +584,7 @@ class FitxersInput extends React.Component {
 
 			let new_file_list = new DataTransfer();
 			//let new_file_list = {};
-			console.log(this.inputRef.current.files);
+			//console.log(this.inputRef.current.files);
 
 			//let k = 0;
 			for (let j=0; j<this.inputRef.current.files.length; j++){
