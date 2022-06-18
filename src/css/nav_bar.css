@@ -11,6 +11,12 @@
 .global_navbar.navbar-expand-md .navbar-collapse{
 	align-self: flex-end;
 }
+/*.global_navbar.navbar-expand-md .navbar-collapse a{
+	height: 100%;
+	align-self: flex-end;
+}AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA*/
+
+
 
 .global_navbar.navbar-nav-scroll{
 	overflow-y: hidden;
@@ -77,6 +83,13 @@
 #navbarScroll > div.w-100.d-flex.justify-content-center > div{
 	width: 100%;
 }
+/*#navbarScroll > div.w-100.d-flex.justify-content-center > div>a{
+	display: flex;
+	width: 100%;
+	overflow: hidden;
+	height: max-content;
+	align-self: end;
+}AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA*/
 .navbar-toggler{
 	margin-top: 0.5rem;
 }
@@ -84,6 +97,12 @@
 	max-width: 40%;
 	display: inline-flex;
 }*/
+
+.global_navbar.navbar-light .navbar-nav .nav-link, .global_navbar.navbar-light .navbar-nav .show>a{
+	/*color: red !important;*/
+	height: 100%;
+}
+
 
 
 
