@@ -2247,7 +2247,10 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 													textDecorationLine:"underline",
 													//textDecorationStyle:"dotted"
 													}}>
-													{" grup "+fragments[i].nom_grup}
+													{//" grup "+fragments[i].nom_grup //Grupo computado por el generador
+													}
+													{fragments[i].codgrup //Grupo verdadero (reflejará clases coincidentes entre grupos)
+													}
 												</span>
 												{(x_set!="") ? <><br/>{x_set}</> : ""}
 											</>;
