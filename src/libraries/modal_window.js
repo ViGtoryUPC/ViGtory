@@ -11,6 +11,38 @@ import { useAccordionButton } from 'react-bootstrap/AccordionButton';
 
 
 
+/*
+ESTO FUNCIONA COMO SÍNCRONO EN LA CONSOLA DEL NAVEGADOR!!!!! (se detiene cambiando condition a true)
+
+var condition = false;
+
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function wait(){
+  if (!condition){
+    console.log("not condition")
+    await sleep(1000);
+    //setTimeout(wait, 1000);
+    await wait();
+  } else {
+    console.log("yes condition")
+  }
+}
+
+await wait();
+console.log("end");
+
+
+*/
+
+
+
+
+
+
+
 
 function removeExistingModals(){
 	let element = document.getElementById('my_modal_background');
@@ -54,8 +86,10 @@ const resolve_modal = (result)=>{
 		removeExistingModals();}
 	, 200);
 
-	console.log("modal resolve")
-	return result;
+	//console.log("modal resolve")
+
+	window.modalConfirmed = ()=>result;
+	//return result;
 }
 
 
@@ -178,7 +212,18 @@ function appendModalAndTriggerIt(text, confirmTalertF, accept_text="Sí, continu
 
 
 
-
+function sleep(ms){
+	return new Promise(resolve => setTimeout(resolve, ms));
+}
+async function waitForModalResolve(){
+	if (window.modalConfirmed() == null){
+		//console.log("waiting for modal interaction")
+		await sleep(500);
+		await waitForModalResolve();
+	} else {
+		//console.log("modal was interacted!")
+	}
+}
 
 
 
@@ -187,24 +232,30 @@ function appendModalAndTriggerIt(text, confirmTalertF, accept_text="Sí, continu
 
 const init_modals = ()=>{
 
-	window.alertModal = function(text) {
+	window.alertModal = async function(text) {
 
-		appendModalAndTriggerIt(text, false);
+		window.modalConfirmed = ()=>null;
 
+		await appendModalAndTriggerIt(text, false);
+		await waitForModalResolve();
 	};
 
 
-	window.confirmModal = function(text) {
+	window.confirmModal = async function(text) {
 
-		//window.modalConfirmed = ()=>false;
+		window.modalConfirmed = ()=>null;
 
-		return appendModalAndTriggerIt(text, true);
+		await appendModalAndTriggerIt(text, true);
+		await waitForModalResolve();
+
+		//await console.log(window.modalConfirmed());
+		return window.modalConfirmed();
 	};
 	
 }
 
 
-
+//if (await window.confirmModal("hello") === true) console.log("ÉXITO!!!");  //Hmmm...
 
 
 

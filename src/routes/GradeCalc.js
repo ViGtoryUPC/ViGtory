@@ -784,9 +784,10 @@ class TaulaCalcul extends React.Component {
 
 
 
-	confirmDeleteTable(){
+	/*async*/ confirmDeleteTable(){
 		return(
 			window.confirm(
+			/*await window.confirmModal(*/
 				"Segur que vols eliminar la taula actual?"+
 				"\n  Taula "+//(this.props.index+1)+
 				(this.props.main_ref.current.taules[this.props.index].nom ? ": "+this.props.main_ref.current.taules[this.props.index].nom 
@@ -796,8 +797,8 @@ class TaulaCalcul extends React.Component {
 	}
 
 
-	eliminaTaula(needConfirm){
-		if (!needConfirm || this.confirmDeleteTable()){
+	/*async*/ eliminaTaula(needConfirm){
+		if (!needConfirm || /*await*/ this.confirmDeleteTable()){
 			this.props.main_ref.current.taules.splice(this.props.index, 1);
 			this.props.main_ref.current.taules_ref.splice(this.props.index, 1);
 			if (this.props.main_ref.current) this.props.main_ref.current.saveChanges();

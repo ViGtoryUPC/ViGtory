@@ -75,6 +75,42 @@ async function requestData(route, needAuth){
 	console.log(jsondata);*/
 	//return jsondata;
 
+/*//EJEMPLO PARA LA DOCU
+	if (needAuth){
+		if (!Cookie.get("jwt")) return {};
+		headers.append("authorization", Cookie.get("jwt"));
+	}
+	return await fetch(
+		(API_address + route), {
+			method: "POST",
+			body: data,
+			headers: headers
+	})
+	.then(
+		resp => { //SÍ ha estat possible connectar amb l'API
+			if (resp.ok){//Si tot és correcte (status 200-299)
+				response = resp.json();
+				//Tractament addicional, si és necessari
+			}
+			else{
+				window.alert(resp.statusText); //Missatge d'error
+				return;
+			}
+			return response;
+		}, 
+		resp => { //NO ha estat possible connectar amb l'API
+			window.alert(err_mssg); //Missatge d'error
+			return;
+		}
+	)
+	.then(
+		data => {
+			if (data === undefined) return;
+			//Accions amb les dades rebudes de l'API
+			callback(data);
+			return data;
+		}
+	);*/
 
 }
 
