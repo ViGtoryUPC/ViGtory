@@ -1,0 +1,48 @@
+/*:root {
+	--tooltip-color: rgba(0,127,191,1);
+}*/
+
+
+.news_feed{
+	overflow: visible;
+}
+
+
+.timeline-Tweet-text{
+	font-size: 10px !important;
+}
+
+
+/* PANTALLA MÉS ALTA QUE BAIXA */
+@media screen and (orientation:portrait) {
+
+
+	.news_feed{
+		width: 90vw;
+	}
+
+}
+
+
+/* PANTALLA MÉS BAIXA QUE ALTA */
+@media screen and (orientation:landscape) {
+
+	.news_feed{
+		width: max(60vh, 300px);
+	}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

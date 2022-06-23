@@ -1,0 +1,172 @@
+/*:root {
+	--tooltip-color: rgba(0,127,191,1);
+}*/
+
+
+.schedule_gen{
+	overflow: visible;
+}
+
+
+
+.assignatura_selector .dropdown-menu.show{
+	padding: 0;
+	overflow-y: scroll;
+}
+.assignatura_selector .dropdown-item{
+	white-space: normal;
+}
+.assignatura_selector .dropdown-item.current_assignatura{
+	color: rgb(240, 240, 240);
+	background-color: rgba(0,127,191,0.8);
+	/*background-image: linear-gradient(rgba(255,255,255,1), rgba(127,191,223,1));*/
+	background-size: cover;
+}
+.assignatura_selector .dropdown-item.current_assignatura:hover{
+	color: rgb(240, 240, 240);
+	background-color: rgba(0,127,191,1);
+}
+
+
+
+
+.setmanes_tooltip.tooltip.show {
+	opacity: 1;
+	white-space: pre-wrap !important;
+	/*max-width: 100% !important;*/
+}
+.setmanes_tooltip .tooltip-inner {
+	/*background-color: red !important;*/
+    max-width: none; 
+	text-align: left !important;
+}
+
+
+
+
+
+
+
+
+
+.assigSelectAll{
+	
+	color: white;
+	/*width: fit-content;*/
+	background-color: #0d6efd;
+	/*border-bottom-left-radius: 0 !important;
+	border-bottom-right-radius: 0 !important;
+	border-top-left-radius: 0.5rem !important;
+	border-top-right-radius: 0.5rem !important;*/
+}
+
+.individualSelect{
+	background-color: rgba(13,110,253, 0.15);
+	border-radius: 0.5rem;
+}
+.individualSelect:hover{
+	/*background-color: rgba(13,110,253, 0.25);
+	cursor: pointer;*/
+	/*color: #0d6efd;*/
+}
+
+
+
+
+.assigSelectList{
+	margin: auto;
+}
+.assigSelectList .list-group-item{
+	cursor: pointer;
+	border-color: #0d6efd;
+	border-width: 0.15rem;
+}
+.assigSelectList .list-group-item:hover{
+	transition: 0.2s;
+	filter: brightness(0.98);
+	background-color: rgba(233,233,255,1);
+}
+.assigSelectList .list-group-item.flagged{
+	background-color: rgba(233,233,255,1);
+	border-width: 0.15rem;
+}
+.assigSelectList .list-group-item.flagged:hover{
+	transition: 0.2s;
+	filter: brightness(0.95);
+}
+
+
+.assigSelectList .list-group-item.assigSelectAll{
+	border-color: rgb(13, 110, 253);
+	border-width: 0.15rem;
+}
+.assigSelectList .list-group-item.assigSelectAll:hover{
+	background-color: rgb(6, 102, 220);
+	transition: 0.2s;
+	filter: brightness(0.98);
+}
+.assigSelectList .list-group-item.assigSelectAll.flagged{
+	background-color: rgb(6, 102, 220);
+	border-width: 0.15rem;
+}
+.assigSelectList .list-group-item.assigSelectAll.flagged:hover{
+	transition: 0.2s;
+	filter: brightness(0.95);
+}
+
+
+
+
+
+.paramSelectAll{
+	color: white;
+	background-color: rgb(13, 110, 253);
+}
+.paramSelectList .list-group-item{
+	/*cursor: auto;*/
+	border-color: rgb(13, 110, 253);
+	border-width: 0.15rem;
+}
+.paramSelectList .list-group-item.paramSelectAll{
+	border-color: rgb(13, 110, 253);
+	border-width: 0.15rem;
+}
+
+
+.manual_hover{
+	/*color: #fff;*/
+	background-color: #0b5ed7 !important;
+	border-color: #0a58ca !important;
+}
+
+
+
+
+/* PANTALLA MÉS ALTA QUE BAIXA */
+@media screen and (orientation:portrait) {
+
+
+	.schedule_gen{
+		width: 93vw;
+	}
+	.render_horari{
+		width: 93vw;
+	}
+	
+	
+
+}
+
+
+/* PANTALLA MÉS BAIXA QUE ALTA */
+@media screen and (orientation:landscape) {
+
+	.schedule_gen{
+		width: max(82vh, 315px);
+	}
+	.render_horari{
+		width: max(85vh, 325px);
+	}
+
+}
+

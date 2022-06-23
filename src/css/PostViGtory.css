@@ -2,7 +2,7 @@
 	--tooltip-color: rgba(0,127,191,1);
 }
 
-.card{
+.post{
 
 	overflow: visible;
 	--b_width: min(0.2vh, 0.4vw);
@@ -10,6 +10,70 @@
 	border-color: var(--b_color);
 	border-width: var(--b_width);
 
+}
+
+.post .dropdown-toggle {
+	background-color: rgba(0,0,0,0) !important;
+	border-color: rgba(0,0,0,0) !important;
+	padding: 0;
+	padding-left: 0.5rem;
+	padding-right: 0.5rem;
+	/*margin-left: 0.5rem;*/
+	margin-top: -0.25rem;
+	/*margin-right: -0.125rem;*/
+	margin-right: -0.5rem;
+}
+.post .dropdown-toggle:after {
+	display: none !important; 
+}
+.post .btn-check:focus+.btn-light, .btn-light:focus {
+    box-shadow: none !important;
+	background-color: rgba(0,0,0,0.1) !important;
+}
+.post .dropdown-toggle:after {
+	display: none !important; 
+}
+.post .btn-light {
+    /*color: #fff;*/
+    /*background-color: rgba(0,0,0,0) !important;
+    border-color: rgba(0,0,0,0) !important;*/
+}
+.post .btn-light:hover {
+    /*color: #fff;*/
+   	background-color: rgba(0,0,0,0.1) !important;
+    /*border-color: rgba(0,0,0,0) !important;*/
+}
+
+
+.post .dropdown-menu{
+	min-width: none;
+}
+.post .dropdown-menu.show{
+	margin-top: -0.25rem;
+	/*margin-right: -0.5rem;*/
+	width: fit-content !important;
+	/*padding: 0.2rem;*/
+	padding: 0rem;
+	border-width: 0.25rem;
+}
+.post .dropdown-item{
+	/*width: fit-content !important;*/
+	white-space: normal;
+	margin-right: 0;
+	padding-top: 0.075rem;
+	padding-bottom: 0.075rem;
+	padding-left: 0.25rem;
+}
+
+
+
+
+.delete_post_btn{
+	color: white !important;
+	background-color: #dc3545;
+}
+.delete_post_btn:hover{
+	background-color: #bb2d3b;
 }
 
 
@@ -42,17 +106,29 @@
 
 
 
-.votearrow{
-	width: 20px;
-	margin-left: 0.4vw;
-	margin-right: 0.4vw;
-}
-.votearrow:hover{
-	cursor: pointer;
+.tooltip_fitxers>.tooltip-inner {
+	text-align: start !important;
 }
 
 
 
+
+
+.sigles_ud_nav {
+	background-color: var(--bttn_color) !important;
+}
+.sigles_ud_nav:hover {
+	background-color: var(--bttn_color_hover) !important;
+}
+
+.username_nav {
+	background-color: rgb(222,233,244);
+	border-radius: 1rem;
+	filter: brightness(1);
+}
+.username_nav:hover {
+	filter: brightness(0.97);
+}
 
 
 
@@ -60,8 +136,11 @@
 /* PANTALLA MÉS ALTA QUE BAIXA */
 @media screen and (orientation:portrait) {
 
-	.card{
+	.post{
 		width: 90vw;
+	}
+	.post.individual{
+		width: 93vw;
 	}
 
 }
@@ -70,8 +149,11 @@
 /* PANTALLA MÉS BAIXA QUE ALTA */
 @media screen and (orientation:landscape) {
 
-	.card{
+	.post{
 		width: max(70vh, 300px);
+	}
+	.post.individual{
+		width: max(82vh, 315px);
 	}
 
 }

@@ -1,0 +1,55 @@
+
+.fitxersDownloadAmount{
+	
+	color: white;
+	width: fit-content;
+	background-color: #0d6efd;
+	border-top-left-radius: 0.5rem;
+	border-top-right-radius: 0.5rem;
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
+}
+
+.individualDownload{
+	background-color: rgba(13,110,253, 0.15);
+	border-radius: 0.5rem;
+}
+.individualDownload:hover{
+	background-color: rgba(13,110,253, 0.25);
+	cursor: pointer;
+	/*color: #0d6efd;*/
+}
+
+.fitxersDownloadList{
+	margin: auto;
+}
+.fitxersDownloadList .list-group-item{
+	border-color: #0d6efd;
+	border-width: 0.15rem;
+	border-bottom-width: 0.025rem;
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
+}
+.fitxersDownloadList button{
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+}
+
+/* PANTALLA MÉS ALTA QUE BAIXA */
+@media screen and (orientation:portrait) {
+
+	.fitxersDownloadList{
+		width: 90vw !important;
+	}
+
+}
+
+
+/* PANTALLA MÉS BAIXA QUE ALTA */
+@media screen and (orientation:landscape) {
+
+	.fitxersDownloadList{
+		width: max(70vh, 300px) !important;
+	}
+
+}

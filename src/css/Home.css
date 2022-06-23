@@ -1,0 +1,24 @@
+
+
+.home_title{
+	margin: auto;
+}
+
+/* PANTALLA MÉS ALTA QUE BAIXA */
+@media screen and (orientation:portrait) {
+
+	.home_title{
+		width: 92vw;
+	}
+
+}
+
+
+/* PANTALLA MÉS BAIXA QUE ALTA */
+@media screen and (orientation:landscape) {
+
+	.home_title{
+		width: max(80vh, 305px);
+	}
+
+}
