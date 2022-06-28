@@ -118,7 +118,15 @@ function ScreenTogglePostEdit({ children, eventKey, post_id, focusRef }){
 				switchScreen();
 				
 				if (!window.isMobileOrTablet())
-				setTimeout(()=>{focusRef();},100);
+					setTimeout(()=>{focusRef();},100);
+
+
+				/*setTimeout(()=>{
+					document.getElementById(
+						"post_edit_view_"+post_id
+						).scrollIntoView({behavior: 'smooth'});
+				},200);*/ //Resulta que no es necesario, gracias al focus :DDD
+	
 			}}
 			id={"open_accord_edit_post_"+post_id}
 		>

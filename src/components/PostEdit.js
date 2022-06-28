@@ -1211,7 +1211,7 @@ class InitialScreen extends React.Component {
 				:""
 				}
 
-				<Accordion.Collapse eventKey={((!this.props.new_post) ? ("accord_edit_post_"+this.props.post_info._id) : "accord_post_edit")} style={{zIndex: "5", position: "relative"}} >
+				<Accordion.Collapse id={((!this.props.new_post) ? ("post_edit_view_"+this.props.post_info._id) : "post_edit_view")} eventKey={((!this.props.new_post) ? ("accord_edit_post_"+this.props.post_info._id) : "accord_post_edit")} style={{zIndex: "5", position: "relative"}} >
 				<div>
 
 

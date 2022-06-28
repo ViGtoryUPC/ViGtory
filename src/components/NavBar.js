@@ -100,9 +100,9 @@ class InitialScreen extends React.Component {
 				<Container fluid>
 					<Navbar.Brand onClick={()=>{
 						//this.props.navigate("/") //Con la nueva implementación de Home va mal xd
-						window.location.href = 
+						/*window.location.href = 
 							window.location.protocol+"//"+window.location.host+
-							(BaseName==="/"?"":BaseName);
+							(BaseName==="/"?"":BaseName);*/
 						}}>
 						<Link to="/" className="text-decoration-none">
 							<img id="navbar_title_image" src={logo_ViGtory} className="mx-auto d-block" alt="ViGtory!" />

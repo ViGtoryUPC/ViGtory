@@ -148,7 +148,7 @@ async function getPostData(post_id){
 				//Aquí se podrían hacer cosas pero no es necesario
 			}
 			else{
-				window.alert(resp.statusText);
+				//window.alert(resp.statusText);
 				return;
 			}
 			
