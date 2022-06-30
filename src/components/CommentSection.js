@@ -560,7 +560,20 @@ class CommentEdit extends React.Component{
 		let postEditAct = this.props.postEditAct ? 
 		(n_b)=>{this.props.postEditAct(n_b)}
 		:
-		(parent_id, comment_id, text)=>{this.props.placeCommentAsChild(parent_id, comment_id, text)};
+		(parent_id, comment_id, text)=>{
+			setTimeout(()=>{
+				window.document.getElementById(
+					this.props.comm_id!=null ? 
+						"btn_accord_new_reply_"+this.props.comm_id
+					:
+						"btn_accord_new_comment_"+this.props.post_id
+				).click();
+			},100);
+	
+			setTimeout(()=>{
+				this.props.placeCommentAsChild(parent_id, comment_id, text);
+			},400);
+		};
 
 		sendComentari(this.props.newTeditF, this.props.post_id, this.new_body_ref.current.content_txt, this.props.comm_id, postEditAct);
 
@@ -649,6 +662,7 @@ function ScreenToggleNewCommEdit({ children, eventKey, parentTreplyF }){
 	return(<>
 
 		<Button 
+			id={"btn_"+eventKey}
 			onClick={switchScreen}
 			variant={parentTreplyF ? "primary" : "outline-primary"}
 			size={parentTreplyF ? "md" : "sm"}
@@ -665,7 +679,6 @@ function ScreenToggleNewCommEdit({ children, eventKey, parentTreplyF }){
 				{parentTreplyF ? "Nou comentari" : "Respon"}
 			</b>
 		</Button>
-
 	</>);
 }
 
@@ -676,6 +689,7 @@ function ScreenToggleCommEdit({ children, eventKey, comm_id }){
 	return(<>
 
 		<Dropdown.Item 
+			id={"btn_"+eventKey}
 			size="sm"
 			key={"edit_"+comm_id}
 			onClick={switchScreen}
@@ -718,18 +732,37 @@ class IndividualComment extends React.Component {
 
 	hideComment(){
 		//this.showComment = false;
+
+
+		
 		this.deleted = true;
 		this.deleted_now = true;
+		//this.forceUpdate();
+		
+
+		this.props.modifyCommentInTree(this.props.comm_info._id, false, null);
 		this.forceUpdate();
 	}
 	markAsEdited(new_body){
+		
 		this.edited = true;
 		this.edited_now = true;
 		this.body = new_body;
 		//useAccordionButton("accord_edit_comm_"+this.props.comm_info._id, null);
-		window.document.getElementById("open_accord_edit_comm_"+this.props.comm_info._id).click()
+		//window.document.getElementById("open_accord_edit_comm_"+this.props.comm_info._id).click()
 
-		this.forceUpdate();
+		//this.forceUpdate();
+		
+
+		setTimeout(()=>{
+			window.document.getElementById("open_accord_edit_comm_"+this.props.comm_info._id).click();
+		},100);
+
+		setTimeout(()=>{
+			this.props.modifyCommentInTree(this.props.comm_info._id, true, new_body);
+			this.forceUpdate();
+		},400);
+
 	}
 
 
@@ -1083,6 +1116,31 @@ class InitialScreen extends React.Component {
 		}
 	}
 
+
+	modifyCommentInTree(comment_id, editTdeleteF, newText){
+
+		let searchAndModify = (tree)=>{
+			for (let i=0; i<tree.replies.length; i++){
+				if (tree.replies[i]._id == comment_id){
+					if (editTdeleteF){
+						tree.replies[i].editat = true;
+						tree.replies[i].body = newText;
+					}
+					else
+						tree.replies[i].esborrat = true;
+						
+					return;
+				}
+				else searchAndModify(tree.replies[i]);
+			}
+		}
+
+		searchAndModify(this.comment_tree);
+
+		//this.forceUpdate();
+	}
+
+
 	placeCommentAsChild(parent_id, comment_id, text){
 		let comment = {
 			aportacio: this.props.post_id,
@@ -1100,7 +1158,7 @@ class InitialScreen extends React.Component {
 		//console.log(parent_id);
 		//console.log(comment_id);
 
-		let searchParent = (tree, depth)=>{
+		let searchParentAndAppendChild = (tree, depth)=>{
 			if (parent_id == null){
 				tree.replies.unshift(comment);
 				return;
@@ -1111,13 +1169,18 @@ class InitialScreen extends React.Component {
 					tree.replies[i].replies.unshift(comment);
 					return;
 				}
-				else searchParent(tree.replies[i], depth+1);
+				else searchParentAndAppendChild(tree.replies[i], depth+1);
 			}
 		}
 
-		searchParent(this.comment_tree, 0);
+		searchParentAndAppendChild(this.comment_tree, 0);
 
 		this.forceUpdate();
+
+		if (this.props.postRef.current){
+			//console.log("current found");
+			this.props.postRef.current.incrementCommentCount();
+		}
 	}
 
 
@@ -1130,7 +1193,7 @@ class InitialScreen extends React.Component {
 					//<br/><br/>
 			return (
 				<>
-					<IndividualComment key={this.props.post_id+"_"+comment._id+"_"+(new Date().toString())} comm_info={comment} post_id={this.props.post_id} isStudent={this.isStudent} placeCommentAsChild={(parent_id, comment_id, text)=>{this.placeCommentAsChild(parent_id, comment_id, text)}} />
+					<IndividualComment key={this.props.post_id+"_"+comment._id+"_"+(new Date().toString())} comm_info={comment} post_id={this.props.post_id} isStudent={this.isStudent} placeCommentAsChild={(parent_id, comment_id, text)=>{this.placeCommentAsChild(parent_id, comment_id, text)}} modifyCommentInTree={(comment_id, editTdeleteF, newText)=>{this.modifyCommentInTree(comment_id, editTdeleteF, newText)}} />
 					{this.renderLinearizedTree(comment)}
 				</>
 			);
@@ -1184,8 +1247,8 @@ class InitialScreen extends React.Component {
 	
 	render(){
 		
-		let new_comm_edit = 
-			<Accordion className={"m-0"+((this.comment_tree.replies.length > 0)?"mb-2":"")} defaultActiveKey={""}>
+		let new_comm_edit =
+			<Accordion className={"m-0"+((this.comment_tree.replies.length > 0)?" mb-2":"")} defaultActiveKey={""}>
 				<p className="text-center" style={{marginBottom: "-0.5rem", zIndex: "6", position: "relative"}} >
 					<ScreenToggleNewCommEdit eventKey={"accord_new_comment_"+this.props.post_id} parentTreplyF={true}/>
 				</p>
@@ -1227,6 +1290,7 @@ class InitialScreen extends React.Component {
 
 
 							{new_comm_edit}
+							
 
 							{this.renderLinearizedTree(this.comment_tree)}
 
@@ -1307,7 +1371,7 @@ function CommentSection(props){
 
 
 	return(
-		<InitialScreen post_id={props.post_id} location={location} ref={commentSection_ref} />
+		<InitialScreen post_id={props.post_id} location={location} ref={commentSection_ref} postRef={props.postRef} />
 	)
 }
 export default CommentSection;

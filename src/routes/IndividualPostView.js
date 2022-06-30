@@ -193,9 +193,11 @@ class InitialScreen extends React.Component {
 		this.params = new URLSearchParams();
 
 		this.isStudent = false;
+
+		this.postRef = React.createRef();
 	}
 
-
+	/*
 	renderPost(post_info) {
 		return (
 			<PostViGtory
@@ -204,7 +206,7 @@ class InitialScreen extends React.Component {
 			/>
 		);
 	}
-
+	*/
 
 	updatePageContent(data){
 
@@ -251,7 +253,13 @@ class InitialScreen extends React.Component {
 
 						return (
 						<>
-							<PostViGtory key={post_info._id} post_info={post_info} individualView={true} isStudent={this.isStudent} ></PostViGtory>
+							<PostViGtory
+								key={post_info._id}
+								post_info={post_info}
+								individualView={true}
+								isStudent={this.isStudent}
+								postRef={(i==0)?this.postRef:React.createRef()}
+							></PostViGtory>
 
 
 
@@ -322,7 +330,7 @@ class InitialScreen extends React.Component {
 
 
 
-							<CommentSection post_id={post_info._id} />
+							<CommentSection post_id={post_info._id} postRef={this.postRef} />
 
 
 

@@ -187,12 +187,19 @@ class InitialScreen extends React.Component {
 		this.postedit_ref = React.createRef();
 		this.edited = props.post_info.editat ? props.post_info.editat : false;
 
+		this.comment_count = this.props.post_info.comentaris ? this.props.post_info.comentaris : "0";
 		
 		this.ReadMore_threshold = 1000; //chars
 		this.need_ReadMore = this.props.post_info.body.length > this.ReadMore_threshold;
 		this.ReadMore = false;
 	}
 
+	incrementCommentCount(){
+		this.comment_count = parseInt(this.comment_count)+1;
+		this.comment_count = this.comment_count ? this.comment_count : "0";
+		//console.log("comment count incremented to "+this.comment_count);
+		this.forceUpdate();
+	}
 
 
 	hidePost(){
@@ -482,7 +489,7 @@ class InitialScreen extends React.Component {
 							<div className="d-inline-flex flex-grow">
 								&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 								<Link to={"/post/"+this.props.post_info._id} className="d-inline align-self-center text-reset text-decoration-none"><strong>
-									{this.props.post_info.comentaris?this.props.post_info.comentaris:"0"}{" Comentari"}{this.props.post_info.comentaris==1 ? "":"s"}
+									{this.comment_count/*this.props.post_info.comentaris?this.props.post_info.comentaris:"0"*/}{" Comentari"}{this.props.post_info.comentaris==1 ? "":"s"}
 								</strong></Link>
 							</div>
 						</div>
@@ -558,7 +565,7 @@ function PostViGtory(props){
 	}
 
 	return(
-		<InitialScreen post_info={props.post_info} individualView={props.individualView} navigate={navigateTo} isStudent={props.isStudent} />
+		<InitialScreen post_info={props.post_info} individualView={props.individualView} navigate={navigateTo} isStudent={props.isStudent} ref={props.postRef ? props.postRef : React.createRef()} />
 	)
 }
 export default PostViGtory;
