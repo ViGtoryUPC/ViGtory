@@ -55,6 +55,8 @@ class InitialScreen extends React.Component {
 
 		//console.log(min);
 		//console.log(max);
+
+		
 		
 		return(
 			<>
@@ -76,11 +78,18 @@ class InitialScreen extends React.Component {
 
 					let visual = (v==this.props.current_p) ? " visual_active" : " visual_inactive";
 
+					let smooth_scroll_to_top = ()=>{
+						if (v!=this.props.current_p){
+							//SMOOTH SCROLL TO TOP
+							document.querySelector("#new_post_btn").scrollIntoView({behavior: 'smooth'});
+						}
+					}
+
 					return (<>
 
 
 						{v==min ? 
-							<Link to={this.props.location+"?"+newParamsPage(params, 1)} className={linkstyle+" me-3"+visual}>
+							<Link to={this.props.location+"?"+newParamsPage(params, 1)} className={linkstyle+" me-3"+visual} onClick={()=>{smooth_scroll_to_top()}} >
 								<Pagination.First 
 								key={/*1*/0} 
 								title={1}
@@ -89,7 +98,7 @@ class InitialScreen extends React.Component {
 						: <></>}
 
 
-						<Link to={this.props.location+"?"+newParamsPage(params, v)} className={linkstyle+((limit<=o_limit) ? " me-1":" mx-1")+visual}>
+						<Link to={this.props.location+"?"+newParamsPage(params, v)} className={linkstyle+((limit<=o_limit) ? " me-1":" mx-1")+visual} onClick={()=>{smooth_scroll_to_top()}} >
 							<Pagination.Item 
 								key={v} 
 								active
@@ -98,7 +107,7 @@ class InitialScreen extends React.Component {
 
 
 						{v==max ? 
-							<Link to={this.props.location+"?"+newParamsPage(params, this.props.last_p)} className={linkstyle+((limit<=o_limit) ? " ms-3":" ms-3")+visual}>
+							<Link to={this.props.location+"?"+newParamsPage(params, this.props.last_p)} className={linkstyle+((limit<=o_limit) ? " ms-3":" ms-3")+visual} onClick={()=>{smooth_scroll_to_top()}} >
 								<Pagination.Last 
 								key={/*this.props.last_p*/-1} 
 								title={this.props.last_p}

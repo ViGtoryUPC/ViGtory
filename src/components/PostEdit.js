@@ -983,6 +983,7 @@ function ScreenTogglePostEdit({ children, eventKey, focusRef }){
 	
 	return(
 		<Button 
+			id="new_post_btn"
 			className="interactiveTogglePostEdit"
 			onClick={()=>{
 				switchScreen();
