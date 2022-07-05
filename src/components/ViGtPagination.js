@@ -80,8 +80,10 @@ class InitialScreen extends React.Component {
 
 					let smooth_scroll_to_top = ()=>{
 						if (v!=this.props.current_p){
-							//SMOOTH SCROLL TO TOP
-							document.querySelector("#new_post_btn").scrollIntoView({behavior: 'smooth'});
+							setTimeout(()=>{
+								//SMOOTH SCROLL TO TOP
+								document.querySelector("#new_post_btn").scrollIntoView({behavior: 'smooth'});
+							},500);
 						}
 					}
 
