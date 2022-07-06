@@ -2117,11 +2117,8 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 		return(
 		<>
-			{checkAll_T_onlyNext_F ? "" : 
-			<>
-				
-			</>
-			}
+			{checkAll_T_onlyNext_F ? ""
+			/*Estadísticas? No recuerdo por qué estaba esto aquí, pero de momento aquí se queda*/ : <></>}
 
 			<Table style={{tableLayout:"fixed", width:"100%", borderCollapse:"collapse"}}>
 		
@@ -2130,7 +2127,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 					<tr>
 						{dies.map((dia, i)=>{return(
 							<th className="px-0" style={i==0?{borderLeft:"none", borderTop:"none", width:"15%"}:{backgroundColor:"#3488bb", color:"white", width:"auto", border:"1px solid #30577b"}}>
-								{i==0 ?
+								{((i==0) && (checkAll_T_onlyNext_F)) ?
 									<span id={"span_posicio_horari_"+posicio/*(i+1)*/}>
 									<div className="d-flex justify-content-between">
 									

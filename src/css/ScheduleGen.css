@@ -29,7 +29,9 @@
 
 
 
-
+.setmanes_tooltip.tooltip {
+	white-space: pre-wrap !important;
+}
 .setmanes_tooltip.tooltip.show {
 	opacity: 1;
 	white-space: pre-wrap !important;
