@@ -1755,6 +1755,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 										setTimeout(()=>{
 											window.document.getElementById("span_posicio_horari_"+(i+1)).style.display = "none";
+											window.document.getElementById("span_text_horari_"+(i+1)).style.display = "none";
 										}, 50);
 
 										//console.log(window.document.getElementById("horari_"+(i+1)))
@@ -1790,6 +1791,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 										setTimeout(()=>{
 											window.document.getElementById("span_posicio_horari_"+(i+1)).style.display = "block";
+											window.document.getElementById("span_text_horari_"+(i+1)).style.display = "inline";
 										}, 150);
 
 
@@ -1819,7 +1821,10 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 								<thead>
 									<tr>
 										<th style={{backgroundColor:"#3488bb", color:"white", width:"auto", border:"1px solid #30577b", width:"75%"}}>
-											{"Assignatures de l'horari #"+(i+1)}
+											{"Assignatures"}
+											<span id={"span_text_horari_"+(i+1)}>
+												&nbsp;{"de l'horari #"+(i+1)}
+											</span>
 										</th>
 										<th style={{backgroundColor:"#3488bb", color:"white", width:"auto", border:"1px solid #30577b", width:"25%"}}>
 											{"Grups"}
@@ -2126,7 +2131,7 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 						{dies.map((dia, i)=>{return(
 							<th className="px-0" style={i==0?{borderLeft:"none", borderTop:"none", width:"15%"}:{backgroundColor:"#3488bb", color:"white", width:"auto", border:"1px solid #30577b"}}>
 								{i==0 ?
-									<span id={"span_posicio_horari_"+(i+1)}>
+									<span id={"span_posicio_horari_"+posicio/*(i+1)*/}>
 									<div className="d-flex justify-content-between">
 									
 

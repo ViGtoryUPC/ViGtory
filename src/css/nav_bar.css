@@ -128,7 +128,7 @@
 @media screen and (orientation:portrait) {
 
 	#navbar_title_image{
-		width: 25vw;
+		width: 22.5vw;
 	}
 
 }
@@ -138,7 +138,7 @@
 @media screen and (orientation:landscape) {
 
 	#navbar_title_image{
-		width: max(20vh, 125px);
+		width: max(17.5vh, 125px);
 	}
 
 }
