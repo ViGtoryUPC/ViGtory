@@ -2401,6 +2401,40 @@ emmagatzemmaIPassaANextAssig(sigles_ud, nom_grup, grups_assig_afegits, comprovar
 
 
 
+	trobaClassesDeLlargadaAbnormal(horaris){
+		//Auxiliar para facilitar la tarea de encontrar un ejemplo de solapamiento visual para la demostración
+
+		console.log("\nTROBANT HORARIS AMB DURACIÓ ABNORMAL:");
+		let abnormals = horaris.filter( (classe, i) => {
+			let duracio = this.hourStringToValue(classe.h_f)
+			-
+			this.hourStringToValue(classe.h_i);
+
+			if ((duracio != 2) && (classe.setmana !== null)){
+				console.log("(#"+(i+1)+")  "+classe.sigles_ud+" "+classe.codgrup+"   "+duracio+" hor"+(duracio!=1 ? "es":"a")+":");
+				console.log(classe);
+				
+				console.log("   solapa visualment amb:");
+				let solapaments = horaris.filter( (classe_, j) => {
+					if ((i!=j) && (classe.dia==classe_.dia) && this.horesSolapen(classe.h_i, classe.h_f, classe_.h_i, classe_.h_f) && (classe_.setmana !== null)){
+						console.log("(#"+(j+1)+")  "+classe_.sigles_ud+" "+classe_.codgrup);
+						console.log(classe_);
+					}
+				});
+
+				return(classe);
+			}
+		})
+		
+	}
+
+
+
+
+
+
+
+
 
 	
 	render(){
@@ -3437,6 +3471,8 @@ function ScheduleGen(props){
 
 			screen_ref.current.initialitzaHoraris(horaris);
 
+			//Auxiliar
+			//screen_ref.current.trobaClassesDeLlargadaAbnormal(horaris);
 		});
 	}, [window.location.href && new Date()]);
 
